@@ -1,0 +1,87 @@
+#ifndef ELEMENT_H
+#define ELEMENT_H
+//
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <queue>
+#include <deque>
+
+#include "stack.h"
+
+class Element {
+
+protected:
+    std::vector<std::string> outputs;
+    std::vector<std::pair<Element *, std::string>> outputSTEPointers;
+    //std::vector<Element *> outputSTEPointers;
+    std::vector<std::pair<Element *, std::string>> outputSpecelPointers;
+    std::map<std::string, bool> inputs;
+    std::string id;    
+    uint32_t int_id;    
+    bool reporting;
+    std::string report_code;
+    bool activated;
+    bool enabled;
+    bool marked;
+
+    // backport
+    bool cut;
+
+    
+public:
+
+    Element(std::string);
+    //Element(const Element &);
+    virtual ~Element();
+
+    bool setId(std::string);
+    bool setIntId(uint32_t);
+    inline std::string getId() {return id; }
+    inline uint32_t getIntId() {return int_id; }
+    bool setReporting(bool);
+    bool isReporting();
+    bool setReportCode(std::string);
+    std::string getReportCode();
+    virtual void enable(std::string) = 0;
+    virtual void disable() = 0;
+    void activate();
+    virtual bool deactivate();
+    inline bool isActivated() { return activated; }
+    inline bool isEnabled() {return enabled; }
+    virtual bool isSpecialElement() = 0;
+    virtual bool canActivateNoEnable();
+    std::vector<std::string> getOutputs();
+    std::vector<std::pair<Element *, std::string>> getOutputSTEPointers();
+    //std::vector<Element *> getOutputSTEPointers();
+    std::vector<std::pair<Element *, std::string>> getOutputSpecelPointers();
+    bool clearOutputs();
+    bool clearOutputPointers();
+    bool clearInputs();
+    std::map<std::string, bool> getInputs();
+    bool addOutput(std::string);
+    bool addOutputPointer(std::pair<Element *, std::string>);
+    bool removeOutput(std::string);
+    bool removeOutputPointer(std::pair<Element *, std::string>);
+    virtual bool addInput(std::string);
+    bool removeInput(std::string);
+    static std::string stripPort(std::string);
+    static std::string getPort(std::string);
+    virtual std::string toString() = 0;
+    virtual std::string toANML() = 0;
+    //void enableChildSTEs(std::vector<Element *> *);
+    void enableChildSTEs(Stack<Element *> *);
+    uint32_t enableChildSpecialElements(std::queue<Element *> *);
+    bool isMarked();
+    void mark();
+    void unmark();
+    virtual bool isStateful();
+
+    // backport additions
+    bool isCut();
+    void setCut(bool);
+
+};
+#endif

@@ -1,0 +1,132 @@
+/********************************************************/
+   Virtual Automata Simulator - VASim v0.8 by Jack Wadden
+   See LICENSE file for Copyright and License text.
+/********************************************************/
+
+USAGE: vasim [options] <anml_file> [input_file]
+
+VASim is a virtual homogeneous non-deterministic finite automata automata simulator and transformation tool. VASim can parse, transform, simulate, and profile homogeneous NFAs, and is meant to be an open tool for automata processing research. VASim can also be extended to support hypothetical automata processing elements.
+
+VASim is located at https://www.github.com/jackwadden/vasim
+
+
+-----------------
+|   CHANGELOG   |
+-----------------
+---------------------
+Version 0.8 - 9/16/16
+---------------------
+New:
+- DFA subset construction algorithm has been implemented.
+- Improved prefix-merging algorithm from Sanil
+- A few bug fixes and improvements to error messages
+- Added license file. Officially BSD-3clause licensed
+- Removing code that is being actively developed
+- Added capability to emit verilog corresponding to an automata matching engine.
+  Does not currently include full stack code generation for I/O but we're working on that
+- Regex conversion code is removed.
+- Cleaned up many old, useless files from dev for "release"
+- Added D480 emulation capability. This is a beta capability and requires the Micron SDK, 
+  and a few extra scripts to run. We'll update the README in the next release with instructions (or e-mail Jack).
+
+---------------------
+Version 0.7 - 6/17/16
+---------------------
+New:
+- Transitioning bug tracking to GitHub "Issues" known, bugs is now deprecated.
+- VASim is augmented with a rudimentary HDL emission.
+- Single threaded performance is about 10%-20% faster than v0.6.
+
+Known bugs:
+- two logic elements in a row take two full cycles to propagate. Need to make sure stage four can be repeated until all logic elements are finished (with varying cycle costs).
+- Dot file output does not handle elements with input ports (counters) correctly.
+- -P option does not handle possible matches across packet boundary. No way to parameterize an overlap between packets.
+- Left-minimization does not catch all possible minimizations. Will be re-designed for next release. 
+
+---------------------
+Version 0.6 - 1/22/16
+---------------------
+New:
+- VASim is now multi-threaded. -T partitions connected components across threads. -P dividesthe input stream among threads.
+- Single threaded performance is about 20% faster than v0.5.
+- Now g++-5 is required. Sorry :( but older versions had bugs for the C++11 std::thread library.
+
+Known bugs:
+- two logic elements in a row take two full cycles to propagate. Need to make sure stage four can be repeated until all logic elements are finished (with varying cycle costs).
+- Dot file output does not handle elements with input ports (counters) correctly.
+- -P option does not handle possible matches across packet boundary. No way to parameterize an overlap between packets.
+
+---------------------
+Version 0.5 - 11/23/15
+---------------------
+New:
+- Added optimization flags for modifying automata.
+-- Implemented left minimization, greatly improving performance of tree like sets of automata.
+- Added ANML output flag so that expensive optimizations can be saved.
+- Moved "anml_tests" folder to applications. Starting to compile. 
+- Performance is *much* *much* improved and is now 14x-20x faster than batchSim.
+
+Fixed:
+- Bug that caused an infinite loop when considering latched special elements in stageFive.
+- Performance is now ~8x faster over v0.4
+
+Known bugs:
+- two logic elements in a row take two full cycles to propagate. Need to make sure stage four can be repeated until all logic elements are finished (with varying cycle costs).
+- Dot file output does not handle elements with input ports (counters) correctly.
+
+---------------------
+Version 0.4 - 10/5/15
+---------------------
+New:
+- Added "pass" class for patterns for traversing automata.
+- Added "profile" class for backport project. This is mainly Jack's playground and should be ignored for now.
+- Performance is much improved and is now better than batchSim
+- Added "scripts" folder such that useful SDK and or ANML modification scripts can be compiled and passed down.
+- Added new matching system using bit vectors similar to the actual architecture. This should make experimenting with 12-bit symbols much easier to accomplish.
+- Added AUTHORS attribution file as new people are contributing scripts. Thanks!
+
+Fixed:
+- Performance is now again ~2x faster over v0.3 making us 1x-2x faster than batchSim. This was due to bit-vector matching, and integer keys in the functional maps.
+
+Known bugs:
+- two logic elements in a row take two full cycles to propagate. Need to make sure stage four can be repeated until all logic elements are finished (with varying cycle costs).
+- Dot file output does not handle elements with input ports (counters) correctly.
+
+---------------------
+Version 0.3 - 8/12/15
+---------------------
+New:
+- Officially christend the Virtual Automata Simulator (vasim)
+- Automata profiling capability with flag -p. Profiling allows you to track which STEs activate and on which cycle.
+- Added -d flag to output automata to .dot for visualization.
+- If -d and -p are used together, the graphviz includes a heatmap of activations.
+
+Fixed:
+- Performance is about 2x better due to more ideal unordered_map data structure choice.
+
+Known bugs:
+- two logic elements in a row take two full cycles to propagate. Need to make sure stage four can be repeated until all logic elements are finished (with varying cycle costs).
+- Dot file output does not handle elements with input ports (counters) correctly.
+
+---------------------
+Version 0.2 - 8/10/15
+---------------------
+New:
+- Added getopt option parsing functionality
+- Added output reporting flag to match batchSim output format.
+
+Fixed:
+- Added -O3 compiler flag. Simulator is ~3-4x faster on small brill tagging set. 
+- inverters now function properly. Stage four must iterate over ALL specels to account for elements that activate without being enabled (inverters, nand, etc...).
+- latched elements must be "suggested" to deactivate. Elements then return whether or not they accept the deactivation so the simulator can manage its activation data structures appropriately.
+- Makefile now creates and destroys src/obj directory
+
+Known bugs:
+- two logic elements in a row take two full cycles to propagate. Need to make sure stage four can be repeated until all logic elements are finished (with varying cycle costs).
+
+---------------------
+Version 0.1 - 7/26/15
+---------------------
+Known bugs:
+- Gates should go through a calculation stage even if they were not enabled. This is so that inverters and other logic that do not require an activation to output are not "forgotten".
+-
