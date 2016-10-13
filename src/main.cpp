@@ -1,5 +1,4 @@
 #include "automata.h"
-#include "profiler.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
