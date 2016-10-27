@@ -22,7 +22,6 @@ void usage(char * argv) {
     printf("  -b, --batchsim            Output report mimics format of batchsim\n");
     printf("  -q, --quiet               Suppress all non-debugging output\n");
     printf("  -p, --profile             Profiles automata, storing activation and enable histograms in .out files.\n");
-    printf("  -e, --emulate             Predicts performance of D480 reporting architecture.\n");
     printf("  -c, --charset             Compute charset complexity of automata.\n");
     
     printf("\n OUTPUT FORMATS:\n");
@@ -155,7 +154,6 @@ int main(int argc, char * argv[]) {
     bool batchsim = false;
     bool report = false;
     bool profile = false;
-    bool emulate = false;
     bool charset_complexity = false;
     bool to_dot = false;
     bool to_anml = false;
@@ -186,7 +184,6 @@ int main(int argc, char * argv[]) {
 		{"dfa",			no_argument, NULL, 'D'},
         {"hdl",         no_argument, NULL, 'f'},
         {"profile",         no_argument, NULL, 'p'},
-        {"emulate",         no_argument, NULL, 'e'},
         {"charset",         no_argument, NULL, 'c'},
         {"time",         no_argument, NULL, 't'},
         {"left-min-before",         no_argument, NULL, 'O'},
@@ -227,10 +224,6 @@ int main(int argc, char * argv[]) {
 
         case 'p':
             profile = true;
-            break;
-
-        case 'e':
-            emulate = true;
             break;
 
         case 'd':
@@ -646,22 +639,8 @@ int main(int argc, char * argv[]) {
                     //e.parseTraceFile(reportFile);
                 }
 
-                // print predicted performance
-                if(emulate) {
-                    //
-                    cout << endl;
-                    cout << "|------------------------|" << endl;
-                    cout << "|       Emulation        |" << endl;
-                    cout << "|------------------------|" << endl;
-                    Emulator e(a->getReportVector(), size, a->getReports());
-                    e.printEmulationStats();
-                    cout << endl;
-                }
             }
             
-            // Sort elements based on usage
-            if(profile && to_anml)
-                a->defrag();
         }
     }       
 
