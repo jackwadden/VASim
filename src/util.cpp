@@ -13,6 +13,14 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
         column.set();
         return;
     }
+    
+    // KAA found that apcompile parses symbol-set="." to mean "^\x0a"
+    // hard-coding this here
+    if(symbol_set.compare(".") == 0) {
+        column.set('\n',1);
+        column.flip();
+        return;
+    }
         
     bool in_charset = false;
     bool escaped = false;
