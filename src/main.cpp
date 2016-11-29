@@ -28,7 +28,7 @@ void usage(char * argv) {
     printf("  -d, --dot                 Output automata as dot file. Builds a heat map if profiling is turned on\n");
     printf("  -a, --anml                Output automata as anml file. Useful for storing graphs after long running optimizations.\n");
     printf("  -n, --nfa                 Output automata as nfa readable by Michela Becchi's tools.\n");    
-    printf("  -D, --dfa					Output automata as a dfa anml file\n");
+    printf("  -D, --dfa		        Output automata as a dfa anml file\n");
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA.\n");    
     printf("\n OPTIMIZATIONS:\n");
     
@@ -504,7 +504,8 @@ int main(int argc, char * argv[]) {
         remove(tmp_fn);
 
         // Print final stats
-        a->printGraphStats();
+	if(!quiet)
+	  a->printGraphStats();
 
         counter++;
     }

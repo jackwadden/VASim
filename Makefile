@@ -7,7 +7,7 @@ CXXFLAGS=-I$(IDIR) -I$(PUGI) -pthread --std=c++11 -g
 _DEPS = *.h
 _OBJ = util.o ste.o ANMLParser.o  automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o  main.o
 
-CC=g++-5
+CC=g++
 #CC=icpc -mmic
 #CC=icpc
 
