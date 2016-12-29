@@ -14,6 +14,7 @@
 #include <queue>
 #include <deque>
 #include <set>
+#include <unordered_set>
 #include <vector>
 #include <list>
 #include <fstream>
@@ -116,11 +117,12 @@ public:
     void leftMinimize(uint32_t);
     void leftMinimizeChildren(STE*, int);
     void defrag();
-    Automata * generateDFA();//logarithmic implementation 
-	Automata * generateDFA_Linear();//linear implementation
-    void addInputToDFA();//used only with DFA method above
+    // Jack's DFA alg
+    Automata * generateDFA();
+    std::set<STE*>* follow(uint32_t, std::set<STE*>*);
+    //
     void leftMinimize2();
-	void cutElement(Element *);
+    void cutElement(Element *);
     void addSTE(STE *, std::vector<std::string>&);
     void rawAddSTE(STE *);
     void rawAddSpecialElement(SpecialElement *);
@@ -130,7 +132,6 @@ public:
     void removeOrGates();
     void removeCounters();
     void convertAllInputStarts();
-	std::set<STE*>* follow(uint32_t, std::set<STE*>*);
     std::vector<Automata*> splitConnectedComponents();
     std::vector<Automata*> generateGNFAs();
     void unsafeMerge(Automata *);

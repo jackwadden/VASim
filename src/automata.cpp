@@ -1859,407 +1859,242 @@ void Automata::convertAllInputStarts() {
     }
 }
 
-bool determineUniquenessVector(set<STE*>* potential_set, vector<set<STE*>*>  all_sets) {
-
-    bool unique = true;
-    if(all_sets.empty()) {
-        return unique;
-    }
-    for(int i = 0 ; i < all_sets.size(); i++) {
-        bool matches = true;
-
-        // if new candidate state set is not the same size
-        if(potential_set->size() != all_sets[i]->size()) {
-            matches = false;
-            //compare each individual element and see if they match
-        } else {
-            set<STE*>::iterator it;
-            set<STE*>::iterator it2 = potential_set->begin();
-            for(it = all_sets[i]->begin(); it != all_sets[i]->end(); it++) {
-                if((*it)->getIntId() != (*it2)->getIntId()) {
-                    matches = false;
-                    break;
-                }
-                it2++;
-            }
-        }
-        if(matches){
-            unique = false;
-            break;
-        }
-    }
-    return unique;
-}
-
 /*
  *
  */
-bool determineUniquenessMap(set<STE*>* potential_set, unordered_map<STE*, set<STE*>*> all_sets) {
-    bool is_equal = true;
-    if(all_sets.empty()) {
-        return is_equal;
-    }
-    unordered_map<STE*, set<STE*>*>::iterator it;
-    for(it = all_sets.begin(); it != all_sets.end(); it++) {
-        bool is_equal2 = true;
-        if(it->second->size() != potential_set->size()) {
-            is_equal2 = false;
-        } else {
-            set<STE*>::iterator it2;
-            set<STE*>::iterator it3 = it->second->begin();
-            for(it2 = potential_set->begin(); it2 != potential_set->end(); it2++) {
-                //if((*it2)->getIntId() != (*it3)->getIntId()) {
-                if((*it2) != (*it3)) {
-                    is_equal2 = false;
-                    break;
-                }
-                it3++;
-            }
-        }
-        if(is_equal2) {
-            is_equal = false;
-            break;
-        }
-    }
-    return is_equal;
+inline bool set_comp(set<STE*>* lhs, set<STE*>* rhs) {
+
+    return (*lhs < *rhs);
 }
 
 /*
- *
+ * return true if lhs is strictly before rhs
  */
-STE* findMatchedSet(set<STE*>* set_to_be_found, unordered_map<STE*, set<STE*>*> all_sets) {
-    unordered_map<STE*, set<STE*>*>::iterator it;
-    bool is_equal = true;
-    for(it = all_sets.begin(); it != all_sets.end(); it++) {
-        bool is_equal2 = true;
-        if(it->second->size() != set_to_be_found->size()) {
-            is_equal2 = false;
-        } else {
-            set<STE*>::iterator it2;
-            set<STE*>::iterator it3 = it->second->begin();
-            for(it2 = set_to_be_found->begin(); it2 != set_to_be_found->end(); it2++) {
-                if((*it2)->getIntId() != (*it3)->getIntId()) {
-                    is_equal2 = false;
-                    break;
-                }
-                it3++;
-            }
-        }
-        if(is_equal2) {
-            is_equal = false;
-            break;
-        }
-    }
-    if(!is_equal) 
-        return (*it).first;
-    else
-        return NULL;
-}
+inline bool state_comp(pair<set<STE*>*, STE*> lhs, pair<set<STE*>*, STE*> rhs) {
 
-/*
- *
- */
-inline set<STE*>* Automata::follow(uint32_t character, set<STE*>* dstate) {
+    // if the sets are not the same, return the difference
+    if(*(lhs.first) != *(rhs.first))
+        return (*(lhs.first) < *(rhs.first));
 
-    set<STE*>* potential_dfa = new set<STE*>;
+    // if the sets are the same, compare the bitsets
+    bitset<256> lhs_column = lhs.second->getBitColumn();
+    bitset<256> rhs_column = rhs.second->getBitColumn();
 
-    if(dstate == NULL) {
-        for(STE *s : getStarts()){
-            s->follow(character, potential_dfa);
-        }
-    } else {
-
-        set<STE*>::iterator it;
-        for(it = dstate->begin(); it != dstate->end(); it++) {
-            (*it)->follow(character, potential_dfa);
-        }
+    for(uint32_t i = 0; i < 256; i++){
+        if(lhs_column[i] == false &&  rhs_column[i] == true)
+            return true;
+        if(lhs_column[i] == true && rhs_column[i] == false)
+            return false;
     }
 
-    return potential_dfa;
-}
-
-/*
- *
- */
-inline bool fncomp(set<STE*>* lhs, set<STE*>* rhs) {
-
-    if(lhs->size() != rhs->size()) 
-        return (lhs->size() < rhs->size());
-
-    set<STE*>::iterator it;
-    set<STE*>::iterator it2 = rhs->begin();
-    for(it = lhs->begin(); it != lhs->end(); it++) {
-        if((void*)(*it) != (void*)(*it2)) {
-            return ((void*)(*it)) < ((void*)(*it2));
-        }
-        it2++;
-    }
-
+    // if they're equal, return false
     return false;
 }
 
+
 /*
- * NFA to DFA conversion algorithm based on subset_construction
- * keeps homogeneity of NFA when DFA is created
+ *
+ */
+set<STE*>* Automata::follow(uint32_t character, set<STE*>* current_dfa_state) {
+
+
+    set<STE*>* follow_set = new set<STE*>;
+
+    // for each all-input start
+    for(STE *start : getStarts()){
+        if(start->match2((uint8_t)character)){
+            // add to follow_set
+            //cout << start->getId() << " matched on input " << endl; 
+            follow_set->insert(start);
+        }
+    }
+    
+    // for each STE in the DFA state
+    for(STE *ste : *current_dfa_state){
+        // for each child
+        for(auto e : ste->getOutputSTEPointers()){
+            STE * child = static_cast<STE*>(e.first);
+            // if they match this character
+            if(child->match2((uint8_t)character)){
+                // add to follow_set
+                follow_set->insert(child);
+            }
+        }
+    }
+
+    return follow_set;
+}
+
+
+/*
+ *
  */
 Automata* Automata::generateDFA() {
 
-    Automata* ap = new Automata();
-    uint32_t unique_ids = 0; //id of newly created dfa
-    convertAllInputStarts(); // method to add star state
-    vector<uint32_t> alphabet; //character set
-    queue<STE*> new_dfa_stes; //queue of new dfa states
-    queue<set<STE*>*> workq; //queue of new dfa sets
-    bool(*fn_pt)(set<STE*>*, set<STE*>*) = fncomp; //comparison method for logarithmic search
-    set<set<STE*>*,  bool(*)(set<STE*>*, set<STE*>*)> all_dfa_sets (fn_pt); // final vector of dfa sets
-    unordered_map<set<STE*>*, STE*> reverse_ste_set; //map of dfa sets to their STEs
-    set<set<STE*>*>::iterator dfa_it;//iterator through the set of new dfa states
+    cout << "Generating DFA..." << endl;
 
-    for(uint32_t i = 0; i < 256; i++) 
-        alphabet.push_back(i);
+    // DFAs need a failure state and cannot use all-input start nodes
+    //  we convert all-inputs to start-of-data plus a failure node to
+    //  keep the automata going
+    //convertAllInputStarts();
 
-    //checks to see if starts match on a given character in alphabet
-    for(uint32_t c : alphabet) {
-        set<STE*>* potential_dfa = follow(c, NULL);
-        bool is_in;
+    Automata* dfa = new Automata();
+    //
+    bool(*fn_pt)(set<STE*>*, set<STE*>*) = set_comp; //custom comparison method for set
+    //
+    bool(*fn_pt2)(pair<set<STE*>*, STE*>, pair<set<STE*>*, STE*>) = state_comp; //custom comparison method for set
 
-        if(all_dfa_sets.empty()) {
-            is_in = false;
-        } else {
-            dfa_it = all_dfa_sets.find(potential_dfa);
-            is_in = (dfa_it != all_dfa_sets.end());
-        }
-        //if the dfa set is not already created then create the dfa set and add it to all_dfa_sets
-        if(!is_in) {
-            all_dfa_sets.insert(potential_dfa);
-            string dfa_state_name = to_string(unique_ids);
-            STE * s = new STE(dfa_state_name, "", "start-of-data"); 
-            s->setIntId(unique_ids);
-            s->addSymbolToSymbolSet(c);
-            unique_ids++;
-            for(set<STE*>::iterator it = potential_dfa->begin(); it != potential_dfa->end(); it++) {
-                if((*it)->isReporting() == true) {
-                    s->setReporting(true);
-                    break;
-                }
-            }
-            ap->rawAddSTE(s);
-            new_dfa_stes.push(s);
-            reverse_ste_set[potential_dfa] = s;
-        }
+    // global data structure to hold DFA states (used for searching for uniqueness)
+    set<pair<set<STE*>*, STE*>, bool(*)(pair<set<STE*>*,STE*>, pair<set<STE*>*,STE*>)> dfa_states (fn_pt2);
 
-        // if it does exist, grab the set and add my character to its charset
-        else {	
-            delete potential_dfa;
-            set<STE*> *tmp = (*dfa_it);
-            STE* s = reverse_ste_set[tmp];
-            s->addSymbolToSymbolSet(c);
-        }
-    }
+    // counter for dfa integer IDs
+    uint32_t dfa_state_ids = 0;
 
-    //push all sets to queue to loop through for all_dfa_sets children
-    for(set<STE*>* e : all_dfa_sets) {
-        workq.push(e);
-    }
+    // map DFA state ID to STE in dfa
+    unordered_map<uint32_t, STE*> dfa_ste_map;
 
-    //while there are still potential dfa sets to be created
-    while(!workq.empty()) {
-        set<STE*>* d_state = workq.front();
+    // work queues for subset construction alg
+    queue<pair<set<STE*>*, STE*>> workq;
+    queue<pair<set<STE*>*, STE*>> next_workq;
+
+    // initialize failure state
+    set<STE*>* start_state = new set<STE*>;
+    
+    // push impl start onto workq
+    workq.push(make_pair(start_state, (STE*)NULL));
+
+    uint32_t dfa_state_counter = 0;
+    
+    // main loop
+    while(!workq.empty()){
+    
+        cout << "DFA States:" <<  dfa_state_counter << " -- Stack:" << workq.size() << endl;
+
+        // get current working DFA state set and STE
+        set<STE*>* dfa_state = workq.front().first;
+        STE* dfa_ste = workq.front().second;
         workq.pop();
-        STE* popped = new_dfa_stes.front();
-        new_dfa_stes.pop();
+        dfa_state_counter++;
 
-        //check every character in the alphabet
-        for(uint32_t c : alphabet) {
-            //find all the output stes that follow that specific character return as a set
-            set<STE*>* pot_DFA = follow(c, d_state);
+        //
+        // find unique next DFA states for each character class
+        //
 
-            dfa_it = all_dfa_sets.find(pot_DFA);
-            bool is_in = (dfa_it != all_dfa_sets.end());
+        // holds all potential DFA states from this node
+        set<set<STE*>*, bool(*)(set<STE*>*, set<STE*>*)> potential_dfa_states (fn_pt);
+        // maps sets to STEs
+        unordered_map<set<STE*>*, STE*> ste_table;
+        
+        // for each character
+        for(uint32_t i = 0; i < 256; i++){
+            
+            //get the follow state
+            set<STE*>* potential_dfa_state = follow(i, dfa_state);
 
-            if(!is_in) {
-                string dfa_state_name = to_string(unique_ids);
-                STE * s = new STE(dfa_state_name, "", ""); 
-                s->setIntId(unique_ids);
-                s->addSymbolToSymbolSet(c);
-                unique_ids++;
-                for(set<STE*>::iterator it = pot_DFA->begin(); it != pot_DFA->end(); it++) {
-                    if((*it)->isReporting() == true) {
-                        s->setReporting(true);
+            bool found = false;          
+            uint32_t unique_state_id = 0;
+            
+            // look through all existing potential DFA states
+            // is this potential DFA state unique?
+            set<set<STE*>*>::const_iterator got;
+            got = potential_dfa_states.find(potential_dfa_state);
+            if(got != potential_dfa_states.end()){
+                found = true;
+            }
+        
+            // if DFA state is unique
+            if(!found){
+                //cout << "found unique!" << endl;
+
+                // create new ste
+                STE * new_dfa_ste = new STE("temp", "","");
+                // add this character to its symbol set
+                new_dfa_ste->addSymbolToSymbolSet(i);
+                // if any of the sets STEs were reporting, set us to reporting
+                for(STE * nfa_state : *potential_dfa_state){
+                    if(nfa_state->isReporting()){
+                        new_dfa_ste->setReporting(true);
                         break;
                     }
                 }
 
-                popped->addOutput(s->getId());
-                popped->addOutputPointer(make_pair(s, s->getId()));
-                reverse_ste_set[pot_DFA] = s;
-                ap->rawAddSTE(s);
-                workq.push(pot_DFA);
-                new_dfa_stes.push(s);
-                all_dfa_sets.insert(pot_DFA);
-
-            } else {
-                delete pot_DFA;
-                bool check = false;
-                STE * f = reverse_ste_set[(*dfa_it)];
-                f->addSymbolToSymbolSet(c);
-
-                //check if output edge already exists
-                for(auto e : popped->getOutputSTEPointers()) {
-                    STE* s = static_cast<STE*>(e.first);    
-                    if(f == s)  {
-                        check = true;
-                        break;
-                    }
+                // if we come from the first implicit state make us a start state
+                if(dfa_ste == NULL){
+                    new_dfa_ste->setStart("start-of-data");
                 }
 
-                //if no edge exists then create an edge 
-                if(!check) {
-                    popped->addOutput(f->getId());
-                    popped->addOutputPointer(make_pair(f, f->getId()));
-                }
+                // add dfa_state set to temp data structure
+                potential_dfa_states.insert(potential_dfa_state);
+                ste_table[potential_dfa_state] = new_dfa_ste;
 
+            }else{
+                
+                // we already created this potential DFA state so retrieve it
+                STE* existing_dfa_ste = ste_table[(*got)];
+
+                // add new symbol to its charset (idempotent)
+                existing_dfa_ste->addSymbolToSymbolSet(i);
+            
+                // delete the potential object
+                delete potential_dfa_state;
+                
+            }            
+            
+        } // character for loop
+
+        // once we have constructed the potential new DFA states
+        //  we must check if they already exist in the global DFA data struct
+        //  this includes comparing NFA states, and also character set of DFA STE
+        for(set<STE*>* potential_dfa_state : potential_dfa_states){
+            
+            // see if we exist in the global dfa states set
+            set<pair<set<STE*>*, STE*>>::const_iterator got2;
+            STE * potential_ste = ste_table[potential_dfa_state];
+            pair<set<STE*>*, STE*> potential_pair = make_pair(potential_dfa_state, potential_ste);
+            got2 = dfa_states.find(potential_pair);
+            STE * existing_dfa_ste;
+            bool found = false;
+            if(got2 != dfa_states.end()){
+                found = true;
+                existing_dfa_ste = (*got2).second;
+            }else{
+                existing_dfa_ste = potential_ste;
             }
+
+            // if we found a unique new state
+            if(!found){
+                // add it to the global state structure
+                dfa_states.insert(potential_pair);
+                // give STE unique ID
+                existing_dfa_ste->setId(to_string(dfa_state_ids));
+                existing_dfa_ste->setIntId(dfa_state_ids);
+                dfa_state_ids++;
+                // add STE to the dfa
+                dfa->rawAddSTE(existing_dfa_ste);
+                // push it onto the workq for processing
+                next_workq.push(potential_pair);
+            }
+
+            //add physical edge from current DFA state to new DFA state
+            if(dfa_ste != NULL){
+                dfa_ste->addOutput(existing_dfa_ste->getId());
+                dfa_ste->addOutputPointer(make_pair(existing_dfa_ste, existing_dfa_ste->getId()));
+                existing_dfa_ste->addInput(dfa_ste->getId());
+            }
+
         }
-        //use as a way to test if the code is hanging
-        //cout<< "Total DFA size " << all_dfa_sets.size() <<endl;
+
+
+        // push next workq into workq
+        while(!next_workq.empty()){
+            workq.push(next_workq.front());
+            next_workq.pop();
+        }
+
     }
 
-    ap->addInputToDFA(); //add corresponding inputs to match output
-    return ap;
-}
-
-/*
- *
- */
-Automata* Automata::generateDFA_Linear() {
-
-    Automata* ap = new Automata();
-    uint32_t unique_ids = 0; //id of newly created dfa
-    convertAllInputStarts(); // method to add star state
-    vector<uint32_t> alphabet; //character set
-    queue<STE*> new_dfa_stes; //queue of new dfa states
-    queue<set<STE*>*> workq;
-    vector<set<STE*>*> all_dfa_sets; // final vector of dfa sets
-    unordered_map<STE*, set<STE*>*> ste_set; //map of dfa and corresponding set of nfa stes
-
-    for(uint32_t i = 0; i < 256; i++) 
-        alphabet.push_back(i);
-
-    //checks to see if starts match on a given character in alphabet
-    for(uint32_t c : alphabet) {
-        set<STE*>* potential_dfa = follow(c, NULL);
-        if(determineUniquenessVector(potential_dfa, all_dfa_sets)) {
-            all_dfa_sets.push_back(potential_dfa);
-            string dfa_state_name = to_string(unique_ids);
-            STE * s = new STE(dfa_state_name, "", "start-of-data"); 
-            s->setIntId(unique_ids);
-            s->addSymbolToSymbolSet(c);
-            unique_ids++;
-            for(set<STE*>::iterator it = potential_dfa->begin(); it != potential_dfa->end(); it++) {
-                if((*it)->isReporting() == true) {
-                    s->setReporting(true);
-                    break;
-                }
-            }
-            ap->rawAddSTE(s);
-            new_dfa_stes.push(s);
-            ste_set.insert({s, potential_dfa});
-        }
-
-        // if it does exist, grab it and add my character to its charset
-        else {	
-            if(!determineUniquenessMap(potential_dfa, ste_set)) {
-                STE* s = findMatchedSet(potential_dfa, ste_set);
-                s->addSymbolToSymbolSet(c);
-            }
-        }
-    }
-
-    for(set<STE*>* e : all_dfa_sets) {
-        workq.push(e);
-    }
-    while(!workq.empty()) {
-        set<STE*>* d_state = workq.front();
-        workq.pop();
-        STE* popped = new_dfa_stes.front();
-        new_dfa_stes.pop();
-        //check every character in the alphabet
-        for(uint32_t c : alphabet) {
-            //find all the output stes that follow that specific character return as a set
-            set<STE*>* pot_DFA = follow(c, d_state);
-            if(determineUniquenessVector(pot_DFA, all_dfa_sets)) {
-                string dfa_state_name = to_string(unique_ids);
-                STE * s = new STE(dfa_state_name, "", ""); 
-                s->setIntId(unique_ids);
-                s->addSymbolToSymbolSet(c);
-                unique_ids++;
-                for(set<STE*>::iterator it = pot_DFA->begin(); it != pot_DFA->end(); it++) {
-                    if((*it)->isReporting() == true) {
-                        s->setReporting(true);
-                        break;
-                    }
-                }
-                popped->addOutput(s->getId());
-                popped->addOutputPointer(make_pair(s, s->getId()));
-                ste_set.insert({s, pot_DFA});
-                ap->rawAddSTE(s);
-                workq.push(pot_DFA);
-                new_dfa_stes.push(s);
-                all_dfa_sets.push_back(pot_DFA);
-            }
-            else {
-                if(!determineUniquenessMap(pot_DFA, ste_set)) {
-                    bool check = false;
-                    STE* f = findMatchedSet(pot_DFA, ste_set);
-                    f->addSymbolToSymbolSet(c);
-                    for(auto e : popped->getOutputSTEPointers()) {
-                        STE* s = static_cast<STE*>(e.first);
-                        if(f->getIntId() == 14)    
-                            cout << f->getIntId() << " " << s->getIntId() << endl;
-                        if(f->getIntId() == s->getIntId())
-                            {
-                                check = true;
-                                break;
-                            }
-                    }
-                    //if no edge exists then create an edge and add the character to the ste
-                    if(!check) {	
-                        popped->addOutput(f->getId());
-                        popped->addOutputPointer(make_pair(f, f->getId()));
-                    }
-                }
-            }
-        }
-        //cout<< "Total DFA size " << all_dfa_sets.size() <<endl;
-    }
-    ap->addInputToDFA();
-    return ap;
-
-
-}
-
-/*
- *
- */
-void Automata::addInputToDFA() {	
-
-    // for all elements
-    for(auto e : elements) {
-
-        Element *el = e.second;
-
-        // for all edges
-        for(auto str : el->getOutputs()) {
-
-            //inputs are of the form "fromNodeId:toPort"
-            if(elements[Element::stripPort(str)] == NULL){
-                cout << "COULD NOT FIND ELEMENT WITH NAME: " << Element::stripPort(str) << "  DURING PARSE." << endl;
-                exit(1);
-            }
-            elements[Element::stripPort(str)]->addInput(el->getId() + Element::getPort(str));
-        }
-    }
+    return dfa;
+ 
 }
 
 
