@@ -1830,6 +1830,80 @@ void Automata::automataToHDLFile(string out_fn) {
     writeStringToFile(str, out_fn);
 }
 
+/*
+ *
+ */
+void Automata::automataToGraphFile(string out_fn) {
+
+
+    string str = "";
+    
+    // num nodes header
+    str += to_string(elements.size()) + "\n";
+
+    for(auto e : elements){
+        
+        Element *el = e.second;
+        if(!el->isSpecialElement()){
+            STE *s = static_cast<STE*>(el);
+            
+            // emit ID
+            str += s->getId() + " ";
+            
+            // emit char reach
+            for(int i = 255; i >= 0; i--){
+                if(s->match2(i)){
+                    str += "1";
+                }else{
+                    str += "0";
+                }
+            }
+            str += " ";
+
+            // emit start
+            if(s->isStart()){
+                str += "1 ";
+            }else{
+                str += "0 ";
+            }
+
+            // emit startDs
+            if(s->isStart()){
+                str += "1 ";
+            }else{
+                str += "0 ";
+            }
+
+            // emit accept
+            if(s->isReporting()){
+                str += "1 ";
+            }else{
+                str += "0 ";
+            }
+
+            str += "\n";
+        }
+    }
+
+    // emit all edges
+    for(auto e : elements){
+        
+        Element *el = e.second;
+        if(!el->isSpecialElement()){
+            STE *s = static_cast<STE*>(el);
+            
+            str += s->getId() + " ";
+
+            for(string out : s->getOutputs()){
+                str += out + " ";
+            }
+
+            str += "\n";
+        }
+    }
+
+    writeStringToFile(str, out_fn);
+}
 
 /*
  * Converts all-input start elements to "start-of-data"

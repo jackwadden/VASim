@@ -93,6 +93,7 @@ public:
     void automataToNFAFile(std::string fn);
     void automataToANMLFile(std::string fn);
     void automataToHDLFile(std::string fn);
+    void automataToGraphFile(std::string fn);
     std::vector<std::string> automataToRegex(std::string fn);
 
     // Simulation

@@ -30,14 +30,17 @@ void usage(char * argv) {
     printf("  -n, --nfa                 Output automata as nfa readable by Michela Becchi's tools\n");    
     printf("  -D, --dfa                 Convert automata to DFA\n");
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA (EXPERIMENTAL)\n");    
-    printf("\n OPTIMIZATIONS:\n");
-    
+    printf("      --graph               Output automata as .graph file for HyperScan.\n");
+
+    printf("\n OPTIMIZATIONS:\n");    
     printf("  -O, --left-min-before     Enable left minimization before connected component search\n");
     printf("  -L, --left-min-after      Enable left minimization after within connected components\n");
     printf("  -x, --remove_ors          Remove all OR gates\n");
+
     printf("\n MULTITHREADING:\n");
     printf("  -T, --threads             Specify number of threads to compute connected components of automata\n");
     printf("  -P, --packets             Specify number of threads to compute input stream. NOT SAFE. TODO: allow for overlap between packets\n");
+
     printf("\n MISC:\n");
     printf("  -h, --help                Print this help and exit\n");
     printf("\n");
@@ -45,55 +48,55 @@ void usage(char * argv) {
 
 uint32_t fileSize(string fn) {
 
-	// open the file:
-	std::ifstream file(fn, ios::binary);
+    // open the file:
+    std::ifstream file(fn, ios::binary);
 
-	// Stop eating new lines in binary mode!!!
-	file.unsetf(std::ios::skipws);
+    // Stop eating new lines in binary mode!!!
+    file.unsetf(std::ios::skipws);
 
-	// get its size:
-	std::streampos fileSize;
+    // get its size:
+    std::streampos fileSize;
 
-	file.seekg(0, ios::end);
-	fileSize = file.tellg();
-	file.seekg(0, ios::beg);
+    file.seekg(0, ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, ios::beg);
 
-	return fileSize;
+    return fileSize;
 }
 void inputFileCheck() { 
-	if(errno == ENOENT) {
-		cout<< "VAsim Error: no such input file." << endl;
-		exit(-1);
-	}	
+    if(errno == ENOENT) {
+        cout<< "VAsim Error: no such input file." << endl;
+        exit(-1);
+    }	
 }
 vector<unsigned char> file2CharVector(string fn) {
 
-	// open the file:
-	std::ifstream file(fn, ios::binary);
-	if(file.fail()){
-		inputFileCheck();
-	}
+    // open the file:
+    std::ifstream file(fn, ios::binary);
+    if(file.fail()){
+        inputFileCheck();
+    }
 
-	// get its size:
-	std::streampos fileSize;
+    // get its size:
+    std::streampos fileSize;
 
-	file.seekg(0, ios::end);
-	fileSize = file.tellg();
-	file.seekg(0, ios::beg);
+    file.seekg(0, ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, ios::beg);
 
-	// Stop eating new lines in binary mode!!!
-	file.unsetf(std::ios::skipws);
+    // Stop eating new lines in binary mode!!!
+    file.unsetf(std::ios::skipws);
 
-	// reserve capacity
-	std::vector<unsigned char> vec;
-	vec.reserve(fileSize);
+    // reserve capacity
+    std::vector<unsigned char> vec;
+    vec.reserve(fileSize);
 
-	// read the data:
-	vec.insert(vec.begin(),
-			std::istream_iterator<unsigned char>(file),
-			std::istream_iterator<unsigned char>());
+    // read the data:
+    vec.insert(vec.begin(),
+               std::istream_iterator<unsigned char>(file),
+               std::istream_iterator<unsigned char>());
 
-	return vec;
+    return vec;
 
 }
 
@@ -101,7 +104,7 @@ vector<unsigned char> file2CharVector(string fn) {
  *
  */
 void simulateAutomaton(Automata *a, uint8_t *input, uint32_t start_index, uint32_t size, bool step) {
-	a->simulate(input, start_index, size, step);
+    a->simulate(input, start_index, size, step);
 }
 
 /*
@@ -109,36 +112,36 @@ void simulateAutomaton(Automata *a, uint8_t *input, uint32_t start_index, uint32
  */
 uint8_t * parseInputStream(bool simulate, bool input_string, uint32_t *size, char ** argv, uint32_t optind) {
 
-	uint8_t * input;
+    uint8_t * input;
+    
+    if(simulate){
+        // From command line
+        if(input_string){
+            string input2 = argv[optind];
+            *size = (uint32_t)input2.length();
+            uint32_t counter = 0;
+            input = (uint8_t*)malloc(sizeof(uint8_t) * *size);
+            // copy bytes to unsigned ints
+            for(unsigned char val : input2){
+                input[counter] = (uint8_t)val;
+                counter++;
+            }
+            // From file
+        } else {
+            string input_fn = argv[optind];
+            vector<unsigned char> input2 = file2CharVector(input_fn);
+            *size = input2.size();
+            input = (uint8_t*)malloc(sizeof(uint8_t) * input2.size());
+            // copy bytes to unsigned ints
+            uint32_t counter = 0;
+            for(uint8_t val : input2){
+                input[counter] = (uint8_t)val;
+                counter++;
+            }
+        }
+    }
 
-	if(simulate){
-		// From command line
-		if(input_string){
-			string input2 = argv[optind];
-			*size = (uint32_t)input2.length();
-			uint32_t counter = 0;
-			input = (uint8_t*)malloc(sizeof(uint8_t) * *size);
-			// copy bytes to unsigned ints
-			for(unsigned char val : input2){
-				input[counter] = (uint8_t)val;
-				counter++;
-			}
-			// From file
-		} else {
-			string input_fn = argv[optind];
-			vector<unsigned char> input2 = file2CharVector(input_fn);
-			*size = input2.size();
-			input = (uint8_t*)malloc(sizeof(uint8_t) * input2.size());
-			// copy bytes to unsigned ints
-			uint32_t counter = 0;
-			for(uint8_t val : input2){
-				input[counter] = (uint8_t)val;
-				counter++;
-			}
-		}
-	}
-
-	return input;
+    return input;
 }
 
 /*
@@ -161,11 +164,12 @@ int main(int argc, char * argv[]) {
     bool optimize_after = false;
     bool remove_ors = false;
     bool to_nfa = false;
-	bool to_dfa = false;
+    bool to_dfa = false;
     bool to_hdl = false;
     uint32_t max_level = 10000; // artificial (and arbitrary) max depth of attempted left-minimization
     uint32_t num_threads = 1;
     uint32_t num_threads_packets = 1;
+    bool to_graph = false;
 
     int c;
     const char * short_opt = "thsqrbnfcdDeaxipOLl:T:P:";
@@ -180,7 +184,7 @@ int main(int argc, char * argv[]) {
         {"dot",         no_argument, NULL, 'd'},
         {"anml",         no_argument, NULL, 'a'},
         {"nfa",         no_argument, NULL, 'n'},
-		{"dfa",			no_argument, NULL, 'D'},
+        {"dfa",			no_argument, NULL, 'D'},
         {"hdl",         no_argument, NULL, 'f'},
         {"profile",         no_argument, NULL, 'p'},
         {"charset",         no_argument, NULL, 'c'},
@@ -191,13 +195,23 @@ int main(int argc, char * argv[]) {
         {"level",         required_argument, NULL, 'l'},
         {"threadd-width",         required_argument, NULL, 'T'},
         {"thread-height",         required_argument, NULL, 'P'},
+        {"graph",         no_argument, NULL, 0},
         {NULL,            0,           NULL, 0  }
     };
     
-    while((c = getopt_long(argc, argv, short_opt, long_opt, NULL)) != -1) {
+    int long_ind;
+    while((c = getopt_long(argc, argv, short_opt, long_opt, &long_ind)) != -1) {
         switch(c) {
         case -1:       /* no more arguments */
         case 0:        /* long options toggles */
+            if(long_opt[optind].flag != 0){
+                break;
+            }
+
+            //
+            if(strcmp(long_opt[long_ind].name,"graph") == 0){
+                to_graph = true;
+            }
             break;
             
         case 'i':
@@ -265,9 +279,9 @@ int main(int argc, char * argv[]) {
             num_threads_packets = atoi(optarg);
             break;
 
-		case 'D':
-			to_dfa = true;
-			break;
+        case 'D':
+            to_dfa = true;
+            break;
 
         case 'n':
             to_nfa = true;
@@ -471,11 +485,11 @@ int main(int argc, char * argv[]) {
 
         // Print regex for each automata partition
         /*
-        if(to_regex) {
-            if(!quiet)
-                cout << "Converting automata to regular expression rule set..." << endl;
-            a->automataToRegex("automata_"+ to_string(counter) + ".regex");
-        }
+          if(to_regex) {
+          if(!quiet)
+          cout << "Converting automata to regular expression rule set..." << endl;
+          a->automataToRegex("automata_"+ to_string(counter) + ".regex");
+          }
         */
         
         // Print NFA
@@ -487,6 +501,13 @@ int main(int argc, char * argv[]) {
         // Emit as HDL
         if(to_hdl) {
             a->automataToHDLFile("automata_" + to_string(counter) + ".v");
+        }
+
+        // Emit as graph file readable by augmented HyperScan
+        if(to_graph){
+            if(!quiet)
+                cout << "Emitting automata in .graph format for HyperScan ingestion..." << endl << endl;
+            a->automataToGraphFile("automata_" + to_string(counter) + ".graph");
         }
 
         // Save each parallel automata and replicate for multiple streams
@@ -504,7 +525,7 @@ int main(int argc, char * argv[]) {
 
         // Print final stats
 	if(!quiet)
-	  a->printGraphStats();
+            a->printGraphStats();
 
         counter++;
     }
@@ -632,8 +653,8 @@ int main(int argc, char * argv[]) {
                 }else{
                     //a->printReport();
                     string reportFile = "reports_" +
-                                         to_string(tid) + "tid_" +
-                                         to_string(packet) + "packet.txt";
+                        to_string(tid) + "tid_" +
+                        to_string(packet) + "packet.txt";
  
                     a->writeReportToFile(reportFile);
                     //e.parseTraceFile(reportFile);
