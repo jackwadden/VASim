@@ -63,8 +63,11 @@ public:
     std::map<std::string, bool> getInputs();
     bool addOutput(std::string);
     bool addOutputPointer(std::pair<Element *, std::string>);
+    bool addOutputExisting(std::string, std::map<std::string,Element*>);
     bool removeOutput(std::string);
     bool removeOutputPointer(std::pair<Element *, std::string>);
+    bool removeOutputExisting(std::string, std::map<std::string,Element*>);
+
     virtual bool addInput(std::string);
     bool removeInput(std::string);
     static std::string stripPort(std::string);

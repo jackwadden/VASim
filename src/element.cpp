@@ -187,6 +187,30 @@ bool Element::addOutputPointer(pair<Element *, string> el) {
 /*
  *
  */
+bool Element::addOutputExisting(string s, map<string, Element *> elements) {
+    
+    addOutput(s);
+    pair<Element *, string> p(elements[s], s);
+    addOutputPointer(p);
+
+    return true;
+}
+
+/*
+ *
+ */
+bool Element::removeOutputExisting(string s, map<string, Element*> elements){
+
+    removeOutput(s);
+    pair<Element *, string> p(elements[s], s);
+    removeOutputPointer(p);
+
+    return true;
+}
+
+/*
+ *
+ */
 bool Element::removeOutput(string s) {
 
     bool retval = true;
