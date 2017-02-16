@@ -2797,6 +2797,7 @@ void Automata::leftMinimizeChildren(STE * s, int level) {
 
     vector<STE *> outputSTE;
 
+    // add all children to the workq
     for(auto e : s->getOutputSTEPointers()) {
         STE * node = static_cast<STE*>(e.first);
         if(!node->isMarked()) {
@@ -2805,7 +2806,7 @@ void Automata::leftMinimizeChildren(STE * s, int level) {
         }
     }
 
-    //pop two and compare
+    // merge identical children of next level
     while(!workq.empty()) { 
         STE * first = workq.front();
         workq.pop();
@@ -2828,6 +2829,7 @@ void Automata::leftMinimizeChildren(STE * s, int level) {
         }
     }
 
+    // left minimize children
     for(auto e : outputSTE) {
         if(e->getOutputSTEPointers().size() != 0) {
             for(auto f : s->getOutputSTEPointers()) {

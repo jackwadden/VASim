@@ -152,6 +152,13 @@ map<string, bool> Element::getInputs() {
  */
 bool Element::addOutput(string s) {
 
+    // should never add parallel edges
+    for(string output : outputs){
+        if(output.compare(s) == 0){
+            return false;
+        }
+    }
+
     outputs.push_back(s);
     return true;
 }
@@ -161,11 +168,19 @@ bool Element::addOutput(string s) {
  */
 bool Element::addOutputPointer(pair<Element *, string> el) {
 
-    if(el.first->isSpecialElement())
+    if(el.first->isSpecialElement()){
+        for(auto e : outputSpecelPointers){
+            if(e.first == el.first)
+                return false;
+        }
         outputSpecelPointers.push_back(el);
-    else
+    }else{
+        for(auto e : outputSTEPointers){
+            if(e.first == el.first)
+                return false;
+        }    
         outputSTEPointers.push_back(el);
-
+    }
     return true;
 }
 
