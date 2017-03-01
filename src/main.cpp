@@ -383,6 +383,7 @@ int main(int argc, char * argv[]) {
         if(!quiet)
             cout << "Left-merging automata..." << endl;
         ap.leftMinimize2();
+        
         while(automata_size != ap.getElements().size()) {
             automata_size = ap.getElements().size();
             ap.leftMinimize2();

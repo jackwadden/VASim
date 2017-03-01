@@ -2787,64 +2787,43 @@ void Automata::leftMinimize(uint32_t max_level) {
  * inputs and properties, but varying outputs. Essentially creates a tree
  * structure where possible.
  */
-void Automata::leftMinimize2() {
+uint32_t Automata::leftMinimize2() {
 
 
-    // unmark all elements
-    for(auto e : getElements()){
-        e.second->unmark();
-    }
+    leftMinimizeStartStates();
 
-    queue<STE *> workq;
-    queue<STE *> workq_tmp;
+    uint32_t merged = 0;
 
-    //push all start STE's onto the queue
-    for(auto e : starts) {
-        STE * s = static_cast<STE*>(e);
-        workq.push(s);
-    }
-
-    //pop two and compare
-    while(!workq.empty()) { 
-
-        STE * first = workq.front();
-        workq.pop();
-
-        while(!workq.empty()) {
-            STE * second = workq.front();
-            workq.pop();
-            //if the same merge and place into second queue
-
-            if(first->compare(second) == 0) {
-                leftMergeSTEs(first, second);
-                //if the same merge and place into second queue
-            } else {
-                workq_tmp.push(second);
-            }	 
-        }
-
-        while(!workq_tmp.empty()) {
-            workq.push(workq_tmp.front());
-            workq_tmp.pop();
-        }
-    }
+    if(!quiet)
+        cout << "  Merging inner states..." << endl;
 
     for(auto e : starts){
+
+        // unmark all elements
+        for(auto e : getElements()){
+            e.second->unmark();
+        }
+
         STE * s = static_cast<STE *>(e);
-        leftMinimizeChildren(s, 0);
+        merged += leftMinimizeChildren(s, 0);
     }
+    cout << "    merged " << merged << " inner states..." << endl;
+
+    return merged;
 }
 
 /*
  * Recursive call that merges the current child level, and calls left minimization
  *  on every subsequent unique child in a depth-first fashion.
  */
-void Automata::leftMinimizeChildren(STE * s, int level) {
+uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
 
     queue<STE *> workq;
     queue<STE *> workq_tmp;
 
     vector<STE *> outputSTE;
+
+    uint32_t merged = 0;
 
     // add all children to the workq
     for(auto e : s->getOutputSTEPointers()) {
@@ -2865,13 +2844,16 @@ void Automata::leftMinimizeChildren(STE * s, int level) {
             //if the same merge and place into second queue
 
             if(first->compare(second) == 0) {
+                merged++;
                 leftMergeSTEs(first, second);
                 //else push back onto workq
             } else {
                 workq_tmp.push(second);
             }	 
         }
+
         outputSTE.push_back(first);
+
         while(!workq_tmp.empty()) {
             workq.push(workq_tmp.front());
             workq_tmp.pop();
@@ -2883,12 +2865,71 @@ void Automata::leftMinimizeChildren(STE * s, int level) {
         if(e->getOutputSTEPointers().size() != 0) {
             for(auto f : s->getOutputSTEPointers()) {
                 STE * node = static_cast<STE*>(f.first);
-                leftMinimizeChildren(node, level + 1);
+                merged += leftMinimizeChildren(node, level + 1);
             }
         }
     }
+
+    return merged;
 }
 
+/*
+ *
+ *
+ *
+ */
+void Automata::leftMinimizeStartStates() {
+
+    if(!quiet)
+        cout << "  Merging start states..." << endl;
+
+    uint32_t merge_count = 0;
+
+    // unmark all elements
+    for(auto e : getElements()){
+        e.second->unmark();
+    }
+
+    queue<STE *> workq;
+    queue<STE *> workq_tmp;
+
+    //push all start STE's onto the queue
+    for(auto e : starts) {
+        STE * s = static_cast<STE*>(e);
+        workq.push(s);
+    }
+
+    // Merge start states
+    while(!workq.empty()) { 
+
+        STE * first = workq.front();
+        bitset<256> first_column = first->getBitColumn();
+        workq.pop();
+
+        while(!workq.empty()) {
+            STE * second = workq.front();
+            workq.pop();
+            
+            //if the same, merge and place into second queue
+            if(first_column == second->getBitColumn() && 
+               first->getStart() == second->getStart()){ 
+                // merge
+                merge_count++;
+                leftMergeSTEs(first, second);
+            } else {
+                workq_tmp.push(second);
+            }	 
+        }
+
+        while(!workq_tmp.empty()) {
+            workq.push(workq_tmp.front());
+            workq_tmp.pop();
+        }
+    }
+
+    if(!quiet)
+        cout << "    merged " << merge_count << " start states!" << endl;
+}
 
 /*
  *

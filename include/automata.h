@@ -111,12 +111,13 @@ public:
     void printSTEComplexity();
 
     // Optimization and manipulation
+    void leftMinimizeStartStates();
     void leftMinimize(uint32_t);
-    void leftMinimizeChildren(STE*, int);
+    uint32_t leftMinimizeChildren(STE*, int);
     void defrag();
     Automata * generateDFA();
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
-    void leftMinimize2();
+    uint32_t leftMinimize2();
     void cutElement(Element *);
     void addSTE(STE *, std::vector<std::string>&);
     void rawAddSTE(STE *);
