@@ -37,6 +37,9 @@ void usage(char * argv) {
     printf("  -L, --left-min-after      Enable left minimization after within connected components\n");
     printf("  -x, --remove_ors          Remove all OR gates\n");
 
+    printf("\n TRANSFORMATIONS:\n");
+    printf("      --enforce-fanin=<int> Enforces a fan-in limit, replicating nodes until no node has a fan-in of larger than <int>.\n");
+
     printf("\n MULTITHREADING:\n");
     printf("  -T, --threads             Specify number of threads to compute connected components of automata\n");
     printf("  -P, --packets             Specify number of threads to compute input stream. NOT SAFE. TODO: allow for overlap between packets\n");
@@ -170,6 +173,7 @@ int main(int argc, char * argv[]) {
     uint32_t num_threads = 1;
     uint32_t num_threads_packets = 1;
     bool to_graph = false;
+    int32_t fanin_limit = -1;
 
     int c;
     const char * short_opt = "thsqrbnfcdDeaxipOLl:T:P:";
@@ -193,9 +197,10 @@ int main(int argc, char * argv[]) {
         {"left-min-after",         no_argument, NULL, 'L'},
         {"remove-ors",         no_argument, NULL, 'x'},
         {"level",         required_argument, NULL, 'l'},
-        {"threadd-width",         required_argument, NULL, 'T'},
+        {"thread-width",         required_argument, NULL, 'T'},
         {"thread-height",         required_argument, NULL, 'P'},
         {"graph",         no_argument, NULL, 0},
+        {"enforce-fanin",         required_argument, NULL, 0},
         {NULL,            0,           NULL, 0  }
     };
     
@@ -211,6 +216,13 @@ int main(int argc, char * argv[]) {
             //
             if(strcmp(long_opt[long_ind].name,"graph") == 0){
                 to_graph = true;
+            }
+            if(strcmp(long_opt[long_ind].name,"enforce-fanin") == 0){
+                fanin_limit = atoi(optarg);
+                if(fanin_limit < 1){
+                    cout << "Error: Fanin limit cannot be less than 1/n" << endl;
+                    exit(1);
+                }
             }
             break;
             
@@ -351,19 +363,6 @@ int main(int argc, char * argv[]) {
     if(quiet)
         ap.enableQuiet();
         
-    // Remove special elements that have no functional benefit
-    // E.g. this removes or gates at the end of trees
-    if(remove_ors) {
-        if(!quiet)
-            cout << "Removing OR gates..." << endl;
-        ap.removeOrGates();
-        //if(!quiet)
-        //    cout << "Removing counters..." << endl;
-        //ap.removeCounters();
-        if(!quiet)
-            cout << endl;
-    }
-
     // Optimize automata before identifying connected components
     // "Global" optimizations
     // Start optimizations
@@ -377,7 +376,9 @@ int main(int argc, char * argv[]) {
 
         }
 
-        // Global automata optimizations
+        /***********************
+         * GLOBAL OPTIMIZATIONS
+         ***********************/
         
         if(!quiet)
             cout << "Left-merging automata..." << endl;
@@ -444,7 +445,9 @@ int main(int argc, char * argv[]) {
     
     counter = 0;
     for(Automata *a : merged) {        
-        
+        /*****************
+         * LOCAL OPTIMIZATIONS
+         *****************/     
         // Optimize after connected component merging
         if(optimize_after) {
             if(!quiet)
@@ -467,6 +470,31 @@ int main(int argc, char * argv[]) {
             
         }
 
+        /*****************
+         * TRANSFORMATIONS
+         *****************/
+
+        // Remove OR gates, which are just syntactic sugar (benefitial for some hardware)
+        if(remove_ors) {
+            if(!quiet){
+                cout << "Removing OR gates..." << endl;
+                cout << endl;
+            }
+
+            a->removeOrGates();
+        }
+
+        // Enforce fan-in limit
+        if(fanin_limit > 0){
+            if(!quiet){
+                cout << "Enforcing fan-in of " << fanin_limit << "..." << endl; 
+                cout << endl;
+            }
+
+            a->enforceFanIn(fanin_limit);
+        }
+
+        // Convert automata to DFA
         if(to_dfa) {
             if(!quiet) {
                 cout<< "Converting automata to DFA..." <<endl;
@@ -474,29 +502,21 @@ int main(int argc, char * argv[]) {
             }
             
             Automata * dfa = a->generateDFA();
-            //ap2->automataToANMLFile("automataDFA_" + to_string(counter) + ".anml");
             a = dfa;
         }
-        
+
+        /*******************
+         * OUTPUT FORMATS
+         *******************/
         // Save automata anml if desired
         if(to_anml) {
             a->automataToANMLFile("automata_" + to_string(counter) + ".anml");
         }
 
-        // Print regex for each automata partition
-        /*
-          if(to_regex) {
-          if(!quiet)
-          cout << "Converting automata to regular expression rule set..." << endl;
-          a->automataToRegex("automata_"+ to_string(counter) + ".regex");
-          }
-        */
-        
-        // Print NFA
+        // Emit in Becchi format NFA
         if(to_nfa){
             a->automataToNFAFile("automata_" + to_string(counter) + ".nfa");
         }
-
         
         // Emit as HDL
         if(to_hdl) {
@@ -530,7 +550,9 @@ int main(int argc, char * argv[]) {
         counter++;
     }
 
-    //
+    /****************************
+     * GRAPH STATISTICS
+     ***************************/
     if(!quiet){
         if(num_threads == 1){
             // Compressability
@@ -543,7 +565,9 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    // Simulate all automata
+    /****************************
+     * SIMULATION
+     ***************************/
     if(simulate){
         if(!quiet){
             cout << "|------------------------|" << endl;
@@ -560,9 +584,6 @@ int main(int argc, char * argv[]) {
         }
         
         // Simulate all automata
-        // Launch threads
-        // For each automata
-        // 
         for (int tid= 0; tid < num_threads; tid++) {
             //for(Automata *a : merged) {
 
@@ -616,7 +637,6 @@ int main(int argc, char * argv[]) {
             }
         }
 
-
         // Stop timer
         if(time) {
             chrono::high_resolution_clock::time_point end_time = chrono::high_resolution_clock::now();
@@ -626,7 +646,9 @@ int main(int argc, char * argv[]) {
         }
     }
      
-    // Post process automata
+    /**********************************
+     * POST SIMULATION PROCESSING
+     **********************************/
     uint32_t num_reports = 0;
     uint32_t match_cycles = 0;
     for (int tid= 0; tid < num_threads; tid++) {
@@ -676,6 +698,8 @@ int main(int argc, char * argv[]) {
 
     }
 
+
+    // Emit heatmap dot graphs
     for (int tid= 0; tid < num_threads; tid++) {
         
         // Remember, the y direction are identical, so only need y = 0

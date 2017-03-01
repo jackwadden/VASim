@@ -38,13 +38,9 @@ private:
     std::vector<SpecialElement*> activateNoInputSpecialElements;
     
     // Functional element stacks
-    //std::vector<Element *> enabledSTEs;
     Stack<Element *> enabledSTEs;
-    //std::vector<STE*> activatedSTEs;
     Stack<STE*> activatedSTEs;
-    //std::vector<STE*> latchedSTEs;
     Stack<STE*> latchedSTEs;
-    //std::vector<Element*> enabledElements;
     Stack<Element *> enabledElements;
     std::queue<Element*> enabledSpecialElements;
     std::queue<SpecialElement*> activatedSpecialElements;
@@ -54,7 +50,6 @@ private:
     std::vector<std::pair<uint32_t, std::string>> reportVector;
     std::map<uint32_t, std::list<std::string>> activationVector;
     std::unordered_map<std::string, uint32_t> activationHist;    
-    // at each cycle, how many STEs were enabled?
     std::vector<uint32_t> enabledHist;
     std::vector<uint32_t> activatedHist;
     uint32_t maxActivations;
@@ -110,6 +105,7 @@ public:
 
     // Statistics and Profiling
     void buildActivationHistogram(std::string fn);
+    void calcActivationDistribution();
     void printActivationHistogram();
     void printGraphStats();
     void printSTEComplexity();
@@ -118,10 +114,8 @@ public:
     void leftMinimize(uint32_t);
     void leftMinimizeChildren(STE*, int);
     void defrag();
-    // Jack's DFA alg
     Automata * generateDFA();
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
-    //
     void leftMinimize2();
     void cutElement(Element *);
     void addSTE(STE *, std::vector<std::string>&);
@@ -137,20 +131,10 @@ public:
     std::vector<Automata*> generateGNFAs();
     void unsafeMerge(Automata *);
     Automata *clone();
-    void mergeDisjointReportElements();
-    void mergeDisjointReportElements2();
 
-    // Regex construction
-    void collapseSelfLoops();
-    void collapseSequentialStates();
-    void collapseSequentialSTEs(STE * parent, STE * child);
-    void collapseAdjacentStates();
-    void collapseHopStates();
-    void duplicateEndStates();
-    void collapseStartStates();
-    void removeCycles();
-    // Automata construction
-    
+    // Fan-in/fan-out relaxation
+    void enforceFanIn(uint32_t fanin_max);
+    void enforceFanOut(uint32_t fanout_max);
 
     // Util
     bool isTailNode(Element *);

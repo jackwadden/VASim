@@ -883,18 +883,32 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
 
     if(profile) {
 
+        cout << endl << "Dynamic Statistics: " << endl;
+
         // cal average active set
         uint64_t sum = 0;
         for(uint32_t acts : activatedHist){
             sum += (uint64_t)acts;
         }
 
-        cout << "Average Active Set: " << (double)sum / (double)length << endl;
+        cout << "  Average Active Set: " << (double)sum / (double)length << endl;
+        for(uint32_t acts : activatedHist){
+            sum += (uint64_t)acts;
+        }
 
-        //write
+        // cal distribution
+
+        // build histogram of activations
         buildActivationHistogram("activation_hist.out");        
+        
+        // print activation stats
+        calcActivationDistribution();
+
+        // write to file
         writeIntVectorToFile(enabledHist, "enabled_per_cycle.out");
         writeIntVectorToFile(activatedHist, "activated_per_cycle.out");
+    
+        cout << endl;
     }
 }
 
@@ -956,6 +970,50 @@ void Automata::printActivations() {
             cout << "\t" << e << endl;
         }
     }
+}
+
+void Automata::calcActivationDistribution() {
+
+    // gather activations into vector
+    vector<uint32_t> activations;
+    uint64_t sum = 0;
+    for(auto e : activationHist){
+        activations.push_back(e.second);
+        sum += e.second;
+    }
+
+    // sort vector
+    sort(activations.rbegin(), activations.rend());
+
+    // report how many STEs it takes to capture 90, 99, 99.9% activity
+    bool one = false;
+    bool two = false;
+    bool three = false;
+    bool four = false;
+
+    uint64_t run_sum = 0;
+    uint32_t index = 1;
+    for(uint32_t acts : activations){
+        run_sum += acts;
+        if(((double)run_sum/(double)sum) > .90 &! one){
+            cout << "  90%: " << index << " / " << elements.size() << endl;
+            one = true;
+        }
+        if((double)run_sum/(double)sum > .99 &! two){
+            cout << "  99%: " << index << " / " << elements.size() << endl;
+            two = true;
+        }
+        if((double)run_sum/(double)sum > .999 &! three){
+            cout << "  99.9%: " << index << " / " << elements.size() << endl;
+            three = true;
+        }
+        if((double)run_sum/(double)sum > .9999 &! four){
+            cout << "  99.99%: " << index << " / " << elements.size() << endl;
+            four = true;
+        }
+        index++;
+    }
+    
 }
 
 void Automata::buildActivationHistogram(string fn) {
@@ -2485,15 +2543,6 @@ void vector_sort(vector<STE*> &vec) {
     }
 }
 
-/*
- * If automata is DNA read with only 4 bp,
- *  can combine STEs to recognize 4 bytes at once
- */
-/*
-  void Automata::strideDNA(uint32_t stride_len) {
-
-  //TODO
-  */
 
 /*
  * Breadth first seach on the automata, combining states with identical
@@ -3022,3 +3071,131 @@ void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
     removeElement(ste2);
 }
 
+/*
+ * Guarantees that the fan-in for every node does not exceed fanin_max
+ */
+void Automata::enforceFanIn(uint32_t fanin_max){
+
+    // BFS queue of elements to process 
+    queue<STE*> workq;
+
+    // unmark all stes
+    // push start states to workq
+    for(auto el : getElements()){ 
+        el.second->unmark();
+        if(el.second->isSpecialElement()){
+            continue;
+        }
+        STE * s = static_cast<STE*>(el.second);
+
+        // push start states to workq    
+        if(s->isStart()){
+            // mark node
+            s->mark();
+            // add to workq
+            workq.push(s);
+        }
+    }
+
+    // look for elements with fanins that violate fanin_max
+    while(!workq.empty()){
+       
+        // get node to work on
+        STE * s = workq.front();
+        workq.pop();
+
+        // add all children to workq if they are not marked (visited)
+        // NOTE: this implicitly does not handle special element children
+        for(auto e : s->getOutputSTEPointers()){
+            if(!e.first->isMarked()){
+                STE * child = static_cast<STE*>(e.first);
+                workq.push(child);
+                child->mark();
+            }
+        }
+
+        // if we have more inputs than the max
+        // (does not include self references)
+        uint32_t fanin = 0;
+        bool selfref = false;
+        for(auto e : s->getInputs()){
+            if(e.first.compare(s->getId()) == 0){
+                selfref = true;
+            }else{
+                fanin++;
+            }
+        }
+       
+        //
+        //cout << "FAN IN: " << fanin << endl;
+        if(fanin > fanin_max){
+            
+            // adjust node
+            // figure out how many new nodes we'll need
+            uint32_t new_nodes = ceil((double)fanin / (double)fanin_max);
+            
+            //add all inputs to queue
+            // except self refs
+            queue<string> old_inputs;
+            for(auto e : s->getInputs()){
+                if(e.first.compare(s->getId()) != 0)
+                    old_inputs.push(e.first);
+            }
+            
+            // create new nodes
+            for(uint32_t i = 0; i < new_nodes; i++){
+                
+                string id = s->getId() + "_" + to_string(i);
+                
+                STE *new_node = new STE(id,
+                                        s->getSymbolSet(),
+                                        s->getStringStart());
+                if(s->isReporting()){
+                    //cout << "REPORTING SPLIT" << endl;
+                    new_node->setReporting(true);
+                    new_node->setReportCode(s->getReportCode());
+                }
+                
+                // add to automata
+                rawAddSTE(new_node);
+                
+                // mark the node in case there are loops
+                new_node->mark();
+
+                // add all outputs from s to new node
+                for(string output : s->getOutputs()){
+                    // ignore selfref output, we'll handle it later
+                    if(output.compare(s->getId()) != 0){
+                        new_node->addOutput(output);
+                        new_node->addOutputPointer(make_pair(elements[output], output));
+                        elements[output]->addInput(new_node->getId());
+                    }
+                }
+                
+                // add a portion of the inputs to new node
+                uint32_t input_counter = 0;
+                while(input_counter < fanin_max && !old_inputs.empty()){
+                    // add input to new node
+                    new_node->addInput(old_inputs.front());
+                    
+                    // add new node as output to parent node
+                    elements[old_inputs.front()]->addOutput(new_node->getId());
+                    elements[old_inputs.front()]->addOutputPointer(make_pair(elements[new_node->getId()], new_node->getId()));
+                    old_inputs.pop();
+                    input_counter++;
+                }
+
+                // if the split node is a self looping node, make new node self looping
+                if(selfref){
+                    new_node->addInput(new_node->getId());
+                    new_node->addOutput(new_node->getId());
+                    new_node->addOutputPointer(make_pair(new_node, new_node->getId()));
+                }
+                
+            }
+            
+            // delete old node
+            removeElement(s);
+        }
+    }
+}
