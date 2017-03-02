@@ -39,6 +39,7 @@ void usage(char * argv) {
 
     printf("\n TRANSFORMATIONS:\n");
     printf("      --enforce-fanin=<int> Enforces a fan-in limit, replicating nodes until no node has a fan-in of larger than <int>.\n");
+    printf("      --enforce-fanout=<int> Enforces a fan-out limit, replicating nodes until no node has a fan-out of larger than <int>.\n");
 
     printf("\n MULTITHREADING:\n");
     printf("  -T, --threads             Specify number of threads to compute connected components of automata\n");
@@ -174,6 +175,7 @@ int main(int argc, char * argv[]) {
     uint32_t num_threads_packets = 1;
     bool to_graph = false;
     int32_t fanin_limit = -1;
+    int32_t fanout_limit = -1;
 
     int c;
     const char * short_opt = "thsqrbnfcdDeaxipOLl:T:P:";
@@ -201,6 +203,7 @@ int main(int argc, char * argv[]) {
         {"thread-height",         required_argument, NULL, 'P'},
         {"graph",         no_argument, NULL, 0},
         {"enforce-fanin",         required_argument, NULL, 0},
+        {"enforce-fanout",         required_argument, NULL, 0},
         {NULL,            0,           NULL, 0  }
     };
     
@@ -221,6 +224,13 @@ int main(int argc, char * argv[]) {
                 fanin_limit = atoi(optarg);
                 if(fanin_limit < 1){
                     cout << "Error: Fanin limit cannot be less than 1/n" << endl;
+                    exit(1);
+                }
+            }
+            if(strcmp(long_opt[long_ind].name,"enforce-fanout") == 0){
+                fanout_limit = atoi(optarg);
+                if(fanout_limit < 1){
+                    cout << "Error: Fanout limit cannot be less than 1/n" << endl;
                     exit(1);
                 }
             }
@@ -493,6 +503,16 @@ int main(int argc, char * argv[]) {
             }
 
             a->enforceFanIn(fanin_limit);
+        }
+
+        // Enforce fan-out limit
+        if(fanout_limit > 0){
+            if(!quiet){
+                cout << "Enforcing fan-out of " << fanout_limit << "..." << endl; 
+                cout << endl;
+            }
+
+            a->enforceFanOut(fanout_limit);
         }
 
         // Convert automata to DFA

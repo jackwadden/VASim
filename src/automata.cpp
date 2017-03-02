@@ -3240,3 +3240,136 @@ void Automata::enforceFanIn(uint32_t fanin_max){
         }
     }
 }
+
+/*
+ * Guarantees that the fan-in for every node does not exceed fanin_max
+ */
+void Automata::enforceFanOut(uint32_t fanout_max){
+
+    // BFS queue of elements to process 
+    queue<STE*> workq;
+
+    // unmark all stes
+    // push report states to workq
+    for(auto el : getElements()){ 
+        el.second->unmark();
+        if(el.second->isSpecialElement()){
+            continue;
+        }
+        STE * s = static_cast<STE*>(el.second);
+
+        // push report states to workq    
+        if(s->isReporting()){
+            // mark node
+            s->mark();
+            // add to workq
+            workq.push(s);
+        }
+    }
+
+    // look for elements with fanouts that violate fanout_max
+    while(!workq.empty()){
+       
+        // get node to work on
+        STE * s = workq.front();
+        workq.pop();
+
+        // add all parents to workq if they are not marked (visited)
+        // NOTE: this implicitly does not handle special element children
+        for(auto in : s->getInputs()){
+            Element *el = elements[in.first];
+            // if not marked
+            if(!el->isMarked()){
+                // add parent to workq
+                STE * parent = static_cast<STE*>(el);
+                workq.push(parent);
+                parent->mark();
+            }
+        }
+
+        // calc fanout
+        // (does not include self references)
+        uint32_t fanout = 0;
+        bool selfref = false;
+        for(string out : s->getOutputs()){
+            if(out.compare(s->getId()) == 0){
+                selfref = true;
+            }else{
+                fanout++;
+            }
+        }
+       
+        //
+        // if fanout violates bound
+        if(fanout > fanout_max){
+            
+            // adjust node
+            // figure out how many new nodes we'll need
+            uint32_t new_nodes = ceil((double)fanout / (double)fanout_max);
+            
+            //add all outputs from node to queue
+            // except self refs
+            queue<string> old_outputs;
+            for(string out : s->getOutputs()){
+                if(out.compare(s->getId()) != 0)
+                    old_outputs.push(out);
+            }
+            
+            // create new nodes
+            for(uint32_t i = 0; i < new_nodes; i++){
+                
+                string id = s->getId() + "_" + to_string(i);
+                
+                STE *new_node = new STE(id,
+                                        s->getSymbolSet(),
+                                        s->getStringStart());
+                if(s->isReporting()){
+                    //cout << "REPORTING SPLIT" << endl;
+                    new_node->setReporting(true);
+                    new_node->setReportCode(s->getReportCode());
+                }
+                
+                // add to automata
+                rawAddSTE(new_node);
+                
+                // mark the node in case there are loops
+                new_node->mark();
+
+                // add all inputs from s to new node
+                for(auto in : s->getInputs()){
+                    string input = in.first;
+                    // ignore selfref output, we'll handle it later
+                    if(input.compare(s->getId()) != 0){
+                        new_node->addInput(input);
+                        elements[input]->addOutput(new_node->getId());
+                        elements[input]->addOutputPointer(make_pair(new_node, new_node->getId()));
+                    }
+                }
+                
+                // add a portion of the outputs to new node (round robin)
+                uint32_t output_counter = 0;
+                while(output_counter < fanout_max && !old_outputs.empty()){
+                    // add output to new node
+                    new_node->addOutput(old_outputs.front());
+                    new_node->addOutputPointer(make_pair(elements[old_outputs.front()], old_outputs.front()));
+
+                    // add new node as input to old output node
+                    elements[old_outputs.front()]->addInput(new_node->getId());
+                    old_outputs.pop();
+                    output_counter++;
+                }
+
+                // if the split node is a self looping node, make new node self looping
+                if(selfref){
+                    new_node->addInput(new_node->getId());
+                    new_node->addOutput(new_node->getId());
+                    new_node->addOutputPointer(make_pair(new_node, new_node->getId()));
+                }
+                
+            }
+            
+            // delete old node
+            removeElement(s);
+        }
+    }
+}
