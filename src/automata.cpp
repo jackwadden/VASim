@@ -3050,13 +3050,20 @@ void Automata::printGraphStats() {
 
     // gather edge statistics
     uint64_t sum_out = 0;
+    uint32_t max_out = 0;
+    uint32_t max_in = 0;
     uint64_t sum_in = 0;
     for(auto el : elements){
+        if(el.second->getOutputs().size() > max_out)
+            max_out = el.second->getOutputs().size();
         sum_out += el.second->getOutputs().size();
+        if(el.second->getInputs().size() > max_in)
+            max_in = el.second->getInputs().size();
         sum_in += el.second->getInputs().size();
     }
 
-
+    cout << "  Max Fan-in: " << max_in << endl;
+    cout << "  Max Fan-out: " << max_out << endl;
     cout << "  Average Node Degree: " << (double)sum_out / (double)elements.size() << endl << endl;
 
 
