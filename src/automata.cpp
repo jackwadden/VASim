@@ -384,6 +384,7 @@ vector<Automata *> Automata::generateGNFAs(){
  */
 void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
 
+
     // for all output edges in ste2;
     // 1) add outputs to ste1
     // 2) adjust inputs of output target nodes to reflect ste1, not ste2
@@ -3380,3 +3381,4 @@ void Automata::enforceFanOut(uint32_t fanout_max){
         }
     }
 }
+

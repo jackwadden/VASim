@@ -437,33 +437,23 @@ int STE::compare(STE *other) {
             //debug_out = true;
         }
     }
-    /* OLD
-    if(getStart() == true && other->getStart() == false){
-        //cout << "start mismatch" << endl;
-        return 1;
-    }else if(getStart() == false && other->getStart() == true){
-        //cout << "start mismatch" << endl;
-        return -1;
-    }
-    */
 
     // check report
     // never merge reports
     if(isReporting() == true && other->isReporting() == false) {
         if(debug_out)
-        cout << "report mismatch" << endl;
+            cout << "report mismatch" << endl;
         return 1;
     }else if(isReporting() == false && other->isReporting() == true) {
         if(debug_out)
-        cout << "report mismatch2" << endl;
+            cout << "report mismatch2" << endl;
         return -1;
         //never merge reports
     }else if(isReporting() || other->isReporting()){
         if(debug_out)
-        cout << "report mismatch3" << endl;
+            cout << "report mismatch3" << endl;
         return -1;
     }
-
  
     // check input sizes
     if(inputs.size() != other->getInputs().size()) {

@@ -114,6 +114,7 @@ public:
     void leftMinimizeStartStates();
     void leftMinimize(uint32_t);
     uint32_t leftMinimizeChildren(STE*, int);
+
     void defrag();
     Automata * generateDFA();
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
