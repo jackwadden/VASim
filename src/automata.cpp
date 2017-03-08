@@ -828,8 +828,8 @@ void Automata::simulate(uint8_t symbol) {
     if(profile)
         activatedHist.push_back(activatedSTEs.size());
 
-    if(dump_state && dump_state_cycle == cycle){
-        dumpSTEState("stes_" + to_string(cycle) + ".state");;
+    if(dump_state && (dump_state_cycle == cycle)){
+        dumpSTEState("stes_" + to_string(cycle) + ".state");
     }
 
     // PARALLEL STAGE 3
@@ -844,9 +844,9 @@ void Automata::simulate(uint8_t symbol) {
         // calculate logic and counter functions
         stageFour();
 
-        if(dump_state && dump_state_cycle == cycle)
+        if(dump_state && (dump_state_cycle == cycle)){
             dumpSpecelState("specels_" + to_string(cycle) +".state");
-
+        }
         // PARALLEL STAGE 5
         // WRITING
         // propagate logic and counter activations to other STEs, logic, and counters

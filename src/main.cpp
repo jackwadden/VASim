@@ -182,6 +182,12 @@ int main(int argc, char * argv[]) {
     bool dump_state = false;
     uint32_t dump_state_cycle = 0;
 
+    // long option switches
+    const int32_t graph_switch = 1000;
+    const int32_t fanin_switch = 1001;
+    const int32_t fanout_switch = 1002;
+    const int32_t dump_state_switch = 1003;
+
     int c;
     const char * short_opt = "thsqrbnfcdDeaxipOLl:T:P:";
 
@@ -206,10 +212,10 @@ int main(int argc, char * argv[]) {
         {"level",         required_argument, NULL, 'l'},
         {"thread-width",         required_argument, NULL, 'T'},
         {"thread-height",         required_argument, NULL, 'P'},
-        {"graph",         no_argument, NULL, 0},
-        {"enforce-fanin",         required_argument, NULL, 0},
-        {"enforce-fanout",         required_argument, NULL, 0},
-        {"dump-state",         required_argument, NULL, 0},
+        {"graph",         no_argument, NULL, graph_switch},
+        {"enforce-fanin",         required_argument, NULL, fanin_switch},
+        {"enforce-fanout",         required_argument, NULL, fanout_switch},
+        {"dump-state",         required_argument, NULL, dump_state_switch},
         {NULL,            0,           NULL, 0  }
     };
     
@@ -218,41 +224,8 @@ int main(int argc, char * argv[]) {
         switch(c) {
         case -1:       /* no more arguments */
         case 0:        /* long options toggles */
-            if(long_opt[optind].flag != 0){
-                break;
-            }
-
-            //
-            if(strcmp(long_opt[long_ind].name,"graph") == 0){
-                to_graph = true;
-            }
-
-            //
-            if(strcmp(long_opt[long_ind].name,"enforce-fanin") == 0){
-                fanin_limit = atoi(optarg);
-                if(fanin_limit < 1){
-                    cout << "Error: Fanin limit cannot be less than 1/n" << endl;
-                    exit(1);
-                }
-            }
-
-            //
-            if(strcmp(long_opt[long_ind].name,"enforce-fanout") == 0){
-                fanout_limit = atoi(optarg);
-                if(fanout_limit < 1){
-                    cout << "Error: Fanout limit cannot be less than 1/n" << endl;
-                    exit(1);
-                }
-            }
-
-            //
-            if(strcmp(long_opt[long_ind].name,"dump-state") == 0){
-                dump_state = true;
-                dump_state_cycle = atoi(optarg);
-            }
-
             break;
-            
+
         case 'i':
             input_string = true;
             break;
@@ -338,7 +311,32 @@ int main(int argc, char * argv[]) {
         case '?':
             fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
             return(-2);
-            
+
+        case dump_state_switch:
+                dump_state = true;
+                dump_state_cycle = atoi(optarg);
+            break;
+
+        case graph_switch:
+            to_graph = true;
+            break;
+
+        case fanin_switch:
+            fanin_limit = atoi(optarg);
+            if(fanin_limit < 1){
+                cout << "Error: Fanin limit cannot be less than 1/n" << endl;
+                exit(1);
+            }
+            break;
+
+        case fanout_switch:
+            fanout_limit = atoi(optarg);
+            if(fanout_limit < 1){
+                cout << "Error: Fanout limit cannot be less than 1/n" << endl;
+                exit(1);
+            }
+            break;
+                        
         default:
             fprintf(stderr, "%s: invalid option -- %c\n", argv[0], c);
             usage(argv[0]);
@@ -637,20 +635,22 @@ int main(int argc, char * argv[]) {
                  * RUNTIME FLAGS
                  ***************************/
                 // print
-                if(DEBUG)
+                if(DEBUG){
                     a->print();
-                
+                }
+
                 // enable runtime profiling
                 if(profile){
                     a->enableProfile();
                 }
+
+                // enable state dumping
+                if(dump_state){
+                    a->enableDumpState(dump_state_cycle);
+                }                
                 
                 if(report){
                     a->enableReport();
-                }
-                
-                if(dump_state){
-                    a->enableDumpState(dump_state_cycle);
                 }
 
                 // Handle odd divisors
