@@ -25,7 +25,7 @@ void usage(char * argv) {
     printf("  -c, --charset             Compute charset complexity of automata using Quine-McCluskey Algorithm\n");
 
     printf("\n DEBUG:\n");
-    printf("      --dump-state=<int>    Prints state of automata on cycle <int> to automata_<N>.state file.\n");
+    printf("      --dump-state=<int>    Prints state of automata on cycle <int> to stes_<cycle>.state and specels_<cycle>.state files.\n");
 
     printf("\n OUTPUT FORMATS:\n");
     printf("  -d, --dot                 Output automata as dot file. Builds a heat map if profiling is turned on\n");
