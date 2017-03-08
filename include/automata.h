@@ -30,6 +30,8 @@ private:
     bool profile;
     bool quiet;
     bool report;
+    bool dump_state;
+    uint32_t dump_state_cycle;
     
     std::unordered_map<std::string, Element*> elements;
     std::vector<STE*> starts;
@@ -72,6 +74,7 @@ public:
     void enableProfile();
     void enableReport();
     void enableQuiet();
+    void enableDumpState(uint32_t);
     void disableProfile();
     
     // I/O
@@ -89,6 +92,7 @@ public:
     void automataToANMLFile(std::string fn);
     void automataToHDLFile(std::string fn);
     void automataToGraphFile(std::string fn);
+
     std::vector<std::string> automataToRegex(std::string fn);
 
     // Simulation
@@ -109,6 +113,8 @@ public:
     void printActivationHistogram();
     void printGraphStats();
     void printSTEComplexity();
+    void dumpSTEState(std::string fn);
+    void dumpSpecelState(std::string fn);
 
     // Optimization and manipulation
     void leftMinimizeStartStates();

@@ -23,7 +23,10 @@ void usage(char * argv) {
     printf("  -q, --quiet               Suppress all non-debugging output\n");
     printf("  -p, --profile             Profiles automata, storing activation and enable histograms in .out files\n");
     printf("  -c, --charset             Compute charset complexity of automata using Quine-McCluskey Algorithm\n");
-    
+
+    printf("\n DEBUG:\n");
+    printf("      --dump-state=<int>    Prints state of automata on cycle <int> to automata_<N>.state file.\n");
+
     printf("\n OUTPUT FORMATS:\n");
     printf("  -d, --dot                 Output automata as dot file. Builds a heat map if profiling is turned on\n");
     printf("  -a, --anml                Output automata as anml file. Useful for storing graphs after long running optimizations\n");
@@ -176,6 +179,8 @@ int main(int argc, char * argv[]) {
     bool to_graph = false;
     int32_t fanin_limit = -1;
     int32_t fanout_limit = -1;
+    bool dump_state = false;
+    uint32_t dump_state_cycle = 0;
 
     int c;
     const char * short_opt = "thsqrbnfcdDeaxipOLl:T:P:";
@@ -204,6 +209,7 @@ int main(int argc, char * argv[]) {
         {"graph",         no_argument, NULL, 0},
         {"enforce-fanin",         required_argument, NULL, 0},
         {"enforce-fanout",         required_argument, NULL, 0},
+        {"dump-state",         required_argument, NULL, 0},
         {NULL,            0,           NULL, 0  }
     };
     
@@ -220,6 +226,8 @@ int main(int argc, char * argv[]) {
             if(strcmp(long_opt[long_ind].name,"graph") == 0){
                 to_graph = true;
             }
+
+            //
             if(strcmp(long_opt[long_ind].name,"enforce-fanin") == 0){
                 fanin_limit = atoi(optarg);
                 if(fanin_limit < 1){
@@ -227,6 +235,8 @@ int main(int argc, char * argv[]) {
                     exit(1);
                 }
             }
+
+            //
             if(strcmp(long_opt[long_ind].name,"enforce-fanout") == 0){
                 fanout_limit = atoi(optarg);
                 if(fanout_limit < 1){
@@ -234,6 +244,13 @@ int main(int argc, char * argv[]) {
                     exit(1);
                 }
             }
+
+            //
+            if(strcmp(long_opt[long_ind].name,"dump-state") == 0){
+                dump_state = true;
+                dump_state_cycle = atoi(optarg);
+            }
+
             break;
             
         case 'i':
@@ -616,6 +633,9 @@ int main(int argc, char * argv[]) {
 
                 Automata *a = automata[tid][packet];
 
+                /***************************
+                 * RUNTIME FLAGS
+                 ***************************/
                 // print
                 if(DEBUG)
                     a->print();
@@ -625,9 +645,14 @@ int main(int argc, char * argv[]) {
                     a->enableProfile();
                 }
                 
-                if(report)
+                if(report){
                     a->enableReport();
-       
+                }
+                
+                if(dump_state){
+                    a->enableDumpState(dump_state_cycle);
+                }
+
                 // Handle odd divisors
                 uint64_t length = packet_size;
                 if(packet == num_threads_packets - 1)

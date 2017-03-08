@@ -19,13 +19,19 @@ Automata::Automata() {
     quiet = false;
     cycle = 0;
 
+    // debug
+    dump_state = false;
+    dump_state_cycle = 0;
 }
 
 
 /*
  *
  */
-Automata::Automata(string filename): filename(filename), cycle(0) {
+Automata::Automata(string filename): filename(filename), 
+                                     cycle(0), 
+                                     dump_state(false), 
+                                     dump_state_cycle(0) {
 
 
     // Read in automata description from ANML file
@@ -561,6 +567,10 @@ vector<Automata*> Automata::splitConnectedComponents() {
         if(report){
             a->enableReport();
         }
+        
+        if(dump_state){
+            a->enableDumpState(dump_state_cycle);
+        }
     }
 
     // return vector
@@ -600,6 +610,9 @@ Automata *Automata::clone() {
 
     if(report)
         ap->enableReport();
+
+    if(dump_state)
+        ap->enableDumpState(dump_state_cycle);
 
     return ap;
 }
@@ -736,6 +749,14 @@ void Automata::enableQuiet() {
 /*
  *
  */
+void Automata::enableDumpState(uint32_t dump_cycle) {
+    dump_state = true;
+    dump_state_cycle = dump_cycle;
+}
+
+/*
+ *
+ */
 void Automata::disableProfile() {
     profile = false;
 }
@@ -807,6 +828,10 @@ void Automata::simulate(uint8_t symbol) {
     if(profile)
         activatedHist.push_back(activatedSTEs.size());
 
+    if(dump_state && dump_state_cycle == cycle){
+        dumpSTEState("stes_" + to_string(cycle) + ".state");;
+    }
+
     // PARALLEL STAGE 3
     // WRITING
     // propagate activation to other STEs, logic, and counters
@@ -819,10 +844,15 @@ void Automata::simulate(uint8_t symbol) {
         // calculate logic and counter functions
         stageFour();
 
+        if(dump_state && dump_state_cycle == cycle)
+            dumpSpecelState("specels_" + to_string(cycle) +".state");
+
         // PARALLEL STAGE 5
         // WRITING
         // propagate logic and counter activations to other STEs, logic, and counters
         stageFive();            
+
+
     }
 
     tick();
@@ -3382,3 +3412,68 @@ void Automata::enforceFanOut(uint32_t fanout_max){
     }
 }
 
+
+/*
+ * Dumps active states on parameter designated cycle to file stes_<cycle>.state
+ */
+void Automata::dumpSTEState(string filename) {
+
+    string s = "";
+
+    queue<STE*> temp;
+
+    // print activated STEs
+    while(!activatedSTEs.empty()){
+
+        STE * ste = activatedSTEs.back();
+        temp.push(ste);
+        activatedSTEs.pop_back();
+        // print ID
+        s += ste->getId();
+        s += "\n";
+    }
+
+    // restore activated STEs
+    while(!temp.empty()){
+        activatedSTEs.push_back(temp.front());
+        temp.pop();
+    }
+
+    writeStringToFile(s, filename);
+}
+
+/*
+ * Dumps active special elements on parameter designated cycle to file stes_<cycle>.state
+ *  *always* dumps counters and prints the current counter value and target.
+ */
+void Automata::dumpSpecelState(string filename) {
+
+    string s = "";
+
+    // print activated Specials
+    for(auto e : elements){
+
+        if(e.second->isSpecialElement()){
+            SpecialElement * specel = static_cast<SpecialElement*>(e.second);
+           
+            // if counter, print ID and target
+            if(dynamic_cast<Counter*>(specel)){
+                s += specel->getId();
+                Counter *c = static_cast<Counter*>(specel);
+                s += " " + to_string(c->getValue()) + " " + to_string(c->getTarget());
+                s += "\n";
+            }else{
+                // if its just a specel, only print its ID if it activated
+                if(specel->isActivated()){
+                     s += specel->getId();
+                     s += "\n";
+                }
+            }
+
+
+        }
+    }
+
+    writeStringToFile(s, filename);
+
+}

@@ -265,6 +265,14 @@ uint32_t Counter::getTarget() {
 /*
  *
  */
+uint32_t Counter::getValue() {
+
+    return value;
+}
+
+/*
+ *
+ */
 bool Counter::deactivate() {
 
     bool retval = true;

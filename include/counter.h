@@ -26,6 +26,7 @@ public:
     void setMode(std::string);
     void setTarget(uint32_t);
     uint32_t getTarget();
+    uint32_t getValue();
     virtual bool deactivate();
     virtual std::string toString();
     virtual std::string toANML();

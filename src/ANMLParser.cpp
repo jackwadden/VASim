@@ -245,7 +245,7 @@ Counter *ANMLParser::parseCounter(pugi::xml_node a) {
         c->setReporting(true);
     }
 
-    for(pugi::xml_node aom : a.children("report-on-high")) {
+    for(pugi::xml_node aom : a.children("report-on-target")) {
         c->setReportCode(aom.attribute("reportcode").value());
     }
 
