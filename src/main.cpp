@@ -312,11 +312,6 @@ int main(int argc, char * argv[]) {
             fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
             return(-2);
 
-        case dump_state_switch:
-                dump_state = true;
-                dump_state_cycle = atoi(optarg);
-            break;
-
         case graph_switch:
             to_graph = true;
             break;
@@ -335,6 +330,11 @@ int main(int argc, char * argv[]) {
                 cout << "Error: Fanout limit cannot be less than 1/n" << endl;
                 exit(1);
             }
+            break;
+
+        case dump_state_switch:
+            dump_state = true;
+            dump_state_cycle = atoi(optarg);
             break;
                         
         default:

@@ -28,9 +28,9 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
     bool range_set = false;
     int bracket_sem = 0;
     int brace_sem = 0;
-    int value = 1;
-    unsigned char last_char;
-    unsigned char range_start;
+    const unsigned int value = 1;
+    unsigned char last_char = 0;
+    unsigned char range_start = 0;
 
     // handle symbol sets that start and end with curly braces {###}
     if((symbol_set[0] == '{') &&
@@ -386,10 +386,13 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
             if(escaped){
                 //process hex char
                 ++index;
-                char hex[2];
-                hex[0] = symbol_set.c_str()[index];
-                hex[1] = symbol_set.c_str()[index+1];
+                char hex[3];
+                hex[0] = (char)symbol_set.c_str()[index];
+                hex[1] = (char)symbol_set.c_str()[index+1];
+                hex[2] = '\0';
                 unsigned char number = (unsigned char)std::strtoul(hex, NULL, 16);
+                
+                //
                 ++index;
                 column.set(number, value);
                 if(range_set){
