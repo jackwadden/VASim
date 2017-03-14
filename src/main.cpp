@@ -33,6 +33,7 @@ void usage(char * argv) {
     printf("  -n, --nfa                 Output automata as nfa readable by Michela Becchi's tools\n");    
     printf("  -D, --dfa                 Convert automata to DFA\n");
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA (EXPERIMENTAL)\n");    
+    printf("  -B, --blif                 Output automata as .blif circuit for place-and-route using VPR.\n");
     printf("      --graph               Output automata as .graph file for HyperScan.\n");
 
     printf("\n OPTIMIZATIONS:\n");    
@@ -173,6 +174,7 @@ int main(int argc, char * argv[]) {
     bool to_nfa = false;
     bool to_dfa = false;
     bool to_hdl = false;
+    bool to_blif = false;
     uint32_t max_level = 10000; // artificial (and arbitrary) max depth of attempted left-minimization
     uint32_t num_threads = 1;
     uint32_t num_threads_packets = 1;
@@ -189,7 +191,7 @@ int main(int argc, char * argv[]) {
     const int32_t dump_state_switch = 1003;
 
     int c;
-    const char * short_opt = "thsqrbnfcdDeaxipOLl:T:P:";
+    const char * short_opt = "thsqrbnfcdBDeaxipOLl:T:P:";
 
     struct option long_opt[] = {
         {"help",          no_argument, NULL, 'h'},
@@ -203,6 +205,7 @@ int main(int argc, char * argv[]) {
         {"nfa",         no_argument, NULL, 'n'},
         {"dfa",			no_argument, NULL, 'D'},
         {"hdl",         no_argument, NULL, 'f'},
+        {"blif",         no_argument, NULL, 'B'},
         {"profile",         no_argument, NULL, 'p'},
         {"charset",         no_argument, NULL, 'c'},
         {"time",         no_argument, NULL, 't'},
@@ -301,6 +304,10 @@ int main(int argc, char * argv[]) {
 
         case 'f':
             to_hdl = true;
+            break;
+
+        case 'B':
+            to_blif = true;
             break;
 
         case 'h':
@@ -557,6 +564,13 @@ int main(int argc, char * argv[]) {
         // Emit as HDL
         if(to_hdl) {
             a->automataToHDLFile("automata_" + to_string(counter) + ".v");
+        }
+
+        // Emit as .blif circuit file
+        if(to_blif){
+            if(!quiet)
+                cout << "Emitting automata as .blif circuit..." << endl << endl;
+            a->automataToBLIFFile("automata_" + to_string(counter) + ".blif");
         }
 
         // Emit as graph file readable by augmented HyperScan

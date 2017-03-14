@@ -1920,6 +1920,127 @@ void Automata::automataToHDLFile(string out_fn) {
 }
 
 /*
+ * Outputs automata to .blif circuit description file.
+ *  Currently works for STE-only designs.
+ *  Reporting architecture assumes 2 static ports per row.
+ */
+void Automata::automataToBLIFFile(string out_fn) {
+
+    string str = "";
+
+    // emit header for module
+    str += ".model blif_by_VASim\n";
+    
+    // emit inputs
+    str += ".inputs ";
+
+    // emit clock
+    str += "top.clock ";
+    str += "\n";
+
+    // emit outputs
+    str += ".outputs outpin\n";
+    // THIS DESIGN HAS NO REAL PHYSICAL OUTPUT PINS
+    str += "\n";
+
+    // emit unconnected dummy wire
+    str += ".names unconn";
+    str += "\n\n";
+
+    //------------------------------
+    // emit STEs
+    //------------------------------
+    // data structure to track enable inputs for each ste
+    unordered_map<string, uint32_t> enable_counter; 
+
+    // initialize portnumber map to all 0
+    for(auto e : elements){
+
+        Element *el = e.second;
+        if(el->isSpecialElement()){
+            continue;
+        }
+
+        STE *s = static_cast<STE*>(el);
+        
+        enable_counter[s->getId()] = 0;    
+    }
+
+    // for every STE, emit a proper .subckt
+    for(auto e : elements){
+
+        Element *el = e.second;
+        if(el->isSpecialElement()){
+            continue;
+        }
+
+        STE *s = static_cast<STE*>(el);
+    
+        str += ".subckt ste ";
+
+        // INPUTS
+        // add global enable ports to start states
+        // for each input
+        for(auto in : s->getInputs()){
+
+            string parent = in.first;
+            string child = s->getId();
+
+            // ignore self refs
+            if(parent.compare(child) == 0)
+                continue;
+
+            // emit proper signal
+            string wire = parent; 
+            uint32_t portnumber = enable_counter[s->getId()];
+            str += "enable[" + to_string(portnumber) + "]=" + wire + " ";
+            enable_counter[s->getId()] = portnumber + 1;
+        }
+
+        // Fill rest of inputs with unconn dummy nets
+        for(int i = 0; i < 16; i++){
+            uint32_t portnumber = enable_counter[s->getId()];
+            if(i < portnumber)
+                continue;
+            str += "enable[" + to_string(i) + "]=unconn ";
+        }
+
+        // OUTPUTS
+        string parent = s->getId();
+        string wire = s->getId();
+        if(!s->isReporting())
+            str += "active=" + wire + " ";
+        
+        // CLOCK
+        str += "clock=top.clock ";
+
+        str += "\n\n";
+    }
+
+    str += "\n";
+
+    // end STE netlist
+    str += "\n";
+    str += ".end\n";
+    str += "\n";
+    str += "\n";
+
+    // emit the STE blackbox model
+    str += ".model ste\n";
+    str += ".inputs ";
+    for(int i = 0; i < 16; i++)
+        str += "enable[" + to_string(i) + "] " ;
+    str += "clock\n";
+    str += ".outputs active\n";
+    str += ".blackbox\n";
+    str += ".end\n";
+    str += "\n";
+
+    writeStringToFile(str, out_fn);
+}
+
+
+/*
  *
  */
 void Automata::automataToGraphFile(string out_fn) {

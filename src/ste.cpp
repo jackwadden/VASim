@@ -439,7 +439,7 @@ int STE::compare(STE *other) {
     }
 
     // check report
-    // never merge reports
+  
     if(isReporting() == true && other->isReporting() == false) {
         if(debug_out)
             cout << "report mismatch" << endl;
@@ -449,12 +449,15 @@ int STE::compare(STE *other) {
             cout << "report mismatch2" << endl;
         return -1;
         //never merge reports
-    }else if(isReporting() || other->isReporting()){
+    }
+    // never merge two reports
+    // NOTE: this is *not* the behavior of the micron compiler TODO
+    else if(isReporting() || other->isReporting()){
         if(debug_out)
             cout << "report mismatch3" << endl;
         return -1;
     }
- 
+    
     // check input sizes
     if(inputs.size() != other->getInputs().size()) {
 
