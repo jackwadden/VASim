@@ -33,7 +33,7 @@ void usage(char * argv) {
     printf("  -n, --nfa                 Output automata as nfa readable by Michela Becchi's tools\n");    
     printf("  -D, --dfa                 Convert automata to DFA\n");
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA (EXPERIMENTAL)\n");    
-    printf("  -B, --blif                 Output automata as .blif circuit for place-and-route using VPR.\n");
+    printf("  -B, --blif                Output automata as .blif circuit for place-and-route using VPR.\n");
     printf("      --graph               Output automata as .graph file for HyperScan.\n");
 
     printf("\n OPTIMIZATIONS:\n");    
