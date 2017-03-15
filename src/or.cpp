@@ -62,7 +62,7 @@ string OR::toANML() {
     str.append("\">\n");
 
     for(string s2 : outputs) {
-        str.append("<activate-on-match element=\"");
+        str.append("<activate-on-high element=\"");
         str.append(s2);
         str.append("\"/>\n");
     }
