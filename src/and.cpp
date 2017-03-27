@@ -27,7 +27,6 @@ bool AND::calculate() {
 
     bool result = true;
     
-
     for(auto e : inputs) {
     
         if(DEBUG)
@@ -35,7 +34,16 @@ bool AND::calculate() {
         result = result && e.second;
     }
 
-    return result;
+    if(DEBUG)
+        cout << "RESULT: " << result << endl;
+
+    if(inputs.size() > 1)
+        return result;
+    else{
+        if(DEBUG)
+            cout << "ONLY ONE INPUT TO AND GATE! CALC FALSE" << endl;
+        return false;
+    }
 }
 
 /*
