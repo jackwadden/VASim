@@ -39,6 +39,9 @@ bool Inverter::calculate() {
 
     }
 
+    if(DEBUG)
+        cout << "RESULT: " << result << endl;
+
     return result;
 }
 
