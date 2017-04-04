@@ -368,14 +368,41 @@ int main(int argc, char * argv[]) {
         simulate = false;
     }
 
-    // Parse automata input file or input from command line
-    input = parseInputStream(simulate, input_string, &size, argv, optind);
+    // Parse Input
+    if(!quiet){
+     
+        cout << "|------------------------|" << endl;
+        cout << "|     Parsing  Input     |" << endl;
+        cout << "|------------------------|" << endl;
+
+        if(!input_string && simulate){
+            cout << "Reading input stream from file: " << argv[optind] << endl;
+        }
+    
+    }
+
+
+    if(simulate){
+        // Parse automata input file or input from command line
+        input = parseInputStream(simulate, input_string, &size, argv, optind);
+        
+        if(size < 1){
+            cout << "WARNING: Input file is empty! Refusing to simulate..." << endl;
+            simulate = false;
+        }else{
+            cout << "  Found " << size << " input symbols." << endl;
+        }
+    }
+
+    if(!quiet){
+        cout << endl;
+    }
 
     // Build automata
     if(!quiet){
      
         cout << "|------------------------|" << endl;
-        cout << "|        Parsing         |" << endl;
+        cout << "|      Parsing  ANML     |" << endl;
         cout << "|------------------------|" << endl;
 
         cout << "Building automata from file: " << fn << endl;
