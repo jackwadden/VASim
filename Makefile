@@ -17,6 +17,8 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
+MNRL = ./mnrl/C++/libmnrl.a
+
 
 all: CXXFLAGS += -DDEBUG=false -Ofast -march=native -m64 -flto #-fprofile-use
 all: $(TARGET)
@@ -38,6 +40,10 @@ $(ODIR)/pugixml.o: $(PUGI)/pugixml.cpp
 	@mkdir -p $(ODIR)	
 	$(CC) $(CXXFLAGS) -c -o $@ $< $(CXXFLAGS)
 
+$(MNRL):
+	git submodule init
+	git submodule update
+	$(MAKE) -C ./mnrl/C++/
 
 .PHONY: clean
 
