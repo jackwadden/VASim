@@ -17,7 +17,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-MNRL = ./mnrl/C++/libmnrl.a
+MNRL = ./MNRL/C++/libmnrl.a
 
 
 all: CXXFLAGS += -DDEBUG=false -Ofast -march=native -m64 -flto #-fprofile-use
