@@ -23,6 +23,7 @@ Inverter::~Inverter() {
  */
 bool Inverter::calculate() {
 
+
     if(DEBUG)
         cout << "INVERTER: id=" << id << " CALCULATING\n\tINPUTS:\n" << endl;
 

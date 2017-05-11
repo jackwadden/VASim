@@ -839,18 +839,22 @@ void Automata::simulate(uint8_t symbol) {
 
     // SPECIAL ELEMENT STAGES
     if(specialElements.size() > 0){
+        
+        // NEW CIRCUIT SIMULATION CORE
+        specialElementSimulation();
+
         // PARALLEL STAGE 4
         // READING
         // calculate logic and counter functions
-        stageFour();
+        //stageFour();
 
-        if(dump_state && (dump_state_cycle == cycle)){
-            dumpSpecelState("specels_" + to_string(cycle) +".state");
-        }
+        //if(dump_state && (dump_state_cycle == cycle)){
+        //    dumpSpecelState("specels_" + to_string(cycle) +".state");
+        //}
         // PARALLEL STAGE 5
         // WRITING
         // propagate logic and counter activations to other STEs, logic, and counters
-        stageFive();            
+        //stageFive();            
 
 
     }
@@ -2516,18 +2520,7 @@ inline void Automata::stageFour() {
         cout << "STAGE FOUR:" << endl;
     
     
-    // CONSIDER ELEMENTS THAT DONE NECESSARILY NEED ENABLE INPUTS
-    if(activateNoInputSpecialElements.size() > 0){
-        // for each special element that must be considered even if not enabled
-        for(SpecialElement *specel : activateNoInputSpecialElements){
-            
-            if(!specel->isEnabled()){
-                enabledSpecialElements.push(specel);
-            }
-        }
-    }
-    
-    // for all enabled special elements
+    // for all special element children of enabled STEs
     while(!enabledSpecialElements.empty()){
         
         //SpecialElement *spel = e.second;
@@ -2547,8 +2540,10 @@ inline void Automata::stageFour() {
             // activate only if we weren't already activated
             if(!spel->isActivated()) {
                 spel->activate();
-                activatedSpecialElements.push(spel);
             }
+
+            // consider all special elements even if they didn't "activate"
+            activatedSpecialElements.push(spel);
             
             if(DEBUG)
                 cout << "SPECIAL ELEMENT ACTIVATED: " << spel->getId() << endl;
@@ -2593,23 +2588,130 @@ inline uint32_t Automata::stageFive() {
         if(DEBUG)
             cout << "ACTIVATED SPECIAL: " << spel->getId() << endl;
 
-        spel->enableChildSTEs(&enabledSTEs);    
-        numEnabledSpecEls += spel->enableChildSpecialElements(&enabledSpecialElements);    
+        //
+        if(spel->isActivated()){
+            spel->enableChildSTEs(&enabledSTEs);
+            numEnabledSpecEls += spel->enableChildSpecialElements(&enabledSpecialElements);  
+        }
 
         // suggest that the logic deactivate
         if(!spel->deactivate()) {
             // store for later stages
-            latchedSpecialElements.push_back(spel);
+            //latchedSpecialElements.push_back(spel);
         }
     }
 
-    // refil activated elements
-    while(!latchedSpecialElements.empty()) {
-        activatedSpecialElements.push(latchedSpecialElements.back());
-        latchedSpecialElements.pop_back();
+    return numEnabledSpecEls;
+}
+
+
+/*
+ *
+ */
+void Automata::specialElementSimulation() {
+
+    // circuit simulation happens between automata processing
+    // all circuit elements (specels) are considered
+    // elements are considered from root nodes (specels that are children of STEs)
+    // computation proceeds until all elements enable STEs and have no more circuit children
+
+    map<uint32_t, bool> calculated;
+    map<uint32_t, bool> queued;
+
+    queue<SpecialElement *> work_q;
+
+    // initialize tracking structures
+    for( auto e : elements) {
+                
+        // initialize claculated map
+        calculated[e.second->getIntId()] = false;
+
+        // initialize queued map
+        queued[e.second->getIntId()] = false;
     }
 
-    return numEnabledSpecEls;
+    // fill work_q with specel children of STEs
+    for(auto e : elements) {
+        if(!e.second->isSpecialElement()){
+
+            for( auto sp : e.second->getOutputSpecelPointers() ) {
+
+                SpecialElement *specel = static_cast<SpecialElement*>(sp.first);
+                if(!queued[specel->getIntId()]){
+                    work_q.push(specel);
+                    queued[specel->getIntId()] = true;
+                }
+            }
+            
+            // indicate that this parent has already calculated
+            calculated[e.second->getIntId()] = true;
+        }
+    } 
+
+    // while workq is not empty
+    while(!work_q.empty()){
+
+        // get front
+        SpecialElement * spel = work_q.front();
+        work_q.pop();
+
+        // if all parents have already calculated
+        bool ready = true;
+        for(auto in : spel->getInputs()){
+            if(!calculated[elements[Element::stripPort(in.first)]->getIntId()]){
+                ready = false;
+                break;
+            }
+        }
+
+        // execute if all our inputs are ready
+        if(ready){
+            
+            // calculate
+            calculated[spel->getIntId()] = true;
+            bool emitOutput = spel->calculate();
+
+            // if we calculated true
+            if(emitOutput) {
+
+                // activate
+                if(!spel->isActivated()){
+                    spel->activate();
+                }
+                
+                // report?
+                if(report && spel->isReporting()) {
+                    if(DEBUG)
+                        cout << "\tSPECEL REPORTING: " << spel->getId() << endl;
+                    
+                    reportVector.push_back(make_pair(cycle, spel->getId()));
+                }
+                
+            }
+            
+            // disable
+            spel->disable();
+
+            // for all children
+            // enable them if we activated
+            if(emitOutput){
+                spel->enableChildSTEs(&enabledSTEs);
+                spel->enableChildSpecialElements(&enabledSpecialElements);
+            }
+
+            //// if child is specel
+            for(auto e : spel->getOutputSpecelPointers()){
+            
+                ////// push to queue to consider 
+                SpecialElement *spel_child = static_cast<SpecialElement*>(e.first);
+                if(!queued[spel_child->getIntId()]){
+                    work_q.push(spel_child);
+                    queued[spel_child->getIntId()] = true;
+                }
+
+            }
+        }
+    }
 }
 
 /*

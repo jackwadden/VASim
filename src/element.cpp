@@ -406,15 +406,12 @@ uint32_t Element::enableChildSpecialElements(queue<Element *> *enabledSpecialEls
         if(DEBUG) 
             cout << getId() << " ENABLING " << child->getId() << endl;
         
-        //add to enabled specel list if we are a special el
-        if(enabledSpecialEls != NULL && !child->isEnabled()){
-            numEnabledSpecEls++;
+        // consider all special elements
+        numEnabledSpecEls++;
 
-            // if we can be enabled without an input, 
-            //we're already in the queue (stage one)
-            if(!(child)->canActivateNoEnable())
-                enabledSpecialEls->push(child);
-        }
+        // if we can be enabled without an input, 
+        //we're already in the queue (stage one)
+        //enabledSpecialEls->push(child);
         // adds enable signal as "fromElementId:toPort"        
         child->enable(getId() + e.second);
     }

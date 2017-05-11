@@ -37,7 +37,7 @@ private:
     std::vector<STE*> starts;
     std::vector<Element*> reports;
     std::unordered_map<std::string, SpecialElement*> specialElements;
-    std::vector<SpecialElement*> activateNoInputSpecialElements;
+    std::unordered_map<std::string, SpecialElement*> firstLayerSpecialElements;
     
     // Functional element stacks
     Stack<Element *> enabledSTEs;
@@ -47,6 +47,7 @@ private:
     std::queue<Element*> enabledSpecialElements;
     std::queue<SpecialElement*> activatedSpecialElements;
     std::vector<SpecialElement*> latchedSpecialElements;
+    std::vector<SpecialElement*> activateNoInputSpecialElements;
 
     // Simulation Statistics
     std::vector<std::pair<uint32_t, std::string>> reportVector;
@@ -105,6 +106,8 @@ public:
     void stageThree();
     void stageFour();
     uint32_t stageFive();
+    void specialElementSimulation();
+    void specialElementSimulation2();
     uint64_t tick();
 
 

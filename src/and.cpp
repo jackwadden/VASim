@@ -37,7 +37,7 @@ bool AND::calculate() {
     if(DEBUG)
         cout << "RESULT: " << result << endl;
 
-    if(inputs.size() > 1)
+    if(inputs.size() > 0)
         return result;
     else{
         if(DEBUG)

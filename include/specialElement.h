@@ -13,6 +13,8 @@ class SpecialElement: public Element {
 public:
     SpecialElement(std::string id);
     ~SpecialElement();
+    virtual void enable(std::string id);
+    virtual void disable();
     virtual bool calculate() = 0;
     virtual bool isSpecialElement();
     virtual std::string toString() = 0;

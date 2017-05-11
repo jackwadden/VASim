@@ -8,8 +8,7 @@ using namespace std;
  */
 Counter::Counter(string id, uint32_t target, string at_target) : SpecialElement(id), 
                                                                  mode(PULSE),
-                                                                 dormant(false),
-                                                                 latched(false){
+                                                                 dormant(false){
 
     setTarget(target);
     setMode(at_target);
@@ -24,30 +23,6 @@ Counter::~Counter() {
  
 }
 
-/*
- *
- */
-void Counter::enable(string s) {
-
-    enabled = true;
-    inputs[s] = true;
-}
-
-/*
- *
- */
-void Counter::disable() {
-
-    if(DEBUG)
-        cout << "DISABLING COUNTER " << getId() << endl;
-
-    for(auto e : inputs) {
-
-        inputs[e.first] = false;
-    }
-
-    enabled = false;
-}
 
 
 /*
@@ -97,7 +72,6 @@ bool Counter::calculate() {
         
         // depending on the mode, take action
         if(mode == LATCH) {
-
             if(!latched) {
                 value++;
             
@@ -106,6 +80,10 @@ bool Counter::calculate() {
                     latched = true;
                 }
             } else {
+                if(DEBUG){
+                    cout << "I'M LATCHED!" << endl;
+                }
+
                 retval = true;
             }
             
