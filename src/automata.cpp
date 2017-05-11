@@ -3698,5 +3698,24 @@ void Automata::dumpSpecelState(string filename) {
     }
 
     writeStringToFile(s, filename);
+}
 
+/*
+ *
+ */
+void Automata::removeEdge(Element* from, Element *to){
+
+    from->removeOutput(to->getId());
+    from->removeOutputPointer(make_pair(to, to->getId()));
+    to->removeInput(from->getId());
+}
+
+/*
+ *
+ */
+void Automata::addEdge(Element* from, Element *to){
+
+    from->addOutput(to->getId());
+    from->addOutputPointer(make_pair(to, to->getId()));
+    to->addInput(from->getId());
 }

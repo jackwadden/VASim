@@ -125,6 +125,9 @@ public:
     void leftMinimize(uint32_t);
     uint32_t leftMinimizeChildren(STE*, int);
 
+    void addEdge(Element *from, Element *to);
+    void removeEdge(Element *from, Element *to);
+    
     void defrag();
     Automata * generateDFA();
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
