@@ -3139,17 +3139,21 @@ void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
  * Guarantees that the fan-in for every node does not exceed fanin_max
  */
 void Automata::enforceFanIn(uint32_t fanin_max){
-
+    
     // BFS queue of elements to process 
     queue<STE*> workq;
 
-    // unmark all stes
-    // push start states to workq
+    // push all start states to workq
     for(auto el : getElements()){ 
+
+        // unmark all elements
         el.second->unmark();
+
+        // ignore special elements
         if(el.second->isSpecialElement()){
             continue;
         }
+        
         STE * s = static_cast<STE*>(el.second);
 
         // push start states to workq    
@@ -3168,16 +3172,6 @@ void Automata::enforceFanIn(uint32_t fanin_max){
         STE * s = workq.front();
         workq.pop();
 
-        // add all children to workq if they are not marked (visited)
-        // NOTE: this implicitly does not handle special element children
-        for(auto e : s->getOutputSTEPointers()){
-            if(!e.first->isMarked()){
-                STE * child = static_cast<STE*>(e.first);
-                workq.push(child);
-                child->mark();
-            }
-        }
-
         // if we have more inputs than the max
         // (does not include self references)
         uint32_t fanin = 0;
@@ -3189,14 +3183,32 @@ void Automata::enforceFanIn(uint32_t fanin_max){
                 fanin++;
             }
         }
-       
+
+        // add all children of original node to workq if they are not marked (visited)
+        // NOTE: this implicitly does not handle special element children
+        for(auto e : s->getOutputSTEPointers()){
+            if(!e.first->isMarked()){
+                STE * child = static_cast<STE*>(e.first);
+                workq.push(child);
+                child->mark();
+            }
+        }
+        
         //
         //cout << "FAN IN: " << fanin << endl;
         if(fanin > fanin_max){
-            
+
+            if(DEBUG){
+                cout << "FAN-IN MAX VIOLATION: " << s->getId() << " has fan-in of " << fanin << endl;
+            }
+                
             // adjust node
             // figure out how many new nodes we'll need
             uint32_t new_nodes = ceil((double)fanin / (double)fanin_max);
+
+            if(DEBUG){
+                cout << "  will be split into " << new_nodes << " new nodes..." << endl;
+            }
             
             //add all inputs to queue
             // except self refs
@@ -3226,36 +3238,43 @@ void Automata::enforceFanIn(uint32_t fanin_max){
                 // mark the node in case there are loops
                 new_node->mark();
 
-                // add all outputs from s to new node
+                // replicate output edges from old node to new node
                 for(string output : s->getOutputs()){
                     // ignore selfref output, we'll handle it later
                     if(output.compare(s->getId()) != 0){
-                        new_node->addOutput(output);
-                        new_node->addOutputPointer(make_pair(elements[output], output));
-                        elements[output]->addInput(new_node->getId());
+                        Element *to = elements[output];
+                        addEdge(new_node, elements[output]);
+
+                        // make sure we reconsider the output even if it was already marked
+                        if(!to->isSpecialElement())
+                            workq.push(static_cast<STE*>(elements[output]));
                     }
                 }
-                
+                   
                 // add a portion of the inputs to new node
                 uint32_t input_counter = 0;
                 while(input_counter < fanin_max && !old_inputs.empty()){
-                    // add input to new node
-                    new_node->addInput(old_inputs.front());
-                    
-                    // add new node as output to parent node
-                    elements[old_inputs.front()]->addOutput(new_node->getId());
-                    elements[old_inputs.front()]->addOutputPointer(make_pair(elements[new_node->getId()], new_node->getId()));
+                    // add edge from input node to new node
+                    Element *from = elements[old_inputs.front()];
+                    addEdge(from ,new_node);
+
                     old_inputs.pop();
                     input_counter++;
                 }
 
                 // if the split node is a self looping node, make new node self looping
                 if(selfref){
-                    new_node->addInput(new_node->getId());
-                    new_node->addOutput(new_node->getId());
-                    new_node->addOutputPointer(make_pair(new_node, new_node->getId()));
+                    if(DEBUG){
+                        cout << "SELF REF" << endl;
+                    }
+                    addEdge(new_node, new_node);
                 }
-                
+
+                //
+                if(DEBUG){
+                    cout << "NEW NODE FANIN: " << new_node->getInputs().size() << endl;
+                }
+
             }
             
             // delete old node

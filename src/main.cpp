@@ -553,6 +553,7 @@ int main(int argc, char * argv[]) {
 
             a->enforceFanIn(fanin_limit);
         }
+        
 
         // Enforce fan-out limit
         if(fanout_limit > 0){
@@ -560,7 +561,7 @@ int main(int argc, char * argv[]) {
                 cout << "Enforcing fan-out of " << fanout_limit << "..." << endl; 
                 cout << endl;
             }
-
+           
             a->enforceFanOut(fanout_limit);
         }
 

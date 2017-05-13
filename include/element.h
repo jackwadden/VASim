@@ -81,7 +81,8 @@ public:
     void mark();
     void unmark();
     virtual bool isStateful();
-
+    bool isSelfRef();
+    
     // backport additions
     bool isCut();
     void setCut(bool);
