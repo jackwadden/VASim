@@ -3093,8 +3093,8 @@ void Automata::printGraphStats() {
         sum_in += inputs;
     }
 
-    cout << "  Max Fan-in: " << max_in << endl;
-    cout << "  Max Fan-out: " << max_out << endl;
+    cout << "  Max Fan-in (not including self loops): " << max_in << endl;
+    cout << "  Max Fan-out (not including self loops): " << max_out << endl;
     cout << "  Average Node Degree: " << (double)sum_out / (double)elements.size() << endl << endl;
 
 
