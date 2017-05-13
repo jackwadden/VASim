@@ -3070,12 +3070,27 @@ void Automata::printGraphStats() {
     uint32_t max_in = 0;
     uint64_t sum_in = 0;
     for(auto el : elements){
-        if(el.second->getOutputs().size() > max_out)
-            max_out = el.second->getOutputs().size();
-        sum_out += el.second->getOutputs().size();
-        if(el.second->getInputs().size() > max_in)
-            max_in = el.second->getInputs().size();
-        sum_in += el.second->getInputs().size();
+
+        uint32_t outputs = 0;
+        uint32_t inputs = 0;
+        outputs = el.second->getOutputs().size();
+        inputs = el.second->getInputs().size();
+
+        if(el.second->isSelfRef()){
+            outputs--;
+            inputs--;
+        }
+        
+        if(outputs > max_out){
+            max_out = outputs;
+        }
+        
+        sum_out += outputs;
+
+        if(inputs > max_in){
+            max_in = inputs;
+        }
+        sum_in += inputs;
     }
 
     cout << "  Max Fan-in: " << max_in << endl;
@@ -3243,11 +3258,11 @@ void Automata::enforceFanIn(uint32_t fanin_max){
                     // ignore selfref output, we'll handle it later
                     if(output.compare(s->getId()) != 0){
                         Element *to = elements[output];
-                        addEdge(new_node, elements[output]);
+                        addEdge(new_node, to);
 
                         // make sure we reconsider the output even if it was already marked
                         if(!to->isSpecialElement())
-                            workq.push(static_cast<STE*>(elements[output]));
+                            workq.push(static_cast<STE*>(to));
                     }
                 }
                    
@@ -3378,36 +3393,40 @@ void Automata::enforceFanOut(uint32_t fanout_max){
                 new_node->mark();
 
                 // add all inputs from s to new node
+                // replicate input edges from old node to new node
                 for(auto in : s->getInputs()){
                     string input = in.first;
                     // ignore selfref output, we'll handle it later
                     if(input.compare(s->getId()) != 0){
-                        new_node->addInput(input);
-                        elements[input]->addOutput(new_node->getId());
-                        elements[input]->addOutputPointer(make_pair(new_node, new_node->getId()));
+
+                        //
+                        Element *from = elements[input];
+                        addEdge(from, new_node);
+
+                        // make sure we reconsider the input node, even if it was already marked
+                        // adding an output edge to this input may have violated the fan-out max!
+                        if(!from->isSpecialElement()){
+                            workq.push(static_cast<STE*>(from));
+                        }
                     }
                 }
                 
-                // add a portion of the outputs to new node (round robin)
+                // add a portion of the outputs to new node
                 uint32_t output_counter = 0;
                 while(output_counter < fanout_max && !old_outputs.empty()){
-                    // add output to new node
-                    new_node->addOutput(old_outputs.front());
-                    new_node->addOutputPointer(make_pair(elements[old_outputs.front()], old_outputs.front()));
 
-                    // add new node as input to old output node
-                    elements[old_outputs.front()]->addInput(new_node->getId());
+                    // add output edge to new node
+                    addEdge(new_node, elements[old_outputs.front()]);
+
                     old_outputs.pop();
                     output_counter++;
                 }
 
                 // if the split node is a self looping node, make new node self looping
                 if(selfref){
-                    new_node->addInput(new_node->getId());
-                    new_node->addOutput(new_node->getId());
-                    new_node->addOutputPointer(make_pair(new_node, new_node->getId()));
-                }
-                
+                    //
+                    addEdge(new_node, new_node);
+                }                
             }
             
             // delete old node
