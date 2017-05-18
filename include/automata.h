@@ -5,6 +5,7 @@
 #include "ste.h"
 #include "specialElement.h"
 #include "ANMLParser.h"
+#include "MNRLAdapter.h"
 #include <cmath>
 
 #include <iostream>

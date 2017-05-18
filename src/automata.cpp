@@ -7,6 +7,16 @@
 
 using namespace std;
 
+static string getFileExt(const string& s) {
+
+   size_t i = s.rfind('.', s.length());
+   if (i != string::npos) {
+      return(s.substr(i+1, s.length() - i));
+   }
+
+   return("");
+}
+
 
 /*
  *
@@ -33,10 +43,15 @@ Automata::Automata(string filename): filename(filename),
                                      dump_state(false), 
                                      dump_state_cycle(0) {
 
-
-    // Read in automata description from ANML file
-    ANMLParser parser(filename);
-    parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
+    if(getFileExt(filename).compare(".mnrl") == 0) {
+        // Read in automata description from MNRL file
+        MNRLAdapter parser(filename);
+        parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
+    } else {
+        // Read in automata description from ANML file
+        ANMLParser parser(filename);
+        parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
+    }
 
     // Disable report vector by default
     report = false;
