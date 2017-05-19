@@ -2,6 +2,7 @@
 #include "or.h"
 
 using namespace std;
+using namespace MNRL;
 
 /*
  *
@@ -80,4 +81,8 @@ string OR::toANML() {
     str.append("</or>");
 
     return str;
+}
+
+shared_ptr<MNRLNode> OR::toMNRLObj() {
+    return toMNRLBool(MNRLDefs::BooleanMode::OR);
 }

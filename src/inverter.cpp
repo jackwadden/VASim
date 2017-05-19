@@ -2,6 +2,7 @@
 #include "inverter.h"
 
 using namespace std;
+using namespace MNRL;
 
 /*
  *
@@ -63,6 +64,10 @@ string Inverter::toANML() {
 
     string str("INV: NOT IMPLEMENTED YET\n");
     return str;
+}
+
+shared_ptr<MNRLNode> Inverter::toMNRLObj() {
+    return toMNRLBool(MNRLDefs::BooleanMode::NOT);
 }
 
 /*

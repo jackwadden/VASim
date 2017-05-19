@@ -6,6 +6,7 @@
 #endif
 
 using namespace std;
+using namespace MNRL;
 
 static string getFileExt(const string& s) {
 
@@ -1735,6 +1736,40 @@ void Automata::automataToANMLFile(string out_fn) {
 
     // write NFA to file
     writeStringToFile(str, out_fn);
+}
+
+/*
+ * Outputs automata to MNRL file
+ * Meant to be called after optimization passes
+ */
+void Automata::automataToMNRLFile(string out_fn) {
+    MNRLNetwork net(id);
+    
+    // add all the elements
+    for(auto el : elements) {
+        net.addNode(el.second->toMNRLObj());
+    }
+    
+    // add all the connections
+    for(auto el : elements) {
+        for(auto dst : el.second->getOutputs()) {
+            // We're going to make some assumptions here
+            
+            string dst_port = Element::getPort(dst);
+            
+            net.addConnection(
+                el.second->getId(),// src id
+                MNRLDefs::H_STATE_OUTPUT,// src port
+                Element::stripPort(dst),// dest id
+                dst_port.compare("") == 0 ? MNRLDefs::H_STATE_INPUT : dst_port// dest port
+            );
+        }
+        
+    }
+    
+    // write the net to a file
+    net.exportToFile(out_fn);
+    
 }
 
 /*

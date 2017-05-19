@@ -2,6 +2,7 @@
 #include "nor.h"
 
 using namespace std;
+using namespace MNRL;
 
 /*
  *
@@ -77,6 +78,10 @@ string NOR::toANML() {
     str.append("</nor>");
 
     return str;
+}
+
+shared_ptr<MNRLNode> NOR::toMNRLObj() {
+    return toMNRLBool(MNRLDefs::BooleanMode::NOR);
 }
 
 /*

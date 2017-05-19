@@ -2,6 +2,7 @@
 #include "and.h"
 
 using namespace std;
+using namespace MNRL;
 
 /*
  *
@@ -65,4 +66,8 @@ string AND::toANML() {
 
     string str("AND: NOT IMPLEMENTED YET\n");
     return str;
+}
+
+shared_ptr<MNRLNode> AND::toMNRLObj() {
+    return toMNRLBool(MNRLDefs::BooleanMode::AND);
 }

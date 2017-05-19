@@ -2,6 +2,7 @@
 #include "counter.h"
 
 using namespace std;
+using namespace MNRL;
 
 /*
  *
@@ -324,6 +325,38 @@ string Counter::toANML() {
 
     return s;
 
+}
+
+/*
+ *
+ */
+shared_ptr<MNRLNode> Counter::toMNRLObj() {
+    
+    MNRLDefs::CounterMode m;
+    switch(mode) {
+        case LATCH:
+            m = MNRLDefs::CounterMode::HIGH_ON_THRESHOLD;
+            break;
+        case ROLL:
+            m = MNRLDefs::CounterMode::ROLLOVER_ON_THRESHOLD;
+            break;
+        case PULSE:
+            m = MNRLDefs::CounterMode::TRIGGER_ON_THRESHOLD;
+            break;
+    }
+    
+    shared_ptr<MNRLUpCounter> c =
+        shared_ptr<MNRLUpCounter>(new MNRLUpCounter(
+            target,
+            m,
+            id,
+            MNRLDefs::EnableType::ENABLE_ON_ACTIVATE_IN,
+            reporting,
+            report_code,
+            shared_ptr<map<string,string>>(new map<string,string>())
+        ));
+        
+    return c;
 }
 
 /**

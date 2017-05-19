@@ -4,6 +4,7 @@
 #define MAX_ERROR_MSG 0x1000
 
 using namespace std;
+using namespace MNRL;
 
 /*
  *
@@ -336,6 +337,38 @@ string STE::toANML() {
 
     s.append("</state-transition-element>");
 
+    return s;
+}
+
+/*
+ * Note that this doesn't contain the connections
+ */
+shared_ptr<MNRLNode> STE::toMNRLObj() {
+    
+    MNRLDefs::EnableType en;
+    switch(start) {
+        case NONE:
+            en = MNRLDefs::EnableType::ENABLE_ON_ACTIVATE_IN;
+            break;
+        case START_OF_DATA:
+            en = MNRLDefs::EnableType::ENABLE_ON_START_AND_ACTIVATE_IN;
+            break;
+        case ALL_INPUT:
+            en = MNRLDefs::EnableType::ENABLE_ALWAYS;
+            break;
+    }
+    
+    shared_ptr<MNRLHState> s =
+        shared_ptr<MNRLHState>(new MNRLHState(
+            symbol_set,
+            en,
+            id,
+            reporting,
+            false, // latched
+            report_code,
+            shared_ptr<map<string,string>>(new map<string,string>())
+        ));
+    
     return s;
 }
 
