@@ -149,6 +149,17 @@ void MNRLAdapter::parse(unordered_map<string, Element*> &elements,
                 case MNRLDefs::NodeType::BOOLEAN:
                     s = parseGate(dynamic_pointer_cast<MNRLBoolean>(node.second));
                     specialElements[s->getId()] = dynamic_cast<Gate *>(s);
+                    
+                    // If this is a NOR or Inverter, we need to add it ot another vector
+                    switch(dynamic_pointer_cast<MNRLBoolean>(node.second)->getMode()) {
+                        case MNRLDefs::BooleanMode::NOR:
+                        case MNRLDefs::BooleanMode::NOT:
+                            activateNoInputSpecialElements.push_back(dynamic_cast<SpecialElement*>(s));
+                            break;
+                        default:
+                            break;
+                    }
+                    
                     break;
                 case MNRLDefs::NodeType::UPCOUNTER:
                     s = parseCounter(dynamic_pointer_cast<MNRLUpCounter>(node.second));
