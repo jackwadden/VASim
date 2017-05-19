@@ -43,7 +43,7 @@ Automata::Automata(string filename): filename(filename),
                                      dump_state(false), 
                                      dump_state_cycle(0) {
 
-    if(getFileExt(filename).compare(".mnrl") == 0) {
+    if(getFileExt(filename).compare("mnrl") == 0) {
         // Read in automata description from MNRL file
         MNRLAdapter parser(filename);
         parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);

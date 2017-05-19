@@ -31,7 +31,7 @@ profile: $(TARGET)
 $(TARGET):  $(OBJ) $(ODIR)/pugixml.o $(MNRL)/libmnrl.a
 	$(CC) $(CXXFLAGS) -o $@ $^ 
 
-$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
+$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(MNRL)/libmnrl.a
 	@mkdir -p $(ODIR)	
 	$(CC) $(CXXFLAGS) -c -o $@ $< 
 
@@ -42,7 +42,7 @@ $(ODIR)/pugixml.o: $(PUGI)/pugixml.cpp
 $(MNRL)/libmnrl.a:
 	git submodule init
 	git submodule update
-	$(MAKE) -C ./mnrl/C++/
+	$(MAKE) -C ./MNRL/C++/
 
 .PHONY: clean
 
