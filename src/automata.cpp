@@ -1743,7 +1743,7 @@ void Automata::automataToANMLFile(string out_fn) {
  * Meant to be called after optimization passes
  */
 void Automata::automataToMNRLFile(string out_fn) {
-    MNRLNetwork net(id);
+    MNRLNetwork net("vasim");
     
     // add all the elements
     for(auto el : elements) {
