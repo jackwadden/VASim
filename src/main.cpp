@@ -30,6 +30,7 @@ void usage(char * argv) {
     printf("\n OUTPUT FORMATS:\n");
     printf("  -d, --dot                 Output automata as dot file. Builds a heat map if profiling is turned on\n");
     printf("  -a, --anml                Output automata as anml file. Useful for storing graphs after long running optimizations\n");
+    printf("  -m, --mnrl                Output automata as MNRL file. Useful for storing graphs after long running optimizations");
     printf("  -n, --nfa                 Output automata as nfa readable by Michela Becchi's tools\n");    
     printf("  -D, --dfa                 Convert automata to DFA\n");
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA (EXPERIMENTAL)\n");    
@@ -167,6 +168,7 @@ int main(int argc, char * argv[]) {
     bool charset_complexity = false;
     bool to_dot = false;
     bool to_anml = false;
+    bool to_mnrl = false;
     bool time = false;
     bool optimize = false;
     bool optimize_after = false;
@@ -202,6 +204,7 @@ int main(int argc, char * argv[]) {
         {"input",         no_argument, NULL, 'i'},
         {"dot",         no_argument, NULL, 'd'},
         {"anml",         no_argument, NULL, 'a'},
+        {"mnrl",         no_argument, NULL, 'm'},
         {"nfa",         no_argument, NULL, 'n'},
         {"dfa",			no_argument, NULL, 'D'},
         {"hdl",         no_argument, NULL, 'f'},
@@ -260,6 +263,10 @@ int main(int argc, char * argv[]) {
 
         case 'a':
             to_anml = true;
+            break;
+        
+        case 'm':
+            to_mnrl = true;
             break;
 
         case 't':
@@ -581,6 +588,11 @@ int main(int argc, char * argv[]) {
         // Save automata anml if desired
         if(to_anml) {
             a->automataToANMLFile("automata_" + to_string(counter) + ".anml");
+        }
+        
+        // Save automata mnrl if desired
+        if(to_mnrl) {
+            a->automataToMNRLFile("automata_" + to_string(counter) + ".mnrl");
         }
 
         // Emit in Becchi format NFA
