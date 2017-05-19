@@ -401,9 +401,9 @@ int main(int argc, char * argv[]) {
     // Build automata
     if(!quiet){
      
-        cout << "|------------------------|" << endl;
-        cout << "|      Parsing  ANML     |" << endl;
-        cout << "|------------------------|" << endl;
+        cout << "|----------------------------|" << endl;
+        cout << "|      Parsing  Automata     |" << endl;
+        cout << "|----------------------------|" << endl;
 
         cout << "Building automata from file: " << fn << endl;
     
