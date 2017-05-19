@@ -152,7 +152,7 @@ map<string, bool> Element::getInputs() {
  */
 bool Element::addOutput(string s) {
 
-    // should never add parallel edges
+    // should be idempotent (cannot add edges twice)
     for(string output : outputs){
         if(output.compare(s) == 0){
             return false;
@@ -169,16 +169,20 @@ bool Element::addOutput(string s) {
 bool Element::addOutputPointer(pair<Element *, string> el) {
 
     if(el.first->isSpecialElement()){
+        // check if it already exists
         for(auto e : outputSpecelPointers){
             if(e.first == el.first)
                 return false;
         }
+        
         outputSpecelPointers.push_back(el);
     }else{
+        // check if it already exists
         for(auto e : outputSTEPointers){
             if(e.first == el.first)
                 return false;
-        }    
+        }
+        
         outputSTEPointers.push_back(el);
     }
     return true;
@@ -406,15 +410,12 @@ uint32_t Element::enableChildSpecialElements(queue<Element *> *enabledSpecialEls
         if(DEBUG) 
             cout << getId() << " ENABLING " << child->getId() << endl;
         
-        //add to enabled specel list if we are a special el
-        if(enabledSpecialEls != NULL && !child->isEnabled()){
-            numEnabledSpecEls++;
+        // consider all special elements
+        numEnabledSpecEls++;
 
-            // if we can be enabled without an input, 
-            //we're already in the queue (stage one)
-            if(!(child)->canActivateNoEnable())
-                enabledSpecialEls->push(child);
-        }
+        // if we can be enabled without an input, 
+        //we're already in the queue (stage one)
+        //enabledSpecialEls->push(child);
         // adds enable signal as "fromElementId:toPort"        
         child->enable(getId() + e.second);
     }
@@ -478,4 +479,19 @@ bool Element::canActivateNoEnable(){
 bool Element::isStateful(){
 
     return true;
+}
+
+/*
+ *
+ */
+bool Element::isSelfRef(){
+
+    bool selfref = false;
+    
+    for(auto input : getInputs()){
+        if(input.first.compare(getId()) == 0)
+            selfref = true;
+    }
+
+    return selfref;
 }

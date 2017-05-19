@@ -20,8 +20,7 @@ public:
     Counter(std::string, uint32_t, std::string);
     ~Counter();
 
-    virtual void enable(std::string);
-    virtual void disable();
+
     virtual bool calculate();
     void setMode(std::string);
     void setTarget(uint32_t);

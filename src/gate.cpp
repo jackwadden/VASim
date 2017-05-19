@@ -30,15 +30,18 @@ bool Gate::isGate() {
 /*
  *
  */
+/*
 void Gate::enable(string s) {
 
     enabled = true;
     inputs[s] = true;
 }
+*/
 
 /*
  *
  */
+/*
 void Gate::disable() {
     
     if(DEBUG)
@@ -48,9 +51,9 @@ void Gate::disable() {
         inputs[e.first] = false;
     }
 
-    enabled = false;
+     enabled = false;
 }
-
+*/
 /*
  *
  */

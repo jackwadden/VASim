@@ -448,11 +448,11 @@ int main(int argc, char * argv[]) {
         
         if(!quiet)
             cout << "Left-merging automata..." << endl;
-        ap.leftMinimize2();
+        ap.leftMinimize();
         
         while(automata_size != ap.getElements().size()) {
             automata_size = ap.getElements().size();
-            ap.leftMinimize2();
+            ap.leftMinimize();
         }
         
         if(!quiet)
@@ -522,10 +522,10 @@ int main(int argc, char * argv[]) {
 
             // Left minimization
             automata_size = a->getElements().size();
-            a->leftMinimize2();
+            a->leftMinimize();
             while(automata_size != a->getElements().size()) {
                 automata_size = a->getElements().size();
-                a->leftMinimize2();
+                a->leftMinimize();
             }
 
             if(!quiet)
@@ -560,6 +560,7 @@ int main(int argc, char * argv[]) {
 
             a->enforceFanIn(fanin_limit);
         }
+        
 
         // Enforce fan-out limit
         if(fanout_limit > 0){
@@ -567,7 +568,7 @@ int main(int argc, char * argv[]) {
                 cout << "Enforcing fan-out of " << fanout_limit << "..." << endl; 
                 cout << endl;
             }
-
+           
             a->enforceFanOut(fanout_limit);
         }
 

@@ -39,7 +39,7 @@ private:
     std::vector<STE*> starts;
     std::vector<Element*> reports;
     std::unordered_map<std::string, SpecialElement*> specialElements;
-    std::vector<SpecialElement*> activateNoInputSpecialElements;
+    std::unordered_map<std::string, SpecialElement*> firstLayerSpecialElements;
     
     // Functional element stacks
     Stack<Element *> enabledSTEs;
@@ -49,6 +49,7 @@ private:
     std::queue<Element*> enabledSpecialElements;
     std::queue<SpecialElement*> activatedSpecialElements;
     std::vector<SpecialElement*> latchedSpecialElements;
+    std::vector<SpecialElement*> activateNoInputSpecialElements;
 
     // Simulation Statistics
     std::vector<std::pair<uint32_t, std::string>> reportVector;
@@ -108,6 +109,8 @@ public:
     void stageThree();
     void stageFour();
     uint32_t stageFive();
+    void specialElementSimulation();
+    void specialElementSimulation2();
     uint64_t tick();
 
 
@@ -122,13 +125,15 @@ public:
 
     // Optimization and manipulation
     void leftMinimizeStartStates();
-    void leftMinimize(uint32_t);
+    uint32_t leftMinimize();
     uint32_t leftMinimizeChildren(STE*, int);
 
+    void addEdge(Element *from, Element *to);
+    void removeEdge(Element *from, Element *to);
+    
     void defrag();
     Automata * generateDFA();
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
-    uint32_t leftMinimize2();
     void cutElement(Element *);
     void addSTE(STE *, std::vector<std::string>&);
     void rawAddSTE(STE *);

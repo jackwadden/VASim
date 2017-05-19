@@ -17,6 +17,7 @@ SpecialElement::~SpecialElement() {
 
 }
 
+
 /*
  *
  */
@@ -24,6 +25,33 @@ bool SpecialElement::isSpecialElement() {
 
     return true;
 }
+
+/*
+ *
+ */
+void SpecialElement::enable(string s) {
+
+    enabled = true;
+    inputs[s] = true;
+
+}
+
+/*
+ *
+ */
+void SpecialElement::disable() {
+
+    if(DEBUG)
+        cout << "DISABLING SPECIAL ELEMENT" << getId() << endl;
+
+    for(auto e : inputs) {
+
+        inputs[e.first] = false;
+    }
+    
+    enabled = false;
+}
+
 
 string SpecialElement::toHDL(unordered_map<string, string> id_reg_map) {
     // fail

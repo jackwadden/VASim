@@ -855,18 +855,22 @@ void Automata::simulate(uint8_t symbol) {
 
     // SPECIAL ELEMENT STAGES
     if(specialElements.size() > 0){
+        
+        // NEW CIRCUIT SIMULATION CORE
+        specialElementSimulation();
+
         // PARALLEL STAGE 4
         // READING
         // calculate logic and counter functions
-        stageFour();
+        //stageFour();
 
-        if(dump_state && (dump_state_cycle == cycle)){
-            dumpSpecelState("specels_" + to_string(cycle) +".state");
-        }
+        //if(dump_state && (dump_state_cycle == cycle)){
+        //    dumpSpecelState("specels_" + to_string(cycle) +".state");
+        //}
         // PARALLEL STAGE 5
         // WRITING
         // propagate logic and counter activations to other STEs, logic, and counters
-        stageFive();            
+        //stageFive();            
 
 
     }
@@ -2566,18 +2570,7 @@ inline void Automata::stageFour() {
         cout << "STAGE FOUR:" << endl;
     
     
-    // CONSIDER ELEMENTS THAT DONE NECESSARILY NEED ENABLE INPUTS
-    if(activateNoInputSpecialElements.size() > 0){
-        // for each special element that must be considered even if not enabled
-        for(SpecialElement *specel : activateNoInputSpecialElements){
-            
-            if(!specel->isEnabled()){
-                enabledSpecialElements.push(specel);
-            }
-        }
-    }
-    
-    // for all enabled special elements
+    // for all special element children of enabled STEs
     while(!enabledSpecialElements.empty()){
         
         //SpecialElement *spel = e.second;
@@ -2597,8 +2590,10 @@ inline void Automata::stageFour() {
             // activate only if we weren't already activated
             if(!spel->isActivated()) {
                 spel->activate();
-                activatedSpecialElements.push(spel);
             }
+
+            // consider all special elements even if they didn't "activate"
+            activatedSpecialElements.push(spel);
             
             if(DEBUG)
                 cout << "SPECIAL ELEMENT ACTIVATED: " << spel->getId() << endl;
@@ -2643,23 +2638,130 @@ inline uint32_t Automata::stageFive() {
         if(DEBUG)
             cout << "ACTIVATED SPECIAL: " << spel->getId() << endl;
 
-        spel->enableChildSTEs(&enabledSTEs);    
-        numEnabledSpecEls += spel->enableChildSpecialElements(&enabledSpecialElements);    
+        //
+        if(spel->isActivated()){
+            spel->enableChildSTEs(&enabledSTEs);
+            numEnabledSpecEls += spel->enableChildSpecialElements(&enabledSpecialElements);  
+        }
 
         // suggest that the logic deactivate
         if(!spel->deactivate()) {
             // store for later stages
-            latchedSpecialElements.push_back(spel);
+            //latchedSpecialElements.push_back(spel);
         }
     }
 
-    // refil activated elements
-    while(!latchedSpecialElements.empty()) {
-        activatedSpecialElements.push(latchedSpecialElements.back());
-        latchedSpecialElements.pop_back();
+    return numEnabledSpecEls;
+}
+
+
+/*
+ *
+ */
+void Automata::specialElementSimulation() {
+
+    // circuit simulation happens between automata processing
+    // all circuit elements (specels) are considered
+    // elements are considered from root nodes (specels that are children of STEs)
+    // computation proceeds until all elements enable STEs and have no more circuit children
+
+    map<uint32_t, bool> calculated;
+    map<uint32_t, bool> queued;
+
+    queue<SpecialElement *> work_q;
+
+    // initialize tracking structures
+    for( auto e : elements) {
+                
+        // initialize claculated map
+        calculated[e.second->getIntId()] = false;
+
+        // initialize queued map
+        queued[e.second->getIntId()] = false;
     }
 
-    return numEnabledSpecEls;
+    // fill work_q with specel children of STEs
+    for(auto e : elements) {
+        if(!e.second->isSpecialElement()){
+
+            for( auto sp : e.second->getOutputSpecelPointers() ) {
+
+                SpecialElement *specel = static_cast<SpecialElement*>(sp.first);
+                if(!queued[specel->getIntId()]){
+                    work_q.push(specel);
+                    queued[specel->getIntId()] = true;
+                }
+            }
+            
+            // indicate that this parent has already calculated
+            calculated[e.second->getIntId()] = true;
+        }
+    } 
+
+    // while workq is not empty
+    while(!work_q.empty()){
+
+        // get front
+        SpecialElement * spel = work_q.front();
+        work_q.pop();
+
+        // if all parents have already calculated
+        bool ready = true;
+        for(auto in : spel->getInputs()){
+            if(!calculated[elements[Element::stripPort(in.first)]->getIntId()]){
+                ready = false;
+                break;
+            }
+        }
+
+        // execute if all our inputs are ready
+        if(ready){
+            
+            // calculate
+            calculated[spel->getIntId()] = true;
+            bool emitOutput = spel->calculate();
+
+            // if we calculated true
+            if(emitOutput) {
+
+                // activate
+                if(!spel->isActivated()){
+                    spel->activate();
+                }
+                
+                // report?
+                if(report && spel->isReporting()) {
+                    if(DEBUG)
+                        cout << "\tSPECEL REPORTING: " << spel->getId() << endl;
+                    
+                    reportVector.push_back(make_pair(cycle, spel->getId()));
+                }
+                
+            }
+            
+            // disable
+            spel->disable();
+
+            // for all children
+            // enable them if we activated
+            if(emitOutput){
+                spel->enableChildSTEs(&enabledSTEs);
+                spel->enableChildSpecialElements(&enabledSpecialElements);
+            }
+
+            //// if child is specel
+            for(auto e : spel->getOutputSpecelPointers()){
+            
+                ////// push to queue to consider 
+                SpecialElement *spel_child = static_cast<SpecialElement*>(e.first);
+                if(!queued[spel_child->getIntId()]){
+                    work_q.push(spel_child);
+                    queued[spel_child->getIntId()] = true;
+                }
+
+            }
+        }
+    }
 }
 
 /*
@@ -2747,249 +2849,11 @@ void vector_sort(vector<STE*> &vec) {
 
 
 /*
- * Breadth first seach on the automata, combining states with identical
- * inputs and properties, but varying outputs. Essentially creates a tree
- * structure where possible.
- * Right now this is an N^2 algorithm, but could be made Nlog(N) by applying
- * a merge sort like divide and conquer to the workq foreach loop
- */
-void Automata::leftMinimize(uint32_t max_level) {
-
-    int orig_size = elements.size();
-    if(!quiet){
-        cout << "  Original size: " << orig_size << endl;
-        cout << "  Applying left minimization..." << endl;
-    }
-
-    // keeps track of visited elements
-    unordered_map<uint32_t, bool> visited;
-    unordered_map<uint32_t, bool> merged;
-    // maps STE IDs to a unique bucket associated with a symbol set
-    unordered_map<uint32_t, uint32_t> symbol_set_map;
-
-    /*
-     * Gather all STEs into buckets according to their symbol set.
-     *  This allows the algorithm to only compare STEs that have
-     *  the same symbol set, greatly improving runtime for larger
-     *  automata.
-     */
-
-    //symbol sets seen
-    // each index in the vector is a unique symbol set
-    // to a particular bucket
-    vector<STE *> symbol_sets_seen;
-
-    for(auto e : elements){
-
-        // don't merge specels for now
-        if(e.second->isSpecialElement())
-            continue;
-
-        STE * s = static_cast<STE*>(e.second);
-
-        visited[s->getIntId()] = false;
-        merged[s->getIntId()] = false;
-
-        //see if we've seen this symbol set before
-        int counter = -1;
-        for(int i = 0; i < symbol_sets_seen.size(); i++){
-            if(s->compareSymbolSet(symbol_sets_seen[i]) == 0){
-                counter = i;
-                break;
-            }
-        }
-
-        //if we have seen it, add it to the symbol set map
-        if(counter < 0) {
-            symbol_sets_seen.push_back(s);
-            symbol_set_map[s->getIntId()] = symbol_sets_seen.size()-1;
-        }else{
-            symbol_set_map[s->getIntId()] = counter;
-        }
-
-    }
-
-    if(!quiet)
-        cout << "  Found " << symbol_sets_seen.size() << " unique symbol sets..." << endl;
-
-    /*
-     * Do a breadth first search from start STEs. 
-     *  If two STEs have identical properties but their 
-     *  output edges are different, merge them into a single STE
-     */
-    //workq_map maps symbol set buckets to workqs
-    //each location in the vector is a bucket
-    vector<list<STE *>> workq_map;
-    vector<list<STE *>> next_workq_map;
-
-    //initialize empty lists
-    for(int i = 0; i < symbol_sets_seen.size(); i++){
-        list<STE *> workq;
-        workq_map.push_back(workq);
-        list<STE *> workq2;
-        next_workq_map.push_back(workq2);
-    }
-
-    // Start BFS by filling the queue with start STEs
-    // and "visiting" them
-    for(Element *el: starts) {
-        if(!el->isSpecialElement()){
-            STE *s = static_cast<STE*>(el);
-            // mark before adding to queue
-            // ADD
-            visited[s->getIntId()] = true;
-            workq_map[symbol_set_map[s->getIntId()]].push_back(s);
-        }
-    }
-
-    int level = 0;
-
-    bool work_left = false;
-    for(int i = 0; i < workq_map.size(); i++){
-        if(workq_map[i].size() > 0){
-            work_left = true;
-            break;
-        }
-    }
-
-    // Global invariant: do we have any STEs left that are
-    //  candidates for merging?
-    while(work_left) {
-
-        if(!quiet) {
-            cout << "  Merging level " << level << "\r";
-            flush(cout);
-        }
-
-        // for every symbol set bucket
-        for(int i = 0; i < workq_map.size(); i++){
-
-            // for every element in the bucket workq
-            while(!workq_map[i].empty()){
-                STE *el = workq_map[i].back();    
-
-                // remove from queue
-                workq_map[i].pop_back();
-
-                if(merged[el->getIntId()] == true)
-                    continue;
-
-                // add all outputs from candidate to next level
-                // ignore specels for now
-                for(auto e : el->getOutputSTEPointers()) {
-                    // if we haven't visited it yet
-                    if(visited[e.first->getIntId()] == false){
-                        STE *s = static_cast<STE*>(e.first);
-                        // "visit these"
-                        visited[s->getIntId()] = true;
-                        next_workq_map[symbol_set_map[s->getIntId()]].push_back(s);
-                    }
-                }
-
-                // Compare this STE to all others in the workq
-                //  merging if they are "left identical"
-                // store the rest in a tmp workq to restore later
-                list<STE *> workq_tmp;
-                while(!workq_map[i].empty()){
-                    STE *el2 = workq_map[i].back();
-                    workq_map[i].pop_back();    
-
-                    // ignore elements that are us,
-                    //  or that we've visited
-                    /* WADDEN
-                       if(visited[el2->getIntId()] == true)
-                       continue;
-                    */
-                    if(el->getId().compare(el2->getId()) == 0){
-                        visited[el2->getIntId()] = true;
-                        continue;
-                    }
-
-                    if(el->compare(el2) == 0) {
-
-                        // add all outputs from candidate merges
-                        //  to the next level queue
-                        for(auto e : el2->getOutputSTEPointers()) {
-                            // if we haven't visited it yet
-                            // and it's not a special element
-                            if(visited[e.first->getIntId()] == false){
-                                STE *s = static_cast<STE*>(e.first);
-                                // ADD
-                                visited[s->getIntId()] = true;
-                                next_workq_map[symbol_set_map[s->getIntId()]].push_back(s);
-                            }
-                        }
-
-                        // Merge the left identical states
-                        //cout << "MERGING: " << endl;
-                        //cout << el->toString() << endl;
-                        //cout << el2->toString() << endl;
-                        leftMergeSTEs(el, el2);
-                        merged[el2->getIntId()] = true;
-
-                        if(elements.find(el2->getId()) != elements.end())
-                            cout << "NOT REMOVED" << endl;
-
-                    }else{
-                        // consider on next round
-                        workq_tmp.push_back(el2);
-                    }
-                }
-
-                //reset workq with saved elements
-                while(!workq_tmp.empty()){
-                    workq_map[i].push_back(workq_tmp.back());
-                    workq_tmp.pop_back();
-                }
-
-            }
-        }
-
-        level++;
-
-        if(level > max_level)
-            break;
-
-        // copy next level queue to current workq map
-        for(int i = 0; i < next_workq_map.size(); i++){
-            while(!next_workq_map[i].empty()){
-                workq_map[i].push_back(next_workq_map[i].back());
-                next_workq_map[i].pop_back();
-            }
-        }    
-
-        // check the invariant
-        work_left = false;        
-        for(int i = 0; i < workq_map.size(); i++){
-            if(!workq_map[i].empty()){
-                work_left = true;
-                break;
-            }
-        }
-
-        if(!quiet){
-            if(work_left) {
-                cout << "\x1B[2K"; // Erase the entire current line.
-                cout << "\x1B[0E";  // Move to the beginning of the current line.
-                flush(cout);
-            }else{
-                cout << endl;
-                flush(cout);
-            }
-        }
-    }
-
-    if(!quiet)
-        cout << "  Final size: " << elements.size() << "/" << orig_size << endl;
-
-}
-
-/*
  * depth first search on the automata, combining states with identical
  * inputs and properties, but varying outputs. Essentially creates a tree
  * structure where possible.
  */
-uint32_t Automata::leftMinimize2() {
+uint32_t Automata::leftMinimize() {
 
 
     leftMinimizeStartStates();
@@ -3256,16 +3120,31 @@ void Automata::printGraphStats() {
     uint32_t max_in = 0;
     uint64_t sum_in = 0;
     for(auto el : elements){
-        if(el.second->getOutputs().size() > max_out)
-            max_out = el.second->getOutputs().size();
-        sum_out += el.second->getOutputs().size();
-        if(el.second->getInputs().size() > max_in)
-            max_in = el.second->getInputs().size();
-        sum_in += el.second->getInputs().size();
+
+        uint32_t outputs = 0;
+        uint32_t inputs = 0;
+        outputs = el.second->getOutputs().size();
+        inputs = el.second->getInputs().size();
+
+        if(el.second->isSelfRef()){
+            outputs--;
+            inputs--;
+        }
+        
+        if(outputs > max_out){
+            max_out = outputs;
+        }
+        
+        sum_out += outputs;
+
+        if(inputs > max_in){
+            max_in = inputs;
+        }
+        sum_in += inputs;
     }
 
-    cout << "  Max Fan-in: " << max_in << endl;
-    cout << "  Max Fan-out: " << max_out << endl;
+    cout << "  Max Fan-in (not including self loops): " << max_in << endl;
+    cout << "  Max Fan-out (not including self loops): " << max_out << endl;
     cout << "  Average Node Degree: " << (double)sum_out / (double)elements.size() << endl << endl;
 
 
@@ -3325,17 +3204,21 @@ void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
  * Guarantees that the fan-in for every node does not exceed fanin_max
  */
 void Automata::enforceFanIn(uint32_t fanin_max){
-
+    
     // BFS queue of elements to process 
     queue<STE*> workq;
 
-    // unmark all stes
-    // push start states to workq
+    // push all start states to workq
     for(auto el : getElements()){ 
+
+        // unmark all elements
         el.second->unmark();
+
+        // ignore special elements
         if(el.second->isSpecialElement()){
             continue;
         }
+        
         STE * s = static_cast<STE*>(el.second);
 
         // push start states to workq    
@@ -3354,16 +3237,6 @@ void Automata::enforceFanIn(uint32_t fanin_max){
         STE * s = workq.front();
         workq.pop();
 
-        // add all children to workq if they are not marked (visited)
-        // NOTE: this implicitly does not handle special element children
-        for(auto e : s->getOutputSTEPointers()){
-            if(!e.first->isMarked()){
-                STE * child = static_cast<STE*>(e.first);
-                workq.push(child);
-                child->mark();
-            }
-        }
-
         // if we have more inputs than the max
         // (does not include self references)
         uint32_t fanin = 0;
@@ -3375,14 +3248,32 @@ void Automata::enforceFanIn(uint32_t fanin_max){
                 fanin++;
             }
         }
-       
+
+        // add all children of original node to workq if they are not marked (visited)
+        // NOTE: this implicitly does not handle special element children
+        for(auto e : s->getOutputSTEPointers()){
+            if(!e.first->isMarked()){
+                STE * child = static_cast<STE*>(e.first);
+                workq.push(child);
+                child->mark();
+            }
+        }
+        
         //
         //cout << "FAN IN: " << fanin << endl;
         if(fanin > fanin_max){
-            
+
+            if(DEBUG){
+                cout << "FAN-IN MAX VIOLATION: " << s->getId() << " has fan-in of " << fanin << endl;
+            }
+                
             // adjust node
             // figure out how many new nodes we'll need
             uint32_t new_nodes = ceil((double)fanin / (double)fanin_max);
+
+            if(DEBUG){
+                cout << "  will be split into " << new_nodes << " new nodes..." << endl;
+            }
             
             //add all inputs to queue
             // except self refs
@@ -3412,36 +3303,43 @@ void Automata::enforceFanIn(uint32_t fanin_max){
                 // mark the node in case there are loops
                 new_node->mark();
 
-                // add all outputs from s to new node
+                // replicate output edges from old node to new node
                 for(string output : s->getOutputs()){
                     // ignore selfref output, we'll handle it later
                     if(output.compare(s->getId()) != 0){
-                        new_node->addOutput(output);
-                        new_node->addOutputPointer(make_pair(elements[output], output));
-                        elements[output]->addInput(new_node->getId());
+                        Element *to = elements[output];
+                        addEdge(new_node, to);
+
+                        // make sure we reconsider the output even if it was already marked
+                        if(!to->isSpecialElement())
+                            workq.push(static_cast<STE*>(to));
                     }
                 }
-                
+                   
                 // add a portion of the inputs to new node
                 uint32_t input_counter = 0;
                 while(input_counter < fanin_max && !old_inputs.empty()){
-                    // add input to new node
-                    new_node->addInput(old_inputs.front());
-                    
-                    // add new node as output to parent node
-                    elements[old_inputs.front()]->addOutput(new_node->getId());
-                    elements[old_inputs.front()]->addOutputPointer(make_pair(elements[new_node->getId()], new_node->getId()));
+                    // add edge from input node to new node
+                    Element *from = elements[old_inputs.front()];
+                    addEdge(from ,new_node);
+
                     old_inputs.pop();
                     input_counter++;
                 }
 
                 // if the split node is a self looping node, make new node self looping
                 if(selfref){
-                    new_node->addInput(new_node->getId());
-                    new_node->addOutput(new_node->getId());
-                    new_node->addOutputPointer(make_pair(new_node, new_node->getId()));
+                    if(DEBUG){
+                        cout << "SELF REF" << endl;
+                    }
+                    addEdge(new_node, new_node);
                 }
-                
+
+                //
+                if(DEBUG){
+                    cout << "NEW NODE FANIN: " << new_node->getInputs().size() << endl;
+                }
+
             }
             
             // delete old node
@@ -3545,36 +3443,40 @@ void Automata::enforceFanOut(uint32_t fanout_max){
                 new_node->mark();
 
                 // add all inputs from s to new node
+                // replicate input edges from old node to new node
                 for(auto in : s->getInputs()){
                     string input = in.first;
                     // ignore selfref output, we'll handle it later
                     if(input.compare(s->getId()) != 0){
-                        new_node->addInput(input);
-                        elements[input]->addOutput(new_node->getId());
-                        elements[input]->addOutputPointer(make_pair(new_node, new_node->getId()));
+
+                        //
+                        Element *from = elements[input];
+                        addEdge(from, new_node);
+
+                        // make sure we reconsider the input node, even if it was already marked
+                        // adding an output edge to this input may have violated the fan-out max!
+                        if(!from->isSpecialElement()){
+                            workq.push(static_cast<STE*>(from));
+                        }
                     }
                 }
                 
-                // add a portion of the outputs to new node (round robin)
+                // add a portion of the outputs to new node
                 uint32_t output_counter = 0;
                 while(output_counter < fanout_max && !old_outputs.empty()){
-                    // add output to new node
-                    new_node->addOutput(old_outputs.front());
-                    new_node->addOutputPointer(make_pair(elements[old_outputs.front()], old_outputs.front()));
 
-                    // add new node as input to old output node
-                    elements[old_outputs.front()]->addInput(new_node->getId());
+                    // add output edge to new node
+                    addEdge(new_node, elements[old_outputs.front()]);
+
                     old_outputs.pop();
                     output_counter++;
                 }
 
                 // if the split node is a self looping node, make new node self looping
                 if(selfref){
-                    new_node->addInput(new_node->getId());
-                    new_node->addOutput(new_node->getId());
-                    new_node->addOutputPointer(make_pair(new_node, new_node->getId()));
-                }
-                
+                    //
+                    addEdge(new_node, new_node);
+                }                
             }
             
             // delete old node
@@ -3646,5 +3548,24 @@ void Automata::dumpSpecelState(string filename) {
     }
 
     writeStringToFile(s, filename);
+}
 
+/*
+ *
+ */
+void Automata::removeEdge(Element* from, Element *to){
+
+    from->removeOutput(to->getId());
+    from->removeOutputPointer(make_pair(to, to->getId()));
+    to->removeInput(from->getId());
+}
+
+/*
+ *
+ */
+void Automata::addEdge(Element* from, Element *to){
+
+    from->addOutput(to->getId());
+    from->addOutputPointer(make_pair(to, to->getId()));
+    to->addInput(from->getId());
 }

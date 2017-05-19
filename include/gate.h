@@ -18,8 +18,7 @@ public:
     virtual ~Gate();
     virtual bool calculate() = 0;
     bool isGate();
-    void enable(std::string);
-    void disable();
+   
     virtual std::string toString() = 0;
     virtual std::string toANML() = 0;
     virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj() = 0;
