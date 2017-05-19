@@ -193,7 +193,7 @@ int main(int argc, char * argv[]) {
     const int32_t dump_state_switch = 1003;
 
     int c;
-    const char * short_opt = "thsqrbnfcdBDeaxipOLl:T:P:";
+    const char * short_opt = "thsqrbnfcdBDeamxipOLl:T:P:";
 
     struct option long_opt[] = {
         {"help",          no_argument, NULL, 'h'},
