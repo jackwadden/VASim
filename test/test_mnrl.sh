@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# To use this script, just drop the ANML files you'd like to use
+# for testing in the test directory.  Also add input files *.input
+# Where * is the same as the ANML file.
+# Note that diffing the output can use large amounts of memory
+# Since we need to read everything in and handle reordering of reports
+
 VASIM=../vasim
 
 # generate mnrl
