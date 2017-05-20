@@ -387,10 +387,14 @@ int main(int argc, char * argv[]) {
         input = parseInputStream(simulate, input_string, &size, argv, optind);
         
         if(size < 1){
-            cout << "WARNING: Input file is empty! Refusing to simulate..." << endl;
+            if(!quiet) {
+                cout << "WARNING: Input file is empty! Refusing to simulate..." << endl;
+            }
             simulate = false;
         }else{
-            cout << "  Found " << size << " input symbols." << endl;
+            if(!quiet) {
+                cout << "  Found " << size << " input symbols." << endl;
+            }
         }
     }
 
