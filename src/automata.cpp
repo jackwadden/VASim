@@ -1551,6 +1551,14 @@ void Automata::removeCounters() {
  */
 void Automata::automataToNFAFile(string out_fn) {
 
+    // This only works on automata that do not have special elements
+    for(auto e : elements){
+        if(e.second->isSpecialElement()){
+            cout << "VASim Error: Automata network contains special elements unsupported by other NFA tools. Please attempt to remove redundant Special Elements using -x option." << endl;
+            exit(1);
+        }
+    }
+    
     unordered_map<string, int> id_map;
     unordered_map<string, bool> marked;
     queue<string> to_process;
