@@ -1,11 +1,12 @@
 TARGET = vasim
 IDIR =./include
 SRCDIR =./src
+MNRL =./MNRL/C++
 PUGI =./pugixml-1.6/src
-CXXFLAGS=-I$(IDIR) -I$(PUGI) -pthread --std=c++11 -g
+CXXFLAGS=-I$(IDIR) -I$(MNRL)/include -I$(PUGI) -pthread --std=c++11
 
 _DEPS = *.h
-_OBJ = util.o ste.o ANMLParser.o  automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o  main.o
+_OBJ = util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o  main.o
 
 CC=g++-5
 #CC=icpc -mmic
@@ -27,10 +28,10 @@ debug: $(TARGET)
 profile: CXXFLAGS += -g -pg -DDEBUG=false -O3
 profile: $(TARGET)
 
-$(TARGET): $(OBJ) $(ODIR)/pugixml.o
+$(TARGET):  $(OBJ) $(ODIR)/pugixml.o $(MNRL)/libmnrl.a
 	$(CC) $(CXXFLAGS) -o $@ $^ 
 
-$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
+$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(MNRL)/libmnrl.a
 	@mkdir -p $(ODIR)	
 	$(CC) $(CXXFLAGS) -c -o $@ $< 
 
@@ -38,6 +39,10 @@ $(ODIR)/pugixml.o: $(PUGI)/pugixml.cpp
 	@mkdir -p $(ODIR)	
 	$(CC) $(CXXFLAGS) -c -o $@ $< $(CXXFLAGS)
 
+$(MNRL)/libmnrl.a:
+	git submodule init
+	git submodule update
+	$(MAKE) -C ./MNRL/C++/
 
 .PHONY: clean
 

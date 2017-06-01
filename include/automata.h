@@ -5,6 +5,7 @@
 #include "ste.h"
 #include "specialElement.h"
 #include "ANMLParser.h"
+#include "MNRLAdapter.h"
 #include <cmath>
 
 #include <iostream>
@@ -19,6 +20,7 @@
 #include <list>
 #include <fstream>
 #include <algorithm>
+#include <mnrl.hpp>
 
 
 
@@ -91,6 +93,7 @@ public:
     void automataToDotFile(std::string fn);
     void automataToNFAFile(std::string fn);
     void automataToANMLFile(std::string fn);
+    void automataToMNRLFile(std::string fn);
     void automataToHDLFile(std::string fn);
     void automataToBLIFFile(std::string fn);
     void automataToGraphFile(std::string fn);

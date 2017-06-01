@@ -71,6 +71,7 @@ public:
     std::vector<uint32_t> getIntegerSymbolSet();
     std::string toString();
     virtual std::string toANML();
+    virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj();
     int compare(STE*);
     int compareSymbolSet(STE*);
     void merge(STE*);
