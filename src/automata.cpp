@@ -833,26 +833,30 @@ void Automata::simulate(uint8_t symbol) {
     stageOne();
 
     // CYCLE STATISTICS
-    if(profile)
+    if(profile){
+        //
         enabledHist.push_back(enabledSTEs.size());
 
 	// STE ENABLE STATISTICS
 	// check number of times each ste was enabled per step
-	queue<STE*> tmp;
+	queue<Element*> tmp;
 	while(!enabledSTEs.empty()) {
-		STE* s = static_cast<STE*>(enabledSTEs.back());
-		tmp.push(s);
-		enabledSTEs.pop_back();
-		
-		//inspect
-		enabledCount[s] = enabledCount[s] + 1;
-	}
 
+            Element* s = enabledSTEs.back();
+            tmp.push(s);
+            enabledSTEs.pop_back();
+            
+            //inspect
+            enabledCount[s] = enabledCount[s] + 1;
+	}
+        
 	//push back onto queue to proceed to next stage
 	while(!tmp.empty()) {
-		enabledSTEs.push_back(tmp.front());
-		tmp.pop();
-	}
+            enabledSTEs.push_back(tmp.front());
+            tmp.pop();
+	}        
+    }
+    
     // PARALLEL STAGE 2
     // READING
     // if STEs are enabled and we match, activate
@@ -904,13 +908,13 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
     if(DEBUG)
         cout << "STARTING SIMULATION..." << endl;
 
-	cout << "making a total map" << endl;
+    // If we're profiling, map STEs to a counter of how many times it was enabled
+    if(profile){
 	for(auto e : elements) {
-		string parent_id = e.first;
-		STE* s = static_cast<STE*>(elements[parent_id]);
-		enabledCount.insert(pair<STE*,uint32_t>(s, 0));
-	}
-	cout << "finished total map" << endl;
+            enabledCount.insert(pair<Element*,uint32_t>(e.second, 0));
+        }
+    }
+
     cycle = start_index;
 
     // for all inputs
@@ -919,7 +923,7 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
         // measure progress on longer runs
         if(!quiet) {
 
-            if(i % 10 == 0) {
+            if(i % 10000 == 0) {
                 if(i != 0) {
                     cout << "\x1B[2K"; // Erase the entire current line.
                     cout << "\x1B[0E";  // Move to the beginning of the current line.
@@ -931,14 +935,6 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
         }
 
         simulate(inputs[i]);
-
-        /*
-          if(!quiet){
-          if(i == length-1){
-          cout << endl;
-          }
-          }
-        */
 
         // if we are stepping, wait for a key to be pressed
         if(step)
@@ -976,9 +972,9 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
         buildActivationHistogram("activation_hist.out");        
         
         // print activation stats
-		calcEnableDistribution();
+        calcEnableDistribution();
         
-		// write to file
+        // write to file
         writeIntVectorToFile(enabledHist, "enabled_per_cycle.out");
         writeIntVectorToFile(activatedHist, "activated_per_cycle.out");
     
@@ -1047,18 +1043,18 @@ void Automata::printActivations() {
 }
 
 void Automata::calcEnableDistribution() {
-
-    // gather activations into vector
-	vector<uint32_t> enables;
-	uint64_t sum = 0;
-	for(map<STE*, uint32_t>::iterator it = enabledCount.begin(); it != enabledCount.end(); it++) {
-		enables.push_back(it->second);
-		sum += it->second;
-	}
     
-	// sort vector
-	sort(enables.rbegin(), enables.rend());
-
+    // gather enables into vector
+    vector<uint32_t> enables;
+    uint64_t sum = 0;
+    for(auto e : enabledCount){
+        enables.push_back(e.second);
+        sum += e.second;
+    }
+    
+    // sort vector
+    sort(enables.rbegin(), enables.rend());
+    
     // report how many STEs it takes to capture 90, 99, 99.9, 99.99, 99.999, 99.9999, 99.99999, 99.999999% activity
     bool one = false;
     bool two = false;

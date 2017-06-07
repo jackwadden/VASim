@@ -34,7 +34,6 @@ private:
     bool report;
     bool dump_state;
     uint32_t dump_state_cycle;
-	uint32_t totalEnables;
     
     std::unordered_map<std::string, Element*> elements;
     std::vector<STE*> starts;
@@ -51,7 +50,7 @@ private:
     std::queue<SpecialElement*> activatedSpecialElements;
     std::vector<SpecialElement*> latchedSpecialElements;
     std::vector<SpecialElement*> activateNoInputSpecialElements;
-	std::map<STE*, uint32_t> enabledCount;
+
 
     // Simulation Statistics
     std::vector<std::pair<uint32_t, std::string>> reportVector;
@@ -61,6 +60,9 @@ private:
     std::vector<uint32_t> activatedHist;
     uint32_t maxActivations;
 
+    uint32_t totalEnables;
+    std::map<Element*, uint32_t> enabledCount;
+    
     uint64_t cycle;
     uint8_t input;
     
