@@ -34,6 +34,7 @@ private:
     bool report;
     bool dump_state;
     uint32_t dump_state_cycle;
+	uint32_t totalEnables;
     
     std::unordered_map<std::string, Element*> elements;
     std::vector<STE*> starts;
@@ -50,6 +51,7 @@ private:
     std::queue<SpecialElement*> activatedSpecialElements;
     std::vector<SpecialElement*> latchedSpecialElements;
     std::vector<SpecialElement*> activateNoInputSpecialElements;
+	std::map<STE*, uint32_t> enabledCount;
 
     // Simulation Statistics
     std::vector<std::pair<uint32_t, std::string>> reportVector;
@@ -116,7 +118,7 @@ public:
 
     // Statistics and Profiling
     void buildActivationHistogram(std::string fn);
-    void calcActivationDistribution();
+    void calcEnableDistribution();
     void printActivationHistogram();
     void printGraphStats();
     void printSTEComplexity();

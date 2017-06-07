@@ -836,6 +836,23 @@ void Automata::simulate(uint8_t symbol) {
     if(profile)
         enabledHist.push_back(enabledSTEs.size());
 
+	// STE ENABLE STATISTICS
+	// check number of times each ste was enabled per step
+	queue<STE*> tmp;
+	while(!enabledSTEs.empty()) {
+		STE* s = static_cast<STE*>(enabledSTEs.back());
+		tmp.push(s);
+		enabledSTEs.pop_back();
+		
+		//inspect
+		enabledCount[s] = enabledCount[s] + 1;
+	}
+
+	//push back onto queue to proceed to next stage
+	while(!tmp.empty()) {
+		enabledSTEs.push_back(tmp.front());
+		tmp.pop();
+	}
     // PARALLEL STAGE 2
     // READING
     // if STEs are enabled and we match, activate
@@ -887,6 +904,13 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
     if(DEBUG)
         cout << "STARTING SIMULATION..." << endl;
 
+	cout << "making a total map" << endl;
+	for(auto e : elements) {
+		string parent_id = e.first;
+		STE* s = static_cast<STE*>(elements[parent_id]);
+		enabledCount.insert(pair<STE*,uint32_t>(s, 0));
+	}
+	cout << "finished total map" << endl;
     cycle = start_index;
 
     // for all inputs
@@ -895,7 +919,7 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
         // measure progress on longer runs
         if(!quiet) {
 
-            if(i % 10000 == 0) {
+            if(i % 10 == 0) {
                 if(i != 0) {
                     cout << "\x1B[2K"; // Erase the entire current line.
                     cout << "\x1B[0E";  // Move to the beginning of the current line.
@@ -930,8 +954,7 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
         flush(cout);
         cout << endl;
     }
-
-
+ 
     if(profile) {
 
         cout << endl << "Dynamic Statistics: " << endl;
@@ -953,9 +976,9 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
         buildActivationHistogram("activation_hist.out");        
         
         // print activation stats
-        calcActivationDistribution();
-
-        // write to file
+		calcEnableDistribution();
+        
+		// write to file
         writeIntVectorToFile(enabledHist, "enabled_per_cycle.out");
         writeIntVectorToFile(activatedHist, "activated_per_cycle.out");
     
@@ -1023,29 +1046,33 @@ void Automata::printActivations() {
     }
 }
 
-void Automata::calcActivationDistribution() {
+void Automata::calcEnableDistribution() {
 
     // gather activations into vector
-    vector<uint32_t> activations;
-    uint64_t sum = 0;
-    for(auto e : activationHist){
-        activations.push_back(e.second);
-        sum += e.second;
-    }
+	vector<uint32_t> enables;
+	uint64_t sum = 0;
+	for(map<STE*, uint32_t>::iterator it = enabledCount.begin(); it != enabledCount.end(); it++) {
+		enables.push_back(it->second);
+		sum += it->second;
+	}
+    
+	// sort vector
+	sort(enables.rbegin(), enables.rend());
 
-    // sort vector
-    sort(activations.rbegin(), activations.rend());
-
-    // report how many STEs it takes to capture 90, 99, 99.9% activity
+    // report how many STEs it takes to capture 90, 99, 99.9, 99.99, 99.999, 99.9999, 99.99999, 99.999999% activity
     bool one = false;
     bool two = false;
     bool three = false;
     bool four = false;
+    bool five = false;
+    bool six = false;
+    bool seven = false;
+    bool eight = false;
 
     uint64_t run_sum = 0;
     uint32_t index = 1;
-    for(uint32_t acts : activations){
-        run_sum += acts;
+    for(uint32_t enas : enables) {
+        run_sum += enas;
         if(((double)run_sum/(double)sum) > .90 &! one){
             cout << "  90%: " << index << " / " << elements.size() << endl;
             one = true;
@@ -1062,9 +1089,24 @@ void Automata::calcActivationDistribution() {
             cout << "  99.99%: " << index << " / " << elements.size() << endl;
             four = true;
         }
+        if(((double)run_sum/(double)sum) > .99999 &! five){
+            cout << "  99.999%: " << index << " / " << elements.size() << endl;
+			five = true;
+        }
+        if((double)run_sum/(double)sum > .999999 &! six){
+            cout << "  99.9999%: " << index << " / " << elements.size() << endl;
+            six = true;
+        }
+        if((double)run_sum/(double)sum > .9999999 &! seven){
+            cout << "  99.99999%: " << index << " / " << elements.size() << endl;
+            seven = true;
+        }
+        if((double)run_sum/(double)sum > .99999999 &! eight){
+            cout << "  99.999999%: " << index << " / " << elements.size() << endl;
+            eight = true;
+        }
         index++;
     }
-    
 }
 
 void Automata::buildActivationHistogram(string fn) {
