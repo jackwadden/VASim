@@ -19,7 +19,7 @@ PROFILE = $(DEBUG) -pg
 ARFLAGS = rcs
 
 _DEPS = *.h
-_OBJ = util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o main.o
+_OBJ = util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o
 
 MAIN_CPP = main.cpp
 
@@ -47,7 +47,7 @@ profile: $(TARGET)
 library: CXXFLAGS += -DDEBUG=false $(OPTS)
 library: $(SNAME) 
 
-$(TARGET): $(SNAME) $(MNRL)/libmnrl.a 
+$(TARGET): $(SRCDIR)/$(MAIN_CPP) $(SNAME) $(MNRL)/libmnrl.a 
 	$(CC) $(CXXFLAGS) $^ -o $@  
 
 $(SNAME): $(ODIR)/pugixml.o $(OBJ)
