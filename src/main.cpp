@@ -376,7 +376,7 @@ int main(int argc, char * argv[]) {
     }
 
     // Parse Input
-    if(!quiet){
+    if(!quiet && simulate){
      
         cout << "|------------------------|" << endl;
         cout << "|     Parsing  Input     |" << endl;
@@ -403,10 +403,10 @@ int main(int argc, char * argv[]) {
                 cout << "  Found " << size << " input symbols." << endl;
             }
         }
-    }
 
-    if(!quiet){
-        cout << endl;
+        if(!quiet){
+            cout << endl;
+        }
     }
 
     // Build automata
