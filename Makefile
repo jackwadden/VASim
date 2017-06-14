@@ -1,14 +1,30 @@
+# TARGET NAMES
 TARGET = vasim
-IDIR =./include
-SRCDIR =./src
-MNRL =./MNRL/C++
-PUGI =./pugixml-1.6/src
-CXXFLAGS=-I$(IDIR) -I$(MNRL)/include -I$(PUGI) -pthread --std=c++11
+SNAME = libvasim.a
+
+# DIRECTORIES
+IDIR = ./include
+SRCDIR = ./src
+MNRL = ./MNRL/C++
+PUGI = ./pugixml-1.6/src
+
+# DEPENDENCIES
+LIBMNRL = $(MNRL)/libmnrl.a
+
+# FLAGS
+CXXFLAGS= -I$(IDIR) -I$(MNRL)/include -I$(PUGI) -pthread --std=c++11
+OPTS = -Ofast -march=native -m64 #-flto
+DEBUG = -g
+PROFILE = $(DEBUG) -pg
+ARFLAGS = rcs
 
 _DEPS = *.h
-_OBJ = util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o  main.o
+_OBJ = util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o main.o
 
-CC=g++-5
+MAIN_CPP = main.cpp
+
+CC = g++-5
+AR = ar
 #CC=icpc -mmic
 #CC=icpc
 
@@ -19,19 +35,25 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
-all: CXXFLAGS += -DDEBUG=false -Ofast -march=native -m64 -flto #-fprofile-use
+all: CXXFLAGS += -DDEBUG=false $(OPTS)
 all: $(TARGET)
 
-debug: CXXFLAGS += -g -DDEBUG=true
+debug: CXXFLAGS += -DDEBUG=true $(DEBUG) 
 debug: $(TARGET)
 
-profile: CXXFLAGS += -g -pg -DDEBUG=false -O3
+profile: CXXFLAGS += -DDEBUG=false $(OPTS) $(PROFILE) 
 profile: $(TARGET)
 
-$(TARGET):  $(OBJ) $(ODIR)/pugixml.o $(MNRL)/libmnrl.a
-	$(CC) $(CXXFLAGS) -o $@ $^ 
+library: CXXFLAGS += -DDEBUG=false $(OPTS)
+library: $(SNAME) 
 
-$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(MNRL)/libmnrl.a
+$(TARGET): $(SNAME) $(MNRL)/libmnrl.a 
+	$(CC) $(CXXFLAGS) $^ -o $@  
+
+$(SNAME): $(ODIR)/pugixml.o $(OBJ)
+	$(AR) $(ARFLAGS) $@ $^ 
+
+$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(LIBMNRL)
 	@mkdir -p $(ODIR)	
 	$(CC) $(CXXFLAGS) -c -o $@ $< 
 
@@ -39,7 +61,7 @@ $(ODIR)/pugixml.o: $(PUGI)/pugixml.cpp
 	@mkdir -p $(ODIR)	
 	$(CC) $(CXXFLAGS) -c -o $@ $< $(CXXFLAGS)
 
-$(MNRL)/libmnrl.a:
+$(LIBMNRL):
 	git submodule init
 	git submodule update
 	$(MAKE) -C ./MNRL/C++/
@@ -53,4 +75,6 @@ cleanlight:
 
 clean:
 	rm -f $(ODIR)/*.o $(TARGET)
+	rm $(SNAME)
+	rm $(MNRL)/libmnrl.a
 	rmdir $(ODIR)
