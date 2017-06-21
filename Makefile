@@ -76,5 +76,5 @@ cleanlight:
 clean:
 	rm -f $(ODIR)/*.o $(TARGET)
 	rm $(SNAME)
-	rm $(MNRL)/libmnrl.a
+	rm $(MNRL)/libmnrl.a $(MNRL)/libmnrl.so
 	rmdir $(ODIR)

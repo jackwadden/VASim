@@ -112,14 +112,14 @@ vector<unsigned char> file2CharVector(string fn) {
 /*
  *
  */
-void simulateAutomaton(Automata *a, uint8_t *input, uint32_t start_index, uint32_t size, bool step) {
+void simulateAutomaton(Automata *a, uint8_t *input, uint64_t start_index, uint64_t size, bool step) {
     a->simulate(input, start_index, size, step);
 }
 
 /*
  * Returns the input stream byte array, stores length in size pointer input
  */
-uint8_t * parseInputStream(bool simulate, bool input_string, uint32_t *size, char ** argv, uint32_t optind) {
+uint8_t * parseInputStream(bool simulate, bool input_string, uint64_t *size, char ** argv, uint32_t optind) {
 
     uint8_t * input;
     
@@ -127,8 +127,8 @@ uint8_t * parseInputStream(bool simulate, bool input_string, uint32_t *size, cha
         // From command line
         if(input_string){
             string input2 = argv[optind];
-            *size = (uint32_t)input2.length();
-            uint32_t counter = 0;
+            *size = (uint64_t)input2.length();
+            uint64_t counter = 0;
             input = (uint8_t*)malloc(sizeof(uint8_t) * *size);
             // copy bytes to unsigned ints
             for(unsigned char val : input2){
@@ -142,7 +142,7 @@ uint8_t * parseInputStream(bool simulate, bool input_string, uint32_t *size, cha
             *size = input2.size();
             input = (uint8_t*)malloc(sizeof(uint8_t) * input2.size());
             // copy bytes to unsigned ints
-            uint32_t counter = 0;
+            uint64_t counter = 0;
             for(uint8_t val : input2){
                 input[counter] = (uint8_t)val;
                 counter++;
@@ -367,7 +367,7 @@ int main(int argc, char * argv[]) {
     // Parse command line args
     string fn(argv[optind++]);
     uint8_t *input;
-    uint32_t size;
+    uint64_t size;
 
     bool simulate = true;
 
@@ -678,7 +678,7 @@ int main(int argc, char * argv[]) {
         }
         
         // Simulate all automata
-        for (int tid= 0; tid < num_threads; tid++) {
+        for (int tid = 0; tid < num_threads; tid++) {
             //for(Automata *a : merged) {
 
             uint64_t packet_offset = 0;              

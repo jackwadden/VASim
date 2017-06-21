@@ -903,7 +903,7 @@ void Automata::simulate(uint8_t symbol) {
 /*
  *
  */
-void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, bool step) {
+void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, bool step) {
 
     if(DEBUG)
         cout << "STARTING SIMULATION..." << endl;
@@ -918,7 +918,8 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
     cycle = start_index;
 
     // for all inputs
-    for(int i = start_index; i < start_index + length; ++i) {
+    unsigned long long i = 0;
+    for(i = start_index; i < start_index + length; i = i + 1) {
 
         // measure progress on longer runs
         if(!quiet) {
@@ -928,7 +929,8 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
                     cout << "\x1B[2K"; // Erase the entire current line.
                     cout << "\x1B[0E";  // Move to the beginning of the current line.
                 }
-                cout << "  Progress: " << i << "/" << length << "\r";
+                //printf("Progress: %lld / %lld\r", i, length);
+                cout << "  Progress: " << i << " / " << length << "\r";
                 flush(cout);
                 //
             }
@@ -946,7 +948,7 @@ void Automata::simulate(uint8_t *inputs, uint32_t start_index, uint32_t length, 
         cout << "\x1B[2K"; // Erase the entire current line.
         cout << "\x1B[0E";  // Move to the beginning of the current line.
 
-        cout << "  Progress: " << length << "/" << length << "\r";
+        cout << "  Progress: " << length << " / " << length << "\r";
         flush(cout);
         cout << endl;
     }

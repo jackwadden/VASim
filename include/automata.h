@@ -105,7 +105,7 @@ public:
     std::vector<std::string> automataToRegex(std::string fn);
 
     // Simulation
-    void simulate(uint8_t *, uint32_t, uint32_t, bool);
+    void simulate(uint8_t *, uint64_t, uint64_t, bool);
     void simulate(uint8_t);
     void reset();
     void stageOne();
