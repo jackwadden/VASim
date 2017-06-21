@@ -918,8 +918,7 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
     cycle = start_index;
 
     // for all inputs
-    unsigned long long i = 0;
-    for(i = start_index; i < start_index + length; i = i + 1) {
+    for(uint64_t i = start_index; i < start_index + length; i = i + 1) {
 
         // measure progress on longer runs
         if(!quiet) {
@@ -929,7 +928,7 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
                     cout << "\x1B[2K"; // Erase the entire current line.
                     cout << "\x1B[0E";  // Move to the beginning of the current line.
                 }
-                //printf("Progress: %lld / %lld\r", i, length);
+
                 cout << "  Progress: " << i << " / " << length << "\r";
                 flush(cout);
                 //
