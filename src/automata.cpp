@@ -705,7 +705,7 @@ vector<Element *> &Automata::getReports() {
 /*
  *
  */
-std::vector<std::pair<uint32_t, std::string>> &Automata::getReportVector() {
+std::vector<std::pair<uint64_t, std::string>> &Automata::getReportVector() {
 
     return reportVector;
 }
@@ -765,7 +765,7 @@ void Automata::enableQuiet() {
 /*
  *
  */
-void Automata::enableDumpState(uint32_t dump_cycle) {
+void Automata::enableDumpState(uint64_t dump_cycle) {
     dump_state = true;
     dump_state_cycle = dump_cycle;
 }
@@ -1003,7 +1003,7 @@ void Automata::writeReportToFile(string fn) {
 
     std::ofstream out(fn);
     string str;
-    for(pair<uint32_t,string> s : reportVector) {
+    for(pair<uint64_t,string> s : reportVector) {
         str += to_string(s.first) + " : " + s.second + " : " + elements[s.second]->getReportCode() + "\n";
     }
     out << str;
@@ -1018,7 +1018,7 @@ void Automata::printReportBatchSim() {
 
     // print report vector
     for(auto s: reportVector) {
-        unsigned int cycle = s.first + 1;
+        uint64_t cycle = s.first + 1;
         if(id.empty()){
             cout << "Element id: " << s.second << " reporting at index " << to_string(cycle) << endl;
         }else{

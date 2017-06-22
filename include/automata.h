@@ -53,7 +53,7 @@ private:
 
 
     // Simulation Statistics
-    std::vector<std::pair<uint32_t, std::string>> reportVector;
+    std::vector<std::pair<uint64_t, std::string>> reportVector;
     std::map<uint32_t, std::list<std::string>> activationVector;
     std::unordered_map<std::string, uint32_t> activationHist;    
     std::vector<uint32_t> enabledHist;
@@ -76,12 +76,12 @@ public:
     std::unordered_map<std::string, Element *> &getElements();
     std::unordered_map<std::string, SpecialElement *> &getSpecialElements();
     std::unordered_map<std::string, uint32_t> &getActivationHist();
-    std::vector<std::pair<uint32_t, std::string>> &getReportVector();
+    std::vector<std::pair<uint64_t, std::string>> &getReportVector();
     uint32_t getMaxActivations();
     void enableProfile();
     void enableReport();
     void enableQuiet();
-    void enableDumpState(uint32_t);
+    void enableDumpState(uint64_t);
     void disableProfile();
     
     // I/O
