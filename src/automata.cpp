@@ -825,11 +825,6 @@ void Automata::simulate(uint8_t symbol) {
     if(DEBUG)
         cout << "CONSUMING INPUT: " << symbol << " @cycle: " << cycle << endl;
 
-    // PARALLEL STAGE 1
-    // WRITING
-    // enable start states
-    stageOne();
-
     // CYCLE STATISTICS
     if(profile){
         //
@@ -854,11 +849,12 @@ void Automata::simulate(uint8_t symbol) {
             tmp.pop();
 	}        
     }
+
+    // -----------------------------
+    // Step 1: if STEs are enabled and we match, activate
+    computeSTEMatches(symbol);
+    // -----------------------------
     
-    // PARALLEL STAGE 2
-    // READING
-    // if STEs are enabled and we match, activate
-    stageTwo(symbol);
 
     if(profile)
         activatedHist.push_back(activatedSTEs.size());
@@ -867,33 +863,25 @@ void Automata::simulate(uint8_t symbol) {
         dumpSTEState("stes_" + to_string(cycle) + ".state");
     }
 
-    // PARALLEL STAGE 3
-    // WRITING
-    // propagate activation to other STEs, logic, and counters
-    stageThree();
+    // -----------------------------
+    // Step 2: enable children of matching STEs
+    enableSTEMatchingChildren();
+    // -----------------------------
 
-    // SPECIAL ELEMENT STAGES
+    // -----------------------------
+    // Step 3:  enable start states
+    enableStartStates();
+    // -----------------------------
+    
+    // -----------------------------
+    // Step 4: special element computation
     if(specialElements.size() > 0){
         
-        // NEW CIRCUIT SIMULATION CORE
         specialElementSimulation();
-
-        // PARALLEL STAGE 4
-        // READING
-        // calculate logic and counter functions
-        //stageFour();
-
-        //if(dump_state && (dump_state_cycle == cycle)){
-        //    dumpSpecelState("specels_" + to_string(cycle) +".state");
-        //}
-        // PARALLEL STAGE 5
-        // WRITING
-        // propagate logic and counter activations to other STEs, logic, and counters
-        //stageFive();            
-
-
     }
+    // -----------------------------
 
+    // advance cycle count
     tick();
 }
 
@@ -915,6 +903,10 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
 
     cycle = start_index;
 
+
+    // Initiate simulation by enabling all start states
+    enableStartStates();
+    
     // for all inputs
     for(uint64_t i = start_index; i < start_index + length; i = i + 1) {
 
@@ -2488,7 +2480,7 @@ Automata* Automata::generateDFA() {
 /*
  *
  */
-inline void Automata::stageOne() {
+inline void Automata::enableStartStates() {
 
     if(DEBUG)
         cout << "STAGE ONE:" << endl;
@@ -2518,7 +2510,7 @@ inline void Automata::stageOne() {
  * If an STE is enabled and matches on the current input, activate.
  * If we're a reporter, report. 
  */
-inline void Automata::stageTwo(uint8_t symbol) {
+inline void Automata::computeSTEMatches(uint8_t symbol) {
 
     if(DEBUG)
         cout << "STAGE TWO:" << endl;
@@ -2572,7 +2564,7 @@ inline void Automata::stageTwo(uint8_t symbol) {
 /*
  * Propagate enable signal of active STEs to all other elements
  */
-inline void Automata::stageThree() {
+inline void Automata::enableSTEMatchingChildren() {
 
     if(DEBUG)
         cout << "STAGE THREE:" << endl;
@@ -2603,100 +2595,6 @@ inline void Automata::stageThree() {
         activatedSTEs.push_back(latchedSTEs.back());
         latchedSTEs.pop_back();
     }
-}
-
-/*
- * Calculate logic and counter functions.
- * Special elements report if they go high. 
- */
-inline void Automata::stageFour() {
-    
-    if(DEBUG)
-        cout << "STAGE FOUR:" << endl;
-    
-    
-    // for all special element children of enabled STEs
-    while(!enabledSpecialElements.empty()){
-        
-        //SpecialElement *spel = e.second;
-        SpecialElement *spel = static_cast<SpecialElement*>(enabledSpecialElements.front());
-        
-        if(DEBUG)
-            cout << "CONSIDERING SPECIAL ELEMENT: " << spel->toString() << endl;
-        
-        // calulate underlying special function
-        bool emitOutput = spel->calculate();
-        if(DEBUG)
-            cout << "CALCULATED: " << emitOutput << endl;
-        
-        // add to high elements list
-        if(emitOutput) {
-            
-            // activate only if we weren't already activated
-            if(!spel->isActivated()) {
-                spel->activate();
-            }
-
-            // consider all special elements even if they didn't "activate"
-            activatedSpecialElements.push(spel);
-            
-            if(DEBUG)
-                cout << "SPECIAL ELEMENT ACTIVATED: " << spel->getId() << endl;
-            
-            // report
-            if(report && spel->isReporting()) {
-                if(DEBUG)
-                    cout << "\tSPECEL REPORTING: " << spel->getId() << endl;
-                
-                reportVector.push_back(make_pair(cycle, spel->getId()));
-            }
-        }
-        
-        // disable
-        spel->disable();
-        
-        // remove Specel from the queue
-        enabledSpecialElements.pop();
-    }
-    
-}
-
-/*
- * Propagate special element activations to other STEs and special elements
- *  Returns the number of special elements enabled. If zero, stage six can
- *  skipped. For now, stage six does not exist and we don't consider
- *  concatenated logic.
- */
-inline uint32_t Automata::stageFive() {
-    
-    if(DEBUG)
-        cout << "STAGE FIVE:" << endl;
-    
-    // keep track of specels enabled in this stage
-    uint32_t numEnabledSpecEls = 0;
-    
-    while(!activatedSpecialElements.empty()) {
-        
-        SpecialElement *spel = activatedSpecialElements.front();
-        activatedSpecialElements.pop();
-
-        if(DEBUG)
-            cout << "ACTIVATED SPECIAL: " << spel->getId() << endl;
-
-        //
-        if(spel->isActivated()){
-            spel->enableChildSTEs(&enabledSTEs);
-            numEnabledSpecEls += spel->enableChildSpecialElements(&enabledSpecialElements);  
-        }
-
-        // suggest that the logic deactivate
-        if(!spel->deactivate()) {
-            // store for later stages
-            //latchedSpecialElements.push_back(spel);
-        }
-    }
-
-    return numEnabledSpecEls;
 }
 
 

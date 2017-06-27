@@ -107,13 +107,10 @@ public:
     void simulate(uint8_t *, uint64_t, uint64_t, bool);
     void simulate(uint8_t);
     void reset();
-    void stageOne();
-    void stageTwo(uint8_t);
-    void stageThree();
-    void stageFour();
-    uint32_t stageFive();
-    void specialElementSimulation();
-    void specialElementSimulation2();
+    void enableStartStates(); // formerly stageOne
+    void computeSTEMatches(uint8_t); // formerly stageTwo
+    void enableSTEMatchingChildren(); // formerly stageThree
+    void specialElementSimulation(); // formerly stageFour/Five
     uint64_t tick();
 
 
