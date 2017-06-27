@@ -326,14 +326,11 @@ string STE::toANML() {
         }
     }
     
-    s.append("\t");
     for(string s2 : outputs) {
-        s.append("<activate-on-match element=\"");
+        s.append("\t<activate-on-match element=\"");
         s.append(s2);
         s.append("\"/>\n");
     }
-
-    
 
     s.append("</state-transition-element>");
 
