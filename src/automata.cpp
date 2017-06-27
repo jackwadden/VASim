@@ -822,10 +822,8 @@ void Automata::print() {
 
 void Automata::simulate(uint8_t symbol) {
 
-    input = symbol;
-
     if(DEBUG)
-        cout << "CONSUMING INPUT: " << input << " @cycle: " << cycle << endl;
+        cout << "CONSUMING INPUT: " << symbol << " @cycle: " << cycle << endl;
 
     // PARALLEL STAGE 1
     // WRITING
@@ -860,7 +858,7 @@ void Automata::simulate(uint8_t symbol) {
     // PARALLEL STAGE 2
     // READING
     // if STEs are enabled and we match, activate
-    stageTwo();
+    stageTwo(symbol);
 
     if(profile)
         activatedHist.push_back(activatedSTEs.size());
@@ -2520,7 +2518,7 @@ inline void Automata::stageOne() {
  * If an STE is enabled and matches on the current input, activate.
  * If we're a reporter, report. 
  */
-inline void Automata::stageTwo() {
+inline void Automata::stageTwo(uint8_t symbol) {
 
     if(DEBUG)
         cout << "STAGE TWO:" << endl;
@@ -2532,13 +2530,13 @@ inline void Automata::stageTwo() {
         STE * s = static_cast<STE *>(enabledSTEs.back());
 
         if(DEBUG)
-            cout << s->getId() << " IS ENABLED. CHECKING FOR MATCH WITH INPUT: \"" << input << "\"" << endl;
+            cout << s->getId() << " IS ENABLED. CHECKING FOR MATCH WITH INPUT: \"" << symbol << "\"" << endl;
 
         // if we match on the input character
         // the STE will activate and we record this
         // ste should also report
         //if(s->match(input)) {
-        if(s->match2(input)) {
+        if(s->match2(symbol)) {
 
             if(DEBUG)
                 cout << "MATCHED!" << endl;

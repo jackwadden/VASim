@@ -64,7 +64,6 @@ private:
     std::map<Element*, uint32_t> enabledCount;
     
     uint64_t cycle;
-    uint8_t input;
     
 public:
     Automata();
@@ -109,7 +108,7 @@ public:
     void simulate(uint8_t);
     void reset();
     void stageOne();
-    void stageTwo();
+    void stageTwo(uint8_t);
     void stageThree();
     void stageFour();
     uint32_t stageFive();
