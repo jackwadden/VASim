@@ -717,6 +717,7 @@ unordered_map<string, Element *> &Automata::getElements() {
 
     return elements;
 }
+
 /*
  *
  */
@@ -724,6 +725,31 @@ unordered_map<string, SpecialElement *> &Automata::getSpecialElements() {
 
     return specialElements;
 }
+
+/*
+ *
+ */
+Stack<Element *> &Automata::getEnabledElements() {
+
+    return enabledElements;
+}
+
+/*
+ *
+ */
+Stack<Element *> &Automata::getEnabledSTEs() {
+
+    return enabledSTEs;
+}
+
+/*
+ *
+ */
+Stack<STE *> &Automata::getActivatedSTEs() {
+
+    return activatedSTEs;
+}
+
 
 /*
  *

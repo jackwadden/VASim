@@ -74,6 +74,9 @@ public:
     std::vector<Element *> &getReports();
     std::unordered_map<std::string, Element *> &getElements();
     std::unordered_map<std::string, SpecialElement *> &getSpecialElements();
+    Stack<Element *> &getEnabledElements();
+    Stack<Element *> &getEnabledSTEs();
+    Stack<STE *> &getActivatedSTEs();
     std::unordered_map<std::string, uint32_t> &getActivationHist();
     std::vector<std::pair<uint64_t, std::string>> &getReportVector();
     uint32_t getMaxActivations();
