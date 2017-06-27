@@ -2153,7 +2153,7 @@ void Automata::automataToGraphFile(string out_fn) {
             
             // emit char reach
             for(int i = 255; i >= 0; i--){
-                if(s->match2(i)){
+                if(s->match(i)){
                     str += "1";
                 }else{
                     str += "0";
@@ -2277,7 +2277,7 @@ set<STE*>* Automata::follow(uint32_t character, set<STE*>* current_dfa_state) {
 
     // for each all-input start
     for(STE *start : getStarts()){
-        if(start->match2((uint8_t)character)){
+        if(start->match((uint8_t)character)){
             // add to follow_set
             //cout << start->getId() << " matched on input " << endl; 
             follow_set->insert(start);
@@ -2290,7 +2290,7 @@ set<STE*>* Automata::follow(uint32_t character, set<STE*>* current_dfa_state) {
         for(auto e : ste->getOutputSTEPointers()){
             STE * child = static_cast<STE*>(e.first);
             // if they match this character
-            if(child->match2((uint8_t)character)){
+            if(child->match((uint8_t)character)){
                 // add to follow_set
                 follow_set->insert(child);
             }
@@ -2527,8 +2527,7 @@ inline void Automata::computeSTEMatches(uint8_t symbol) {
         // if we match on the input character
         // the STE will activate and we record this
         // ste should also report
-        //if(s->match(input)) {
-        if(s->match2(symbol)) {
+        if(s->match(symbol)) {
 
             if(DEBUG)
                 cout << "MATCHED!" << endl;
@@ -2707,56 +2706,9 @@ void Automata::specialElementSimulation() {
     }
 }
 
-/*
- * If we enabled any special elements, activate them and loop to stage 5
- */
-/*
-  void Automata::stageSix() {
-
-  if(DEBUG)
-  cout << "STAGE SIX:" << endl;
-
-  // for all special elements that have at least one enabled port
-  while(!enabledSpecialElements.empty()) {
-
-  SpecialElement *spel = static_cast<SpecialElement*>(enabledSpecialElements.front());
-  enabledSpecialElements.pop();
-
-  if(DEBUG)
-  cout << "CONSIDERING SPECIAL ELEMENT: " << spel->toString() << endl;
-
-  // calulate underlying special function
-  bool emitOutput = spel->calculate();
-  if(DEBUG)
-  cout << "CALCULATED: " << emitOutput << endl;
-
-  // add to high elements list
-  if(emitOutput) {
-
-  // activate
-  if(!spel->isActivated()) {
-  spel->activate();
-  activatedSpecialElements.push(spel);
-  }
-  if(DEBUG)
-  cout << "SPECIAL ELEMENT ACTIVATED: " << spel->getId() << endl;
-
-  // report
-  if(report && spel->isReporting()) {
-  if(DEBUG)
-  cout << "\tSPECEL REPORTING: " << spel->getId() << endl;
-
-  reportVector.push_back(make_pair(cycle, spel->getId()));
-  }
-  }
-
-  spel->disable();
-  }    
-  }
-*/
 
 /*
- *
+ * Tick advances the cycle count representing an automata "symbol cycle"
  */
 uint64_t Automata::tick() {
 

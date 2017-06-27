@@ -28,42 +28,12 @@ STE::STE(string id, string symbol_set, string strt) : Element(id),
 
     parseSymbolSet(bit_column, symbol_set);
     
-    // SANITY CHECK
-    // compares charset parsing against <regex>
-    // useful for debugging purposes, but <regex> will *not* behave correctly
-    if(0){    
-        try{
-            matcher = new regex(symbol_set);
-        }catch(const std::regex_error& e){
-            cout << symbol_set << endl;
-        }
-        for(uint32_t i = 0; i < 256; i++) {
-            bit_column2.set(i,match(i));
-            if(bit_column2.test(i) != bit_column.test(i)){
-                cout << "FAILED AT: " << i << " " << symbol_set << " hand_coded: " << bit_column.test(i) << endl;
-                exit(1);
-            }
-        }
-    }
 }
 
-/*
-STE::STE(const STE &old) : Element(old) {
-
-    //STE
-    symbol_set = old.symbol_set;
-    bit_column = old.bit_column;
-    matcher = old.matcher;
-    latched = old.latched;
-    start = old.start;
-    enabled = old.enabled;
-}
-*/
 
 STE::~STE() {
 
     // for some reason this is segfaulting within regex.h
-    //delete matcher;
     
 }
 
@@ -195,22 +165,6 @@ bool STE::isActivateNoInput() {
     }
 }
 
-/*
- *
- */
-bool STE::match(uint32_t input) {
-
-    bool retval = false;
-
-    // DOES NOT GENERICIZE TO MORE BITS TODO
-    string tmp(1, (char)input);
-    if(regex_match(tmp, *matcher)) {
-        retval = true;
-    }
-
-    return retval;
-}
-
 
 /*
  *
@@ -238,7 +192,7 @@ vector<uint32_t> STE::getIntegerSymbolSet() {
     //try to match on every character. If we match
     // add to the return set
     for(uint32_t i = 0; i < 256; i++) {
-        if(match2((uint8_t)i))
+        if(match((uint8_t)i))
             ret.push_back(i);
 
     }
@@ -643,7 +597,7 @@ void STE::follow(uint32_t character, set<STE*> *follow_set){
     for(auto e : outputSTEPointers){
 
         STE *s = static_cast<STE*>(e.first);
-        if(s->match2(character))
+        if(s->match(character))
             follow_set->insert(s);
     }
 }

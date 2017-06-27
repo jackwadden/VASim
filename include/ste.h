@@ -6,8 +6,6 @@
 #include "util.h"
 #include <vector>
 #include <string>
-//#include <boost/regex.hpp>
-#include <regex>
 #include <iostream>
 #include <algorithm>
 #include <bitset>
@@ -25,7 +23,6 @@ protected:
     //std::vector<bool> bit_column;
     //bool bit_column[256];
     std::bitset<256> bit_column;
-    std::regex *matcher;
     //const boost::regex *matcher;
     bool latched;    
     Start start;
@@ -58,12 +55,11 @@ public:
     inline bool isEnabled() { return enabled; }
     bool isSpecialElement();
     bool isActivateNoInput();
-    bool match(uint32_t);
 
     /*
      * Optimized match using bit vector
      */
-    inline bool match2(uint8_t input) {
+    inline bool match(uint8_t input) {
         return bit_column.test(input);
     }
     
