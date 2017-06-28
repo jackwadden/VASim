@@ -167,8 +167,12 @@ void Automata::reset() {
     while(!activatedSpecialElements.empty())
         activatedSpecialElements.pop();
 
-    // SIMULATION STATS SHOULD NOT BE DELETED
+    // clear report vector
+    reports.clear();
 
+    // reset cycle counter to be 0
+    cycle = 0;
+    
 }
 
 /*
