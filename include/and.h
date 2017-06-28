@@ -12,6 +12,9 @@ class AND: public Gate {
 public:
     AND(std::string id);
     ~AND();
+
+    virtual ElementType getType();
+
     virtual bool calculate();
     virtual std::string toString();
     virtual std::string toANML();

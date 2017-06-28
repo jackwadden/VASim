@@ -86,3 +86,11 @@ string OR::toANML() {
 shared_ptr<MNRLNode> OR::toMNRLObj() {
     return toMNRLBool(MNRLDefs::BooleanMode::OR);
 }
+
+/*
+ *
+ */
+ElementType OR::getType() {
+
+    return ElementType::OR_T;
+}

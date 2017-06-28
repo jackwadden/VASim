@@ -91,3 +91,11 @@ bool NOR::canActivateNoEnable() {
 
     return true;
 }
+
+/*
+ *
+ */
+ElementType NOR::getType() {
+
+    return ElementType::NOR_T;
+}

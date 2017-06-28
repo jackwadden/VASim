@@ -12,6 +12,9 @@ class NOR: public Gate {
 public:
     NOR(std::string id);
     ~NOR();
+
+    virtual ElementType getType();
+
     virtual bool calculate();
     virtual std::string toString();
     virtual std::string toANML();

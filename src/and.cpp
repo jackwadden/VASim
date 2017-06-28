@@ -71,3 +71,11 @@ string AND::toANML() {
 shared_ptr<MNRLNode> AND::toMNRLObj() {
     return toMNRLBool(MNRLDefs::BooleanMode::AND);
 }
+
+/*
+ *
+ */
+ElementType AND::getType() {
+
+    return ElementType::AND_T;
+}

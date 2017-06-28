@@ -14,6 +14,16 @@
 
 #include "stack.h"
 
+// type enum definitions
+enum ElementType {
+    STE_T,
+    OR_T,
+    NOR_T,
+    AND_T,
+    INVERTER_T,
+    COUNTER_T
+};
+
 class Element {
 
 protected:
@@ -40,6 +50,8 @@ public:
     //Element(const Element &);
     virtual ~Element();
 
+    virtual ElementType getType() = 0;
+    
     bool setId(std::string);
     bool setIntId(uint32_t);
     inline std::string getId() {return id; }

@@ -9,6 +9,9 @@ class Inverter: public Gate {
 public:
     Inverter(std::string);
     ~Inverter();
+
+    virtual ElementType getType();
+
     virtual bool calculate();
     virtual std::string toString();
     virtual std::string toANML();

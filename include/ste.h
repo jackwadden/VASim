@@ -35,6 +35,8 @@ public:
     //STE(const STE &);
     ~STE();
 
+    virtual ElementType getType();
+    
     std::vector<std::string> getActivateOnMatch();
     bool setSymbolSet(std::string);
     std::string getSymbolSet();

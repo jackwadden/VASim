@@ -12,6 +12,8 @@ class OR: public Gate {
 public:
     OR(std::string id);
     ~OR();
+
+    virtual ElementType getType();
     virtual bool calculate();
     virtual std::string toString();
     virtual std::string toANML();

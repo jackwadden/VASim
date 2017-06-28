@@ -559,7 +559,7 @@ int STE::compareSymbolSet(STE *other) {
     return 0;
 }
 
-STE * STE::clone() {
+STE *STE::clone() {
 
     STE * clone = new STE(getId(), getSymbolSet(), getStringStart());
     
@@ -600,4 +600,12 @@ void STE::follow(uint32_t character, set<STE*> *follow_set){
         if(s->match(character))
             follow_set->insert(s);
     }
+}
+
+/*
+ *
+ */
+ElementType STE::getType() {
+
+    return ElementType::STE_T;
 }

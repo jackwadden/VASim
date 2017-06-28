@@ -122,3 +122,11 @@ string Inverter::toHDL(unordered_map<string, string> id_reg_map) {
 
     return inv;
 }
+
+/*
+ *
+ */
+ElementType Inverter::getType() {
+
+    return ElementType::INVERTER_T;
+}

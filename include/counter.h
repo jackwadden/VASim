@@ -20,6 +20,7 @@ public:
     Counter(std::string, uint32_t, std::string);
     ~Counter();
 
+    virtual ElementType getType();
 
     virtual bool calculate();
     void setMode(std::string);

@@ -457,3 +457,11 @@ string Counter::toHDL(unordered_map<string, string> id_reg_map) {
         
     return ctr;
 }
+
+/*
+ *
+ */
+ElementType Counter::getType() {
+
+    return ElementType::COUNTER_T;
+}
