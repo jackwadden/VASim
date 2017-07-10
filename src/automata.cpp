@@ -915,8 +915,8 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
     // If we're profiling, map STEs to a counter for each stat
     if(profile){
 	for(auto e : elements) {
-            enabledCount.insert(pair<Element*,uint32_t>(e.second, 0));
-            activatedCount.insert(pair<Element*,uint32_t>(e.second, 0));
+            enabledCount[e.second] = 0;
+            activatedCount[e.second] = 0;
         }
     }
 
