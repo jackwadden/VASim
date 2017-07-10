@@ -739,9 +739,10 @@ uint32_t Automata::getMaxActivations() {
  *
  */
 void Automata::enableProfile() {
+
     profile = true;
 
-    // If we're profiling, map STEs to a counter for each stat
+    // If we're profiling, map STEs to a counter for each state
     if(profile){
 	for(auto e : elements) {
             enabledCount[e.second] = 0;
@@ -822,6 +823,9 @@ void Automata::print() {
     }
 }
 
+/*
+ *
+ */
 void Automata::simulate(uint8_t symbol) {
 
     if(DEBUG)
@@ -911,6 +915,11 @@ void Automata::simulate(uint8_t symbol) {
     tick();
 }
 
+void Automata::initializeSimulation() {
+    
+    // Initiate simulation by enabling all start states
+    enableStartStates();
+}
 
 /*
  *
@@ -922,8 +931,8 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
 
     cycle = start_index;
 
-    // Initiate simulation by enabling all start states
-    enableStartStates();
+    // primes all data structures for simulation
+    initializeSimulation();
     
     // for all inputs
     for(uint64_t i = start_index; i < start_index + length; i = i + 1) {
