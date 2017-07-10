@@ -40,9 +40,6 @@ protected:
     bool enabled;
     bool marked;
 
-    // backport
-    bool cut;
-
     
 public:
 

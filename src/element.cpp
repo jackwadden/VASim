@@ -11,7 +11,6 @@ Element::Element(string id) : id(id),
                               reporting(false), 
                               activated(false),
                               enabled(false),
-                              cut(false),
                               marked(false){
 
 }
@@ -29,7 +28,6 @@ Element::Element(const Element &old) {
     reporting = old.reporting;
     report_code = old.report_code;
     activated = old.activated;
-    cut = old.cut;
 }
 */
 
@@ -448,23 +446,6 @@ void Element::unmark() {
 }
 
     
-// backport additions
-/*
- *
- */
-bool Element::isCut() {
-
-    return cut;
-}
-
-/*
- *
- */
-void Element::setCut(bool c) {
-
-    cut = c;
-}
-
 /*
  *
  */

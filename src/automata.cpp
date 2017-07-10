@@ -101,43 +101,7 @@ Automata::Automata(string filename): filename(filename),
 }
 
 
-/*
- *
- */
-void Automata::cutElement(Element *e ) {
 
-    // set as cut
-    e->setCut(true);
-    // make sure parents are reporting
-    for(auto it : e->getInputs()) {
-        elements[it.first]->setReporting(true);
-    }
-}
-
-/*
- *
- */
-bool Automata::isTailNode(Element *e) {
-
-    bool tail = true;
-    if(e->isCut()) {
-        return false;
-    }
-
-    if(e->getOutputs().size() == 0) {
-        return true;
-    }
-
-    for(string out : e->getOutputs()) {
-        //if our output isn't cut, and it's not us
-        // we are not a tail node
-        if(!elements[out]->isCut() && (out.compare(e->getId()) != 0))
-            return false;
-    }
-
-    return tail;
-
-}
 
 /*
  * Disables and deactivates all elements in the automata

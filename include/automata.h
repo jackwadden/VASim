@@ -137,7 +137,6 @@ public:
     void defrag();
     Automata * generateDFA();
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
-    void cutElement(Element *);
     void addSTE(STE *, std::vector<std::string>&);
     void rawAddSTE(STE *);
     void rawAddSpecialElement(SpecialElement *);
@@ -157,7 +156,6 @@ public:
     void enforceFanOut(uint32_t fanout_max);
 
     // Util
-    bool isTailNode(Element *);
     std::string getElementColor(std::string);
     std::string getElementColorLog(std::string);
     std::string getLogElementColor(std::string);
