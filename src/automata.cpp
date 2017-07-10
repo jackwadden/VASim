@@ -718,6 +718,30 @@ Stack<STE *> &Automata::getActivatedSTEs() {
     return activatedSTEs;
 }
 
+/*
+ *
+ */
+queue<Element *> &Automata::getEnabledLastCycle() {
+
+    return enabledLastCycle;
+}
+
+/*
+ *
+ */
+queue<Element *> &Automata::getActivatedLastCycle() {
+
+    return activatedLastCycle;
+}
+
+/*
+ *
+ */
+queue<Element *> &Automata::getReportedLastCycle() {
+
+    return reportedLastCycle;
+}
+
 
 /*
  *

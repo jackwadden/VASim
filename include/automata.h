@@ -125,7 +125,6 @@ public:
     // Statistics and Profiling
     void profileEnables();
     void profileActivations();
-    void profileReports();
     std::unordered_map<Element*, uint32_t> &getEnabledCount();
     std::unordered_map<Element*, uint32_t> &getActivatedCount();
     std::queue<Element *> &getEnabledLastCycle();
