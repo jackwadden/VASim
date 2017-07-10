@@ -740,6 +740,14 @@ uint32_t Automata::getMaxActivations() {
  */
 void Automata::enableProfile() {
     profile = true;
+
+    // If we're profiling, map STEs to a counter for each stat
+    if(profile){
+	for(auto e : elements) {
+            enabledCount[e.second] = 0;
+            activatedCount[e.second] = 0;
+        }
+    }
 }
 
 /*
@@ -911,14 +919,6 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
 
     if(DEBUG)
         cout << "STARTING SIMULATION..." << endl;
-
-    // If we're profiling, map STEs to a counter for each stat
-    if(profile){
-	for(auto e : elements) {
-            enabledCount[e.second] = 0;
-            activatedCount[e.second] = 0;
-        }
-    }
 
     cycle = start_index;
 
