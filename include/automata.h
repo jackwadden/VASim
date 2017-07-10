@@ -54,14 +54,14 @@ private:
 
     // Simulation Statistics
     std::vector<std::pair<uint64_t, std::string>> reportVector;
-    std::map<uint32_t, std::list<std::string>> activationVector;
+    std::unordered_map<uint32_t, std::list<std::string>> activationVector;
     std::unordered_map<std::string, uint32_t> activationHist;    
     std::vector<uint32_t> enabledHist;
     std::vector<uint32_t> activatedHist;
     uint32_t maxActivations;
 
-    uint32_t totalEnables;
-    std::map<Element*, uint32_t> enabledCount;
+    std::unordered_map<Element*, uint32_t> enabledCount;
+    std::unordered_map<Element*, uint32_t> activatedCount;
     
     uint64_t cycle;
     
@@ -118,6 +118,8 @@ public:
 
 
     // Statistics and Profiling
+    std::unordered_map<Element*, uint32_t> &getEnabledCount();
+    std::unordered_map<Element*, uint32_t> &getActivatedCount();
     void buildActivationHistogram(std::string fn);
     void calcEnableDistribution();
     void printActivationHistogram();

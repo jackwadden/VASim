@@ -819,12 +819,13 @@ void Automata::simulate(uint8_t symbol) {
     if(DEBUG)
         cout << "CONSUMING INPUT: " << symbol << " @cycle: " << cycle << endl;
 
-    // CYCLE STATISTICS
+    // Enabled Statistics
     if(profile){
-        //
+
+        // per cycle statistics
         enabledHist.push_back(enabledSTEs.size());
 
-	// STE ENABLE STATISTICS
+        // per element statistics
 	// check number of times each ste was enabled per step
 	queue<Element*> tmp;
 	while(!enabledSTEs.empty()) {
@@ -850,9 +851,32 @@ void Automata::simulate(uint8_t symbol) {
     // -----------------------------
     
 
-    if(profile)
+    // Activation Statistics
+    if(profile){
+
+        // Get per cycle stats
         activatedHist.push_back(activatedSTEs.size());
 
+        // Get per STE stats
+	// Check number of times each ste was activated per step
+	queue<STE*> tmp;
+	while(!activatedSTEs.empty()) {
+
+            STE* s = activatedSTEs.back();
+            tmp.push(s);
+            activatedSTEs.pop_back();
+            
+            //inspect
+            activatedCount[s] = activatedCount[s] + 1;
+	}
+        
+	//push back onto queue to proceed to next stage
+	while(!tmp.empty()) {
+            activatedSTEs.push_back(tmp.front());
+            tmp.pop();
+	}        
+    }
+    
     if(dump_state && (dump_state_cycle == cycle)){
         dumpSTEState("stes_" + to_string(cycle) + ".state");
     }
@@ -888,15 +912,15 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
     if(DEBUG)
         cout << "STARTING SIMULATION..." << endl;
 
-    // If we're profiling, map STEs to a counter of how many times it was enabled
+    // If we're profiling, map STEs to a counter for each stat
     if(profile){
 	for(auto e : elements) {
             enabledCount.insert(pair<Element*,uint32_t>(e.second, 0));
+            activatedCount.insert(pair<Element*,uint32_t>(e.second, 0));
         }
     }
 
     cycle = start_index;
-
 
     // Initiate simulation by enabling all start states
     enableStartStates();
@@ -1089,6 +1113,23 @@ void Automata::calcEnableDistribution() {
         index++;
     }
 }
+
+/*
+ *
+ */
+unordered_map<Element*, uint32_t> &Automata::getEnabledCount() {
+
+    return enabledCount;
+}
+
+/*
+ *
+ */
+unordered_map<Element*, uint32_t> &Automata::getActivatedCount() {
+
+    return activatedCount;
+}
+
 
 void Automata::buildActivationHistogram(string fn) {
 
