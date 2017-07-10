@@ -2515,7 +2515,7 @@ Automata* Automata::generateDFA() {
 /*
  *
  */
-inline void Automata::enableStartStates() {
+void Automata::enableStartStates() {
 
     if(DEBUG)
         cout << "STAGE ONE:" << endl;
@@ -2545,7 +2545,7 @@ inline void Automata::enableStartStates() {
  * If an STE is enabled and matches on the current input, activate.
  * If we're a reporter, report. 
  */
-inline void Automata::computeSTEMatches(uint8_t symbol) {
+void Automata::computeSTEMatches(uint8_t symbol) {
 
     if(DEBUG)
         cout << "STAGE TWO:" << endl;
@@ -2598,7 +2598,7 @@ inline void Automata::computeSTEMatches(uint8_t symbol) {
 /*
  * Propagate enable signal of active STEs to all other elements
  */
-inline void Automata::enableSTEMatchingChildren() {
+void Automata::enableSTEMatchingChildren() {
 
     if(DEBUG)
         cout << "STAGE THREE:" << endl;
