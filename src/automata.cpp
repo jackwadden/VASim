@@ -906,6 +906,10 @@ void Automata::profileActivations() {
     while(!activatedLastCycle.empty()){
         activatedLastCycle.pop();
     }
+
+    while(!reportedLastCycle.empty()){
+        reportedLastCycle.pop();
+    }
     
     // Get per cycle stats
     activatedHist.push_back(activatedSTEs.size());
@@ -924,6 +928,11 @@ void Automata::profileActivations() {
         
         // track the STEs that activated on the last cycle
         activatedLastCycle.push(s);
+
+        // if any were reports, also track reports
+        if(s->isReporting()){
+            reportedLastCycle.push(s);
+        }
     }
     
     //push back onto queue to proceed to next stage
@@ -931,10 +940,6 @@ void Automata::profileActivations() {
         activatedSTEs.push_back(tmp.front());
         tmp.pop();
     }        
-}
-
-void Automata::profileReports() {
-
 }
 
 void Automata::initializeSimulation() {
