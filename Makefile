@@ -74,7 +74,7 @@ cleanlight:
 	mv $(ODIR)/pugixml.o.tmp $(ODIR)/pugixml.o
 
 clean:
-	rm -f $(ODIR)/*.o $(TARGET)
+	rm $(ODIR)/*.o $(TARGET)
 	rm $(SNAME)
-	rm $(MNRL)/libmnrl.a $(MNRL)/libmnrl.so
+	rm $(MNRL)/libmnrl.a $(MNRL)/libmnrl.so $(MNRL)/src/obj/*.o
 	rmdir $(ODIR)
