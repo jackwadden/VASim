@@ -62,6 +62,9 @@ private:
 
     std::unordered_map<Element*, uint32_t> enabledCount;
     std::unordered_map<Element*, uint32_t> activatedCount;
+    std::queue<Element *> enabledLastCycle;
+    std::queue<Element *> activatedLastCycle;
+
     
     uint64_t cycle;
     
@@ -119,8 +122,13 @@ public:
 
 
     // Statistics and Profiling
+    void profileEnables();
+    void profileActivations();
+    void profileReports();
     std::unordered_map<Element*, uint32_t> &getEnabledCount();
     std::unordered_map<Element*, uint32_t> &getActivatedCount();
+    std::queue<Element *> &getEnabledLastCycle();
+    std::queue<Element *> &getActivatedLastCycle();
     void buildActivationHistogram(std::string fn);
     void calcEnableDistribution();
     void printActivationHistogram();

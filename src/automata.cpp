@@ -831,62 +831,14 @@ void Automata::simulate(uint8_t symbol) {
     if(DEBUG)
         cout << "CONSUMING INPUT: " << symbol << " @cycle: " << cycle << endl;
 
-    // Enabled Statistics
-    if(profile){
-
-        // per cycle statistics
-        enabledHist.push_back(enabledSTEs.size());
-
-        // per element statistics
-	// check number of times each ste was enabled per step
-	queue<Element*> tmp;
-	while(!enabledSTEs.empty()) {
-
-            Element* s = enabledSTEs.back();
-            tmp.push(s);
-            enabledSTEs.pop_back();
-            
-            //inspect
-            enabledCount[s] = enabledCount[s] + 1;
-	}
-        
-	//push back onto queue to proceed to next stage
-	while(!tmp.empty()) {
-            enabledSTEs.push_back(tmp.front());
-            tmp.pop();
-	}        
-    }
-
     // -----------------------------
     // Step 1: if STEs are enabled and we match, activate
     computeSTEMatches(symbol);
     // -----------------------------
     
-
     // Activation Statistics
     if(profile){
-
-        // Get per cycle stats
-        activatedHist.push_back(activatedSTEs.size());
-
-        // Get per STE stats
-	// Check number of times each ste was activated per step
-	queue<STE*> tmp;
-	while(!activatedSTEs.empty()) {
-
-            STE* s = activatedSTEs.back();
-            tmp.push(s);
-            activatedSTEs.pop_back();
-            
-            //inspect
-            activatedCount[s] = activatedCount[s] + 1;
-	}
-        
-	//push back onto queue to proceed to next stage
-	while(!tmp.empty()) {
-            activatedSTEs.push_back(tmp.front());
-            tmp.pop();
-	}        
+        profileActivations();
     }
     
     if(dump_state && (dump_state_cycle == cycle)){
@@ -902,23 +854,98 @@ void Automata::simulate(uint8_t symbol) {
     // Step 3:  enable start states
     enableStartStates();
     // -----------------------------
-    
+
     // -----------------------------
     // Step 4: special element computation
-    if(specialElements.size() > 0){
-        
+    if(specialElements.size() > 0){        
         specialElementSimulation();
     }
     // -----------------------------
 
+    // Enabled Statistics
+    if(profile){
+        profileEnables();
+    }
+    
     // advance cycle count
     tick();
+}
+
+void Automata::profileEnables() {
+
+    // clear data structures
+    while(!enabledLastCycle.empty()){
+        enabledLastCycle.pop();
+    }
+    
+    // per element statistics
+    queue<Element*> tmp;
+    while(!enabledSTEs.empty()) {
+        
+        Element* s = enabledSTEs.back();
+        tmp.push(s);
+        enabledSTEs.pop_back();
+        
+        // track number of times each ste was enabled per step
+        enabledCount[s] = enabledCount[s] + 1;
+        
+        // track the STEs that were enabled on the last cycle
+        enabledLastCycle.push(s);
+    }
+    
+    //push back onto queue to proceed to next stage
+    while(!tmp.empty()) {
+        enabledSTEs.push_back(tmp.front());
+        tmp.pop();
+    }
+}
+
+void Automata::profileActivations() {
+
+    // clear data structures
+    while(!activatedLastCycle.empty()){
+        activatedLastCycle.pop();
+    }
+    
+    // Get per cycle stats
+    activatedHist.push_back(activatedSTEs.size());
+    
+    // Get per STE stats
+    // Check number of times each ste was activated per step
+    queue<STE*> tmp;
+    while(!activatedSTEs.empty()) {
+        
+        STE* s = activatedSTEs.back();
+        tmp.push(s);
+        activatedSTEs.pop_back();
+        
+        // track number of times each STE activated
+        activatedCount[s] = activatedCount[s] + 1;
+        
+        // track the STEs that activated on the last cycle
+        activatedLastCycle.push(s);
+    }
+    
+    //push back onto queue to proceed to next stage
+    while(!tmp.empty()) {
+        activatedSTEs.push_back(tmp.front());
+        tmp.pop();
+    }        
+}
+
+void Automata::profileReports() {
+
 }
 
 void Automata::initializeSimulation() {
     
     // Initiate simulation by enabling all start states
     enableStartStates();
+
+    //
+    if(profile)
+        profileEnables();
+    
 }
 
 /*
