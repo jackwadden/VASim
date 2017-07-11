@@ -913,13 +913,15 @@ void Automata::profileEnables() {
         // track number of times each ste was enabled per step
         enabledCount[s] = enabledCount[s] + 1;
         
-        // track the STEs that were enabled on the last cycle
-        enabledLastCycle.push(s);
     }
     
     //push back onto queue to proceed to next stage
     while(!tmp.empty()) {
         enabledSTEs.push_back(tmp.front());
+
+        // track the STEs that were enabled on the last cycle
+        enabledLastCycle.push(tmp.front());
+
         tmp.pop();
     }
 }
