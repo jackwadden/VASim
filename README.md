@@ -4,11 +4,34 @@ VASim is a homogeneous non-deterministic finite automata simulator. Homogeneous 
 
 VASim can parse, transform, simulate, and profile homogeneous automata, and is meant to be an open tool for automata processing research. VASim can also be extended to support arbitrary automata processing elements other than traditional states.
 
+## Installation
+
+### Ubuntu Linux
+```bash
+
+$ git clone https://github.com/jackwadden/VASim.git
+$ cd VASim
+$ make
+
+```
+
+### MacOS (10.11+)
+```bash
+
+$ brew install nasm
+$ brew install gcc5
+$ git clone https://github.com/jackwadden/VASim.git
+$ cd VASim
+$ make
+
+```
+
+
 ## Command Line Usage
 
 VASim was developed to be used as a command line tool for automata simulation. VASim takes at least one input--an automata graph--and an optional input. If an input is provided, VASim will simulate the automata on the input.
 
-```
+```bash
 $ vasim [options] <anml_file> [input_file]
 ```
 
