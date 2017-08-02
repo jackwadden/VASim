@@ -3564,3 +3564,4 @@ void Automata::addEdge(Element* from, Element *to){
     from->addOutputPointer(make_pair(to, to->getId()));
     to->addInput(from->getId());
 }
+
