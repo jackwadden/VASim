@@ -3565,3 +3565,70 @@ void Automata::addEdge(Element* from, Element *to){
     to->addInput(from->getId());
 }
 
+/*
+ *
+ */
+void Automata::validateStartElement(Element* el){
+
+    // return if we're a specel
+    if(el->isSpecialElement())
+        return;
+
+    STE *ste = static_cast<STE*>(el);
+    
+    if(ste->isStart()){
+        // make sure we're in the array
+        bool contains = (find(starts.begin(), starts.end(), ste) != starts.end());
+        
+        if(!contains){
+            starts.push_back(ste);
+        }
+
+    }else{
+
+        // make sure we're not in the array
+        auto iter = find(starts.begin(), starts.end(), ste);
+        bool contains = (iter != starts.end());
+        
+        if(contains){
+            starts.erase(iter);
+        }
+    } 
+}
+
+/*
+ *
+ */
+void Automata::validateReportElement(Element* el){
+
+    if(el->isReporting()){
+        // make sure we're in the array
+        bool contains = (find(reports.begin(), reports.end(), el) != reports.end());
+        
+        if(!contains){
+            reports.push_back(el);
+        }
+
+    }else{
+
+        // make sure we're not in the array
+        auto iter = find(reports.begin(), reports.end(), el);
+        bool contains = (iter != reports.end());
+        
+        if(contains){
+            reports.erase(iter);
+        }
+    }
+}
+
+/*
+ *
+ */
+void Automata::validateElement(Element* el) {
+
+    // make sure we're in the start array if we're a start and vice versa
+    validateStartElement(el);
+    
+    // if we're a report, make sure we're in the report array
+    validateReportElement(el);
+}

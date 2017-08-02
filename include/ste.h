@@ -20,19 +20,13 @@ class STE: public Element {
 protected:
 
     std::string symbol_set;
-    //std::vector<bool> bit_column;
-    //bool bit_column[256];
     std::bitset<256> bit_column;
-    //const boost::regex *matcher;
     bool latched;    
     Start start;
-    bool isAllInput;
-    //bool report;
 
 public:
 
     STE(std::string id, std::string symbol_set, std::string start);
-    //STE(const STE &);
     ~STE();
 
     virtual ElementType getType();
@@ -41,7 +35,6 @@ public:
     bool setSymbolSet(std::string);
     std::string getSymbolSet();
     std::string getRegexSymbolSet();
-    //bool * getBitColumn();
     std::bitset<256> getBitColumn();
     bool addSymbolToSymbolSet(uint32_t);
     bool setStart(std::string);

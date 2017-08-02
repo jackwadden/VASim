@@ -172,7 +172,9 @@ public:
     std::string getElementColorLog(std::string);
     std::string getLogElementColor(std::string);
     void validate();
-
+    void validateStartElement(Element *);
+    void validateReportElement(Element *);
+    void validateElement(Element *);
 };
 
 #endif
