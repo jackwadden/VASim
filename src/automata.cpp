@@ -117,11 +117,9 @@ void Automata::reset() {
     }
 
     // clear all functional maps
-    STE *s;
     while(!enabledSTEs.empty())
         enabledSTEs.pop_back();
 
-    //enabledSTEs.clear();
     while(!activatedSTEs.empty())
         activatedSTEs.pop_back();
 
@@ -135,8 +133,27 @@ void Automata::reset() {
         activatedSpecialElements.pop();
 
     latchedSpecialElements.clear();
-    activateNoInputSpecialElements.clear();
-    
+    activateNoInputSpecialElements.clear();    
+
+    // Reset all simulation stats
+    activationVector.clear();
+    activationHist.clear();
+    enabledHist.clear();
+    activatedHist.clear();
+    maxActivations = 0;
+    enabledCount.clear();
+    activatedCount.clear();
+
+    while(!enabledLastCycle.empty())
+        enabledLastCycle.pop();
+
+    while(!activatedLastCycle.empty())
+        activatedLastCycle.pop();
+
+    while(!reportedLastCycle.empty())
+        reportedLastCycle.pop();
+
+        
     
     // clear report vector
     reports.clear();

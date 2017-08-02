@@ -58,7 +58,6 @@ private:
     std::vector<uint32_t> enabledHist;
     std::vector<uint32_t> activatedHist;
     uint32_t maxActivations;
-
     std::unordered_map<Element*, uint32_t> enabledCount;
     std::unordered_map<Element*, uint32_t> activatedCount;
     std::queue<Element *> enabledLastCycle;
