@@ -1215,24 +1215,6 @@ void Automata::buildActivationHistogram(string fn) {
     writeStringToFile(activationHistogramToString(), fn);
 }
 
-/*
- *
- */
-void Automata::defrag() {
-
-    vector<pair<uint32_t, string>> sortedEls;
-
-    for(auto e : activationHist) {
-        sortedEls.push_back(make_pair(e.second, e.first));
-    }
-
-    // sort based on activation
-    sort(sortedEls.rbegin(), sortedEls.rend());
-
-    // emit as anml file
-    automataToANMLFile("automata_defrag.anml");
-
-}
 
 /*
  *
@@ -3564,6 +3546,48 @@ void Automata::addEdge(Element* from, Element *to){
     from->addOutputPointer(make_pair(to, to->getId()));
     to->addInput(from->getId());
 }
+
+/*
+ *
+ */
+void Automata::updateElementId(Element *el, string newId) {
+
+    string oldId = el->getId();
+    vector<Element *> children;
+    vector<Element *> parents;
+
+    // remove old STE outputs
+    for(pair<Element *, string> outputs : el->getOutputSTEPointers()) {
+        removeEdge(el, outputs.first);
+        children.push_back(outputs.first);
+    }
+
+    // remove old Specel outputs
+    for(pair<Element *, string> outputs : el->getOutputSpecelPointers()) {
+        removeEdge(el, outputs.first);
+        children.push_back(outputs.first);
+    }
+
+    // remove old inputs
+    for(pair<string,bool> input : el->getInputs()){
+        removeEdge(elements[input.first], el);
+        parents.push_back(elements[input.first]);
+    }
+
+    // CHANGE ID
+    el->setId(newId);
+
+    // add back in all child edges
+    for(Element *child : children){
+        addEdge(el, child);
+    }
+
+    // add back in parent edges
+    for(Element *parent : parents){
+        addEdge(parent, el);
+    }
+}
+
 
 /*
  *

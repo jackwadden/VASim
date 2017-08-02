@@ -142,11 +142,10 @@ public:
     void leftMinimizeStartStates();
     uint32_t leftMinimize();
     uint32_t leftMinimizeChildren(STE*, int);
-
     void addEdge(Element *from, Element *to);
     void removeEdge(Element *from, Element *to);
+    void updateElementId(Element *el, std::string newId);
     
-    void defrag();
     Automata * generateDFA();
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
     void addSTE(STE *, std::vector<std::string>&);
@@ -175,6 +174,7 @@ public:
     void validateStartElement(Element *);
     void validateReportElement(Element *);
     void validateElement(Element *);
+
 };
 
 #endif
