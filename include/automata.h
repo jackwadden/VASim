@@ -45,7 +45,6 @@ private:
     Stack<Element *> enabledSTEs;
     Stack<STE*> activatedSTEs;
     Stack<STE*> latchedSTEs;
-    Stack<Element *> enabledElements;
     std::queue<Element*> enabledSpecialElements;
     std::queue<SpecialElement*> activatedSpecialElements;
     std::vector<SpecialElement*> latchedSpecialElements;

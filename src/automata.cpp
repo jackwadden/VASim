@@ -125,12 +125,19 @@ void Automata::reset() {
     while(!activatedSTEs.empty())
         activatedSTEs.pop_back();
 
-    while(!enabledElements.empty())
-        enabledElements.pop_back();
+    while(!latchedSTEs.empty())
+        latchedSTEs.pop_back();
+    
+    while(!enabledSpecialElements.empty())
+        enabledSpecialElements.pop();
 
     while(!activatedSpecialElements.empty())
         activatedSpecialElements.pop();
 
+    latchedSpecialElements.clear();
+    activateNoInputSpecialElements.clear();
+    
+    
     // clear report vector
     reports.clear();
 
@@ -692,14 +699,6 @@ unordered_map<string, Element *> &Automata::getElements() {
 unordered_map<string, SpecialElement *> &Automata::getSpecialElements() {
 
     return specialElements;
-}
-
-/*
- *
- */
-Stack<Element *> &Automata::getEnabledElements() {
-
-    return enabledElements;
 }
 
 /*
