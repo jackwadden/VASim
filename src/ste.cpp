@@ -14,11 +14,11 @@ STE::STE(string id, string symbol_set, string strt) : Element(id),
                                                       latched(false) {
 
     setStart(strt);
-   
+
+    isAllInput = false;
+    
     if(start == ALL_INPUT)
         isAllInput = true;
-    else
-        isAllInput = false;
 
     bitset<256> bit_column2;
     for(uint32_t i = 0; i < 256; i++) {
@@ -70,11 +70,14 @@ string STE::getRegexSymbolSet() {
  *
  */
 bool STE::setStart(string strt) {
+
+    isAllInput = false;
     
     if(strt.compare("start-of-data") == 0) {
         start = START_OF_DATA;
     } else if (strt.compare("all-input") == 0) {
         start = ALL_INPUT;
+        isAllInput = true;
     } else {
         start = NONE;
     }
