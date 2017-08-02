@@ -1864,7 +1864,15 @@ void Automata::automataToANMLFile(string out_fn) {
     str += "<anml version=\"1.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     str += "<automata-network id=\"vasim\">\n";
 
+    vector< pair<string, Element *>> els;
+
+    // first sort elements by ID
     for(auto el : elements) {
+        els.push_back(el);
+    }
+    sort(els.begin(), els.end());
+    
+    for(auto el : els) {
         str += el.second->toANML();
         str += "\n";
     }
