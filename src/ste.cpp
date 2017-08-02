@@ -15,10 +15,8 @@ STE::STE(string id, string symbol_set, string strt) : Element(id),
 
     setStart(strt);
 
-    bitset<256> bit_column2;
     for(uint32_t i = 0; i < 256; i++) {
         bit_column.set(i,0);
-        bit_column2.set(i,0);
     }
 
     parseSymbolSet(bit_column, symbol_set);
