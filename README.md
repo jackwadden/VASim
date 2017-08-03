@@ -6,9 +6,9 @@ VASim can parse, transform, simulate, and profile homogeneous automata, and is m
 
 ## Installation
 
-VASim is designed to run on Ubuntu Linux, but can be compiled on other platforms. Below are the commands used to install on all tested platforms.
+VASim is designed to run on Ubuntu Linux with GCC 4.9+, but can be compiled on other platforms. Below are the commands used to install on all tested platforms.
 
-### Ubuntu Linux (14.04/16.04)
+### Ubuntu Linux (14.04/16.04 with g++ 4.9+)
 ```bash
 
 $ git clone https://github.com/jackwadden/VASim.git
