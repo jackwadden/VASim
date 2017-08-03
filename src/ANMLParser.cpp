@@ -336,5 +336,7 @@ vasim_err_t ANMLParser::parse(unordered_map<string, Element*> &elements,
         
     }
 
+    return E_SUCCESS;
+
 
 }
