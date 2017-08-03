@@ -19,7 +19,7 @@ PROFILE = $(DEBUG) -pg
 ARFLAGS = rcs
 
 _DEPS = *.h
-_OBJ = util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o
+_OBJ = errors.o util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o 
 
 MAIN_CPP = main.cpp
 

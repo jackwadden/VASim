@@ -6,8 +6,9 @@
 #include "specialElement.h"
 #include "ANMLParser.h"
 #include "MNRLAdapter.h"
-#include <cmath>
+#include "errors.h"
 
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <map>
@@ -64,7 +65,10 @@ private:
     std::queue<Element *> activatedLastCycle;
     std::queue<Element *> reportedLastCycle;
 
+    // Misc
+    vasim_err_t error;
     
+    //
     uint64_t cycle;
     
 public:
@@ -87,6 +91,8 @@ public:
     void enableQuiet();
     void enableDumpState(uint64_t);
     void disableProfile();
+    void setErrorCode(vasim_err_t err);
+    vasim_err_t getErrorCode();
     
     // I/O
     void writeStringToFile(std::string str, std::string fn);
@@ -136,16 +142,10 @@ public:
     void dumpSTEState(std::string fn);
     void dumpSpecelState(std::string fn);
 
-    // Optimization and manipulation
-    void leftMinimizeStartStates();
-    uint32_t leftMinimize();
-    uint32_t leftMinimizeChildren(STE*, int);
+    // Manipulation
     void addEdge(Element *from, Element *to);
     void removeEdge(Element *from, Element *to);
     void updateElementId(Element *el, std::string newId);
-    
-    Automata * generateDFA();
-    std::set<STE*>* follow(uint32_t, std::set<STE*>*);
     void addSTE(STE *, std::vector<std::string>&);
     void rawAddSTE(STE *);
     void rawAddSpecialElement(SpecialElement *);
@@ -159,12 +159,17 @@ public:
     std::vector<Automata*> generateGNFAs();
     void unsafeMerge(Automata *);
     Automata *clone();
-
-    // Fan-in/fan-out relaxation
     void enforceFanIn(uint32_t fanin_max);
     void enforceFanOut(uint32_t fanout_max);
 
+    // Optimization
+    void leftMinimizeStartStates();
+    uint32_t leftMinimize();
+    uint32_t leftMinimizeChildren(STE*, int);
+    Automata * generateDFA();
+
     // Util
+    std::set<STE*>* follow(uint32_t, std::set<STE*>*);
     std::string getElementColor(std::string);
     std::string getElementColorLog(std::string);
     std::string getLogElementColor(std::string);

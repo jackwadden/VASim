@@ -7,10 +7,12 @@
 #include "nor.h"
 #include "counter.h"
 #include "inverter.h"
-
+#include "errors.h"
 #include "pugixml.hpp"
+
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 class ANMLParser {
 
@@ -20,12 +22,12 @@ private:
 
 public:
     ANMLParser(std::string);
-    void parse(std::unordered_map<std::string, Element*>&, 
-               std::vector<STE*>&,
-               std::vector<Element*>&,
-               std::unordered_map<std::string, SpecialElement*>&, 
-               std::string *,
-               std::vector<SpecialElement*>&);
+    vasim_err_t parse(std::unordered_map<std::string, Element*>&, 
+                      std::vector<STE*>&,
+                      std::vector<Element*>&,
+                      std::unordered_map<std::string, SpecialElement*>&, 
+                      std::string *,
+                      std::vector<SpecialElement*>&);
     STE *parseSTE(pugi::xml_node);
     AND *parseAND(pugi::xml_node);
     OR *parseOR(pugi::xml_node);

@@ -1,5 +1,5 @@
 #include "ANMLParser.h"
-#include <iostream>
+
 
 using namespace std;
 
@@ -252,7 +252,7 @@ Counter *ANMLParser::parseCounter(pugi::xml_node a) {
     return c;
 }
 
-void ANMLParser::parse(unordered_map<string, Element*> &elements, 
+vasim_err_t ANMLParser::parse(unordered_map<string, Element*> &elements, 
                        vector<STE*> &starts, 
                        vector<Element*> &reports, 
                        unordered_map<string, SpecialElement*> &specialElements,
@@ -264,7 +264,7 @@ void ANMLParser::parse(unordered_map<string, Element*> &elements,
     pugi::xml_document doc;
     if (!doc.load_file(filename.c_str(),pugi::parse_default|pugi::parse_declaration)) {
         cout << "Could not load .xml file: " << filename << endl;
-        exit(1);
+        return E_FILE_OPEN;
     }
 
     // can handle finding automata-network at one or two layers under root

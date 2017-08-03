@@ -51,7 +51,9 @@ Automata::Automata(string filename): filename(filename),
     } else {
         // Read in automata description from ANML file
         ANMLParser parser(filename);
-        parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
+        vasim_err_t result = parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
+
+        setErrorCode(result);
     }
 
     // Disable report vector by default
@@ -74,7 +76,8 @@ Automata::Automata(string filename): filename(filename),
             // inputs are of the form "fromNodeId:toPort"
             if(elements[Element::stripPort(str)] == NULL){
                 cout << "COULD NOT FIND ELEMENT WITH NAME: " << Element::stripPort(str) << "  DURING PARSE." << endl;
-                exit(1);
+                setErrorCode(E_ELEMENT_NOT_FOUND);
+                return;
             }
             elements[Element::stripPort(str)]->addInput(el->getId() + Element::getPort(str));
         }
@@ -99,8 +102,6 @@ Automata::Automata(string filename): filename(filename),
         }
     }
 }
-
-
 
 
 /*
@@ -1698,7 +1699,8 @@ void Automata::automataToNFAFile(string out_fn) {
     for(auto e : elements){
         if(e.second->isSpecialElement()){
             cout << "VASim Error: Automata network contains special elements unsupported by other NFA tools. Please attempt to remove redundant Special Elements using -x option." << endl;
-            exit(1);
+            setErrorCode(E_ELEMENT_NOT_SUPPORTED);
+            return;
         }
     }
     
@@ -2070,9 +2072,6 @@ void Automata::automataToHDLFile(string out_fn) {
     
                 if(s->startIsStartOfData()) 
                     str += " | " + start_of_data;
-                //cout << "START OF DATA STE NOT SUPPORTED YET!" << endl;
-                //exit(1);
-           
     
                 str += ";\n";
             }
@@ -3014,7 +3013,8 @@ void Automata::validate() {
             if(elements[Element::stripPort(ins.first)] == NULL){
                 cout << "FAILED INPUTS EXISTANCE TEST!" << endl;
                 cout << "  " << Element::stripPort(ins.first) << " input of element: " << e.first << " does not exist in the element map." << endl;
-                exit(1);
+                setErrorCode(E_MALFORMED_AUTOMATA);
+                return;
             }
 
             Element * parent = elements[Element::stripPort(ins.first)];
@@ -3031,7 +3031,8 @@ void Automata::validate() {
             if(!has_ref){
                 cout << "FAILED INPUTS MATCH TEST!" << endl;
                 cout << "  " << el->getId() << " did not exist in outputs list of " << parent->getId() << endl;
-                exit(1);
+                setErrorCode(E_MALFORMED_AUTOMATA);
+                return;
             }
         }
 
@@ -3045,7 +3046,8 @@ void Automata::validate() {
             if(elements[output] == NULL){
                 cout << "FAILED OUTPUTS TEST!" << endl;
                 cout << "  " << output << " output of element: " << e.first << " does not exist in the element map." << endl;
-                exit(1);
+                setErrorCode(E_MALFORMED_AUTOMATA);
+                return;
             }
 
             Element * child = elements[output];
@@ -3063,7 +3065,8 @@ void Automata::validate() {
                 cout << "FAILED OUTPUTS MATCH TEST!" << endl;
                 cout << "  " << el->getId() << " did not exist in inputs list of its child " << child->getId() << endl;
                 cout << child->toString() << endl;
-                exit(1);
+                setErrorCode(E_MALFORMED_AUTOMATA);
+                return;
             }
 
         }
@@ -3071,9 +3074,6 @@ void Automata::validate() {
     }
 
     automataToDotFile("failed_verification.dot");
-
-    //cout << "PASSED VERIFICATION!" << endl;
-
 }
 
 /*
@@ -3679,4 +3679,20 @@ void Automata::validateElement(Element* el) {
     
     // if we're a report, make sure we're in the report array
     validateReportElement(el);
+}
+
+/*
+ * Sets the status error code
+ */
+void Automata::setErrorCode(vasim_err_t err) {
+
+    error = err;
+}
+
+/*
+ * Returns the current status error code
+ */
+vasim_err_t Automata::getErrorCode() {
+
+    return error;
 }
