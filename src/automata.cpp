@@ -44,6 +44,9 @@ Automata::Automata(string filename): filename(filename),
                                      dump_state(false), 
                                      dump_state_cycle(0) {
 
+    // Initialize status code
+    setErrorCode(E_SUCCESS);
+
     if(getFileExt(filename).compare("mnrl") == 0) {
         // Read in automata description from MNRL file
         MNRLAdapter parser(filename);
