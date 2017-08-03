@@ -1,3 +1,9 @@
+# COMPILERS
+CC = g++
+AR = ar
+#CC=icpc -mmic
+#CC=icpc
+
 # TARGET NAMES
 TARGET = vasim
 SNAME = libvasim.a
@@ -22,11 +28,6 @@ _DEPS = *.h
 _OBJ = errors.o util.o ste.o ANMLParser.o MNRLAdapter.o automata.o element.o specialElement.o gate.o and.o or.o nor.o counter.o inverter.o 
 
 MAIN_CPP = main.cpp
-
-CC = g++-5
-AR = ar
-#CC=icpc -mmic
-#CC=icpc
 
 ODIR=$(SRCDIR)/obj
 
@@ -58,8 +59,9 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(LIBMNRL)
 	$(CC) $(CXXFLAGS) -c -o $@ $< 
 
 $(ODIR)/pugixml.o: $(PUGI)/pugixml.cpp
-	@mkdir -p $(ODIR)	
+	@mkdir -p $(ODIR)		
 	$(CC) $(CXXFLAGS) -c -o $@ $< $(CXXFLAGS)
+
 
 $(LIBMNRL):
 	git submodule init
