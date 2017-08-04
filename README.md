@@ -28,6 +28,31 @@ $ make
 
 ```
 
+### Windows 7 (Cygwin64)
+NOTE: 32-bit Windows is **not** officially supported. However, users have been successful compiling VASim with their own modifications.
+
+Dependencies:
+- Cygwin64
+- Git (https://git-scm.com/download/win)
+
+First you must install all required Cygwin64 software tools
+```bash
+
+C:\> chdir cygwin64
+C:\cygwin64> mv <path-to-setup-x86_64.exe> .
+C:\cygwin64> setup-x86_64.exe -q -P wget -P gcc-g++ -P make -P diffutils -P libmpfr-devel -P libgmp-devel -P libmpc-devel -P nasm
+
+```
+Once Cygwin64 is configured, VASim should compile correctly in a Cygwin terminal.
+
+```bash
+
+$ git clone https://github.com/jackwadden/VASim.git
+$ cd VASim
+$ make
+
+
+```
 
 ## Command Line Usage
 
