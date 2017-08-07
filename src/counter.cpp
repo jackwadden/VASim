@@ -42,19 +42,11 @@ bool Counter::calculate() {
         if((i.first.compare(i.first.size() - 4, i.first.size(), ":cnt") == 0) && 
            i.second == true) {
 
-            if(DEBUG) {
-                cout << "COUNTER ACTIVATED ON PORT: " << i.first << endl;
-                cout << "\tvalue= " << value << " target= " << target << endl;
-            }
-
             // count up
             count = true;
 
         } else if((i.first.compare(i.first.size() - 4, i.first.size() - 1, ":rst") == 0) &&
                   i.second == true) {
-
-            if(DEBUG)
-                cout << "COUNTER ACTIVATED ON PORT: " << i.first << endl;
 
             // reset counter
             reset = true;
@@ -81,10 +73,6 @@ bool Counter::calculate() {
                     latched = true;
                 }
             } else {
-                if(DEBUG){
-                    cout << "I'M LATCHED!" << endl;
-                }
-
                 retval = true;
             }
             
@@ -110,13 +98,8 @@ bool Counter::calculate() {
                 dormant = true;
             }            
         }
-        if(DEBUG)
-            cout << "\tnext value = " << value << endl;
-    } else {
-        if(DEBUG)
-            cout << "SKIPPING COMPUTATION" << endl;
     }
-
+    
     return retval;
 }
 

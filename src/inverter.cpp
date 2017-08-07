@@ -24,25 +24,15 @@ Inverter::~Inverter() {
  */
 bool Inverter::calculate() {
 
-
-    if(DEBUG)
-        cout << "INVERTER: id=" << id << " CALCULATING\n\tINPUTS:\n" << endl;
-
     bool result = false;
     
     for(auto ins: inputs) {
 
-        if(DEBUG)
-            cout << "\t" << ins.second << endl;
-        
         if(ins.second == false) {
             result = true;
         }
 
     }
-
-    if(DEBUG)
-        cout << "RESULT: " << result << endl;
 
     return result;
 }

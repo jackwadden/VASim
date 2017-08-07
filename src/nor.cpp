@@ -23,16 +23,10 @@ NOR::~NOR() {
  */
 bool NOR::calculate() {
 
-    if(DEBUG)
-        cout << "NOR: id=" << id << " CALCULATING" << endl;
-
     bool result = false;
     
 
     for(auto e : inputs) {
-    
-        if(DEBUG)
-            cout << e.second << endl;
         result = result || e.second;
     }
 

@@ -1,5 +1,5 @@
 # COMPILERS
-CC = g++
+CC = g++-5
 AR = ar
 #CC=icpc -mmic
 #CC=icpc
@@ -35,20 +35,23 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
+CXXFLAGS += $(OPTS)
 
-all: CXXFLAGS += -DDEBUG=false $(OPTS)
-all: $(TARGET)
+all: vasim_release
 
-debug: CXXFLAGS += -DDEBUG=true $(DEBUG) 
-debug: $(TARGET)
+vasim_release: mnrl_release
+	$(info  )
+	$(info Compiling VASim Library...)
+	$(MAKE) $(TARGET)
 
-profile: CXXFLAGS += -DDEBUG=false $(OPTS) $(PROFILE) 
-profile: $(TARGET)
-
-library: CXXFLAGS += -DDEBUG=false $(OPTS)
-library: $(SNAME) 
+mnrl_release:
+	$(info  )
+	$(info Compiling MNRL Library...)
+	$(MAKE) $(LIBMNRL)
 
 $(TARGET): $(SRCDIR)/$(MAIN_CPP) $(SNAME) $(MNRL)/libmnrl.a 
+	$(info  )
+	$(info Compiling VASim executable...)
 	$(CC) $(CXXFLAGS) $^ -o $@  
 
 $(SNAME): $(ODIR)/pugixml.o $(OBJ)
@@ -62,21 +65,20 @@ $(ODIR)/pugixml.o: $(PUGI)/pugixml.cpp
 	@mkdir -p $(ODIR)		
 	$(CC) $(CXXFLAGS) -c -o $@ $< $(CXXFLAGS)
 
-
 $(LIBMNRL):
 	git submodule init
 	git submodule update
 	$(MAKE) -C ./MNRL/C++/
 
-.PHONY: clean
+clean: cleanvasim cleanmnrl
 
-cleanlight:
-	mv $(ODIR)/pugixml.o $(ODIR)/pugixml.o.tmp
-	rm -f $(ODIR)/*.o $(TARGET)
-	mv $(ODIR)/pugixml.o.tmp $(ODIR)/pugixml.o
+cleanvasim:
+	$(info Cleaning VASim...)
+	rm -f $(ODIR)/*.o $(TARGET) $(SNAME)
 
-clean:
-	rm $(ODIR)/*.o $(TARGET)
-	rm $(SNAME)
-	rm $(MNRL)/libmnrl.a $(MNRL)/libmnrl.so $(MNRL)/src/obj/*.o
-	rmdir $(ODIR)
+cleanmnrl:
+	$(info Cleaning MNRL...)
+	rm -f $(MNRL)/libmnrl.a $(MNRL)/libmnrl.so $(MNRL)/src/obj/*.o
+
+
+.PHONY: clean cleanvasim cleanmnrl vasim_release mnrl_release

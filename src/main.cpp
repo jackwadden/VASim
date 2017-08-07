@@ -692,10 +692,6 @@ int main(int argc, char * argv[]) {
                 /***************************
                  * RUNTIME FLAGS
                  ***************************/
-                // print
-                if(DEBUG){
-                    a->print();
-                }
 
                 // enable runtime profiling
                 if(profile){

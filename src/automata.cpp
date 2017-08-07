@@ -1,10 +1,6 @@
 #include "automata.h"
 #include "util.h"
 
-#ifndef DEBUG
-#define DEBUG false
-#endif
-
 using namespace std;
 using namespace MNRL;
 
@@ -872,9 +868,6 @@ void Automata::print() {
  */
 void Automata::simulate(uint8_t symbol) {
 
-    if(DEBUG)
-        cout << "CONSUMING INPUT: " << symbol << " @cycle: " << cycle << endl;
-
     // -----------------------------
     // Step 1: if STEs are enabled and we match, activate
     computeSTEMatches(symbol);
@@ -1001,9 +994,6 @@ void Automata::initializeSimulation() {
  *
  */
 void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, bool step) {
-
-    if(DEBUG)
-        cout << "STARTING SIMULATION..." << endl;
 
     cycle = start_index;
 
@@ -2590,9 +2580,6 @@ Automata* Automata::generateDFA() {
  */
 void Automata::enableStartStates() {
 
-    if(DEBUG)
-        cout << "STAGE ONE:" << endl;
-
     //for each start element
     for(STE * s: starts) {
 
@@ -2600,9 +2587,6 @@ void Automata::enableStartStates() {
         // or if it's the first cycle, enable start-of-data STEs
         if(s->startIsAllInput() ||         
            (cycle == 0 && s->startIsStartOfData())) {
-
-            if(DEBUG)
-                cout << "SETTING ENABLE: " << s->toString() << endl;
 
             // add to enabled queue if we were not already enabled
             if(!s->isEnabled()){
@@ -2620,26 +2604,15 @@ void Automata::enableStartStates() {
  */
 void Automata::computeSTEMatches(uint8_t symbol) {
 
-    if(DEBUG)
-        cout << "STAGE TWO:" << endl;
-
-
     //for each enabled ste
     while(!enabledSTEs.empty()) {
 
         STE * s = static_cast<STE *>(enabledSTEs.back());
 
-        if(DEBUG)
-            cout << s->getId() << " IS ENABLED. CHECKING FOR MATCH WITH INPUT: \"" << symbol << "\"" << endl;
-
         // if we match on the input character
         // the STE will activate and we record this
         // ste should also report
         if(s->match(symbol)) {
-
-            if(DEBUG)
-                cout << "MATCHED!" << endl;
-
 
             //activate and push to queue only if we werent already
             if(!s->isActivated()) {
@@ -2656,8 +2629,6 @@ void Automata::computeSTEMatches(uint8_t symbol) {
                 reportVector.push_back(make_pair(cycle, s->getId()));
             }
 
-            if(DEBUG)
-                cout << s->getId() << " ACTIVATED" << endl;
         }
 
         //disable 
@@ -2672,9 +2643,6 @@ void Automata::computeSTEMatches(uint8_t symbol) {
  * Propagate enable signal of active STEs to all other elements
  */
 void Automata::enableSTEMatchingChildren() {
-
-    if(DEBUG)
-        cout << "STAGE THREE:" << endl;
 
     //for each activated ste
     while(!activatedSTEs.empty()) {
@@ -2781,9 +2749,6 @@ void Automata::specialElementSimulation() {
                 
                 // report?
                 if(report && spel->isReporting()) {
-                    if(DEBUG)
-                        cout << "\tSPECEL REPORTING: " << spel->getId() << endl;
-                    
                     reportVector.push_back(make_pair(cycle, spel->getId()));
                 }
                 
@@ -3267,18 +3232,10 @@ void Automata::enforceFanIn(uint32_t fanin_max){
         //cout << "FAN IN: " << fanin << endl;
         if(fanin > fanin_max){
 
-            if(DEBUG){
-                cout << "FAN-IN MAX VIOLATION: " << s->getId() << " has fan-in of " << fanin << endl;
-            }
-                
             // adjust node
             // figure out how many new nodes we'll need
             uint32_t new_nodes = ceil((double)fanin / (double)fanin_max);
 
-            if(DEBUG){
-                cout << "  will be split into " << new_nodes << " new nodes..." << endl;
-            }
-            
             //add all inputs to queue
             // except self refs
             queue<string> old_inputs;
@@ -3333,17 +3290,8 @@ void Automata::enforceFanIn(uint32_t fanin_max){
 
                 // if the split node is a self looping node, make new node self looping
                 if(selfref){
-                    if(DEBUG){
-                        cout << "SELF REF" << endl;
-                    }
                     addEdge(new_node, new_node);
                 }
-
-                //
-                if(DEBUG){
-                    cout << "NEW NODE FANIN: " << new_node->getInputs().size() << endl;
-                }
-
             }
             
             // delete old node

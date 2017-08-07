@@ -41,9 +41,6 @@ void SpecialElement::enable(string s) {
  */
 void SpecialElement::disable() {
 
-    if(DEBUG)
-        cout << "DISABLING SPECIAL ELEMENT" << getId() << endl;
-
     for(auto e : inputs) {
 
         inputs[e.first] = false;

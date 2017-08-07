@@ -384,9 +384,6 @@ void Element::enableChildSTEs(Stack<Element*> *enabledSTEs) {
 
         Element * child = e.first;
         
-        if(DEBUG) 
-            cout << getId() << " ENABLING " << child->getId() << endl;
-        
         // only enable if not previously enabled
         if(!child->isEnabled()){
             enabledSTEs->push_back(child);
@@ -404,9 +401,6 @@ uint32_t Element::enableChildSpecialElements(queue<Element *> *enabledSpecialEls
 
     for(auto e : outputSpecelPointers) {
         Element * child = e.first;
-        
-        if(DEBUG) 
-            cout << getId() << " ENABLING " << child->getId() << endl;
         
         // consider all special elements
         numEnabledSpecEls++;
