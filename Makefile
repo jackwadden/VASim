@@ -1,5 +1,5 @@
 # COMPILERS
-CC = g++-5
+CC = g++
 AR = ar
 #CC=icpc -mmic
 #CC=icpc
