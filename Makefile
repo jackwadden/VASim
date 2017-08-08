@@ -44,6 +44,7 @@ vasim_release: mnrl pugi
 	$(MAKE) $(TARGET)
 
 mnrl:	
+	@git submodule update --init --recursive
 	$(info  )
 	$(info Compiling MNRL Library...)
 	$(MAKE) $(LIBMNRL)
@@ -67,7 +68,7 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(LIBMNRL)
 
 $(LIBMNRL):
 	$(MAKE) -C $(MNRL)
-l
+
 $(LIBPUGI):
 	$(MAKE) config=release -C $(PUGI)
 
