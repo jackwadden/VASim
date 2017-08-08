@@ -9,8 +9,8 @@ LIBVASIM = libvasim.a
 # DIRECTORIES
 IDIR = ./include
 SRCDIR = ./src
-MNRL = ./MNRL/C++
-PUGI = ./pugixml
+MNRL = ./libs/MNRL/C++
+PUGI = ./libs/pugixml
 
 # LIBRARY DEPENDENCIES
 LIBMNRL = $(MNRL)/libmnrl.a
@@ -18,7 +18,7 @@ LIBPUGI = $(PUGI)/build/make-g++-release-standard-c++11/src/pugixml.cpp.o
 
 # FLAGS
 CXXFLAGS= -I$(IDIR) -I$(MNRL)/include -I$(PUGI)/src -pthread --std=c++11
-OPTS = -Ofast -march=native -m64 #-flto
+OPTS = -Ofast -march=native -m64
 DEBUG = -g
 PROFILE = $(DEBUG) -pg
 ARFLAGS = rcs
@@ -68,12 +68,12 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(LIBMNRL)
 $(LIBMNRL):
 	git submodule init
 	git submodule update
-	$(MAKE) -C ./MNRL/C++/
+	$(MAKE) -C $(MNRL)
 
 $(LIBPUGI):
 	git submodule init
 	git submodule update
-	$(MAKE) config=release -C ./pugixml/
+	$(MAKE) config=release -C $(PUGI)
 
 clean: cleanvasim cleanmnrl cleanpugi
 
