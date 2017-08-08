@@ -36,7 +36,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 #
-all: submodule vasim_release
+all: vasim_release
 
 submodule:
 	$(info Initializing submodules...)
@@ -48,12 +48,12 @@ vasim_release: mnrl pugi
 	$(info Compiling VASim Library...)
 	$(MAKE) $(TARGET)
 
-mnrl:
+mnrl:	submodule
 	$(info  )
 	$(info Compiling MNRL Library...)
 	$(MAKE) $(LIBMNRL)
 
-pugi:
+pugi:	submodule
 	$(info )
 	$(info Compiling PugiXML Library...)
 	$(MAKE) $(LIBPUGI)
