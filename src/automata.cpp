@@ -125,8 +125,6 @@ void Automata::reset() {
     while(!reportedLastCycle.empty())
         reportedLastCycle.pop();
 
-        
-    
     // clear report vector
     reports.clear();
 

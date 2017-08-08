@@ -6,7 +6,7 @@ VASim can parse, transform, simulate, and profile homogeneous automata, and is m
 
 ## Installation
 
-VASim is designed to run on Ubuntu Linux with GCC 4.9+, but can be compiled on other platforms. Below are the commands used to install on all tested platforms.
+VASim is designed to run on 64-bit machines GCC 4.9+. Users have successfully compiled on 32-bit platforms but these builds are not officially supported. Below are the commands used to install on all tested platforms.
 
 ### Ubuntu Linux (14.04/16.04 with g++ 4.9+)
 ```bash
@@ -29,7 +29,6 @@ $ make
 ```
 
 ### Windows 7 (Cygwin64)
-NOTE: 32-bit Windows is **not** officially supported. However, users have been successful compiling VASim with their own modifications.
 
 Dependencies:
 - Cygwin64
