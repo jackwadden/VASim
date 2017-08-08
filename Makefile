@@ -1,8 +1,6 @@
-# COMPILERS
+# COMPILER
 CC = g++
 AR = ar
-#CC=icpc -mmic
-#CC=icpc
 
 # TARGET NAMES
 TARGET = vasim
@@ -35,11 +33,9 @@ MAIN_CPP = main.cpp
 ODIR=$(SRCDIR)/obj
 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
-
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-
-
+#
 all: vasim_release
 
 vasim_release: mnrl pugi
