@@ -37,7 +37,8 @@ Automata::Automata() {
 Automata::Automata(string fn): Automata() {
 
     filename = fn;    
-    
+
+    // Read Automata from file
     if(getFileExt(filename).compare("mnrl") == 0) {
         // Read in automata description from MNRL file
         MNRLAdapter parser(filename);
@@ -51,40 +52,24 @@ Automata::Automata(string fn): Automata() {
     }
 
 
-    // for all elements
+    // Populate Elements with back references and pointers
     for(auto e : elements) {
 
-        Element *el = e.second;
+        Element *parent = e.second;
 
-        // for all edges
-        for(auto str : el->getOutputs()) {
+        // For all children, add a proper edge from parent -> child
+        vector<string> children = parent->getOutputs();
+        for(string child : children) {
 
             // inputs are of the form "fromNodeId:toPort"
-            if(elements[Element::stripPort(str)] == NULL){
-                cout << "COULD NOT FIND ELEMENT WITH NAME: " << Element::stripPort(str) << "  DURING PARSE." << endl;
+            if(elements[Element::stripPort(child)] == NULL){
+                cout << "COULD NOT FIND ELEMENT WITH NAME: " << Element::stripPort(child) << "  DURING PARSE." << endl;
                 setErrorCode(E_ELEMENT_NOT_FOUND);
                 return;
             }
-            elements[Element::stripPort(str)]->addInput(el->getId() + Element::getPort(str));
-        }
-    }
 
-    // once the basic data structure is created,
-    // fill each elements outputPointers data structure so we don't
-    // have to consult the global map when propagating signals
-    for(auto e : elements) {
-        Element *el = e.second;
-
-        // for all edges
-        for(string str : el->getOutputs()) { 
-            Element * e = elements[Element::stripPort(str)];
-            if(Element::getPort(str).empty()){
-                pair<Element *, string> output(e, ""); 
-                el->addOutputPointer(output);
-            }else{
-                pair<Element *, string> output(e, Element::getPort(str)); 
-                el->addOutputPointer(output);
-            }
+            // Add the element as a parent
+            addEdge(parent->getId(), child);
         }
     }
 }
@@ -2713,6 +2698,7 @@ void Automata::specialElementSimulation() {
         // if all parents have already calculated
         bool ready = true;
         for(auto in : spel->getInputs()){
+
             if(!calculated[elements[Element::stripPort(in.first)]->getIntId()]){
                 ready = false;
                 break;
@@ -3502,8 +3488,26 @@ void Automata::removeEdge(Element* from, Element *to){
 /*
  *
  */
-void Automata::addEdge(Element* from, Element *to){
+void Automata::addEdge(string from_str, string to_str) {
 
+    Element *from = elements[Element::stripPort(from_str)];
+    Element *to = elements[Element::stripPort(to_str)];
+
+    string to_port = Element::getPort(to_str);
+
+    // add proper outputs to parent
+    from->addOutput(to_str);
+    from->addOutputPointer(make_pair(to, to_port));
+    
+    // add proper input to child
+    to->addInput(from->getId() + to_port);
+}
+
+/*
+ *
+ */
+void Automata::addEdge(Element* from, Element *to){
+    
     from->addOutput(to->getId());
     from->addOutputPointer(make_pair(to, to->getId()));
     to->addInput(from->getId());

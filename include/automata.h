@@ -144,6 +144,7 @@ public:
 
     // Manipulation
     void addEdge(Element *from, Element *to);
+    void addEdge(std::string from, std::string to);
     void removeEdge(Element *from, Element *to);
     void updateElementId(Element *el, std::string newId);
     void addSTE(STE *, std::vector<std::string>&);
