@@ -38,11 +38,6 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 #
 all: vasim_release
 
-submodule:
-	$(info Initializing submodules...)
-	git submodule init
-	git submodule update
-
 vasim_release: mnrl pugi
 	$(info  )
 	$(info Compiling VASim Library...)
@@ -72,7 +67,7 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(LIBMNRL)
 
 $(LIBMNRL):
 	$(MAKE) -C $(MNRL)
-
+l
 $(LIBPUGI):
 	$(MAKE) config=release -C $(PUGI)
 
@@ -90,5 +85,4 @@ cleanpugi:
 	$(info Cleaning PugiXML...)
 	rm -rf $(PUGI)/build
 
--include submodule
-.PHONY: clean cleanvasim cleanmnrl cleanpugi vasim_release mnrl pugi submodule
+.PHONY: clean cleanvasim cleanmnrl cleanpugi vasim_release mnrl pugi
