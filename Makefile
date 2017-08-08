@@ -48,12 +48,12 @@ vasim_release: mnrl pugi
 	$(info Compiling VASim Library...)
 	$(MAKE) $(TARGET)
 
-mnrl:	submodule
+mnrl:	
 	$(info  )
 	$(info Compiling MNRL Library...)
 	$(MAKE) $(LIBMNRL)
 
-pugi:	submodule
+pugi:	
 	$(info )
 	$(info Compiling PugiXML Library...)
 	$(MAKE) $(LIBPUGI)
@@ -90,4 +90,5 @@ cleanpugi:
 	$(info Cleaning PugiXML...)
 	rm -rf $(PUGI)/build
 
+-include submodule
 .PHONY: clean cleanvasim cleanmnrl cleanpugi vasim_release mnrl pugi submodule
