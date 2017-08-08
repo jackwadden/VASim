@@ -9,7 +9,9 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <string>
 
+std::string getFileExt(const std::string& s);
 void setRange(std::bitset<256> &column, int start, int end, int value);
 void parseSymbolSet(std::bitset<256> &column, std::string symbol_set);
 
