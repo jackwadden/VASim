@@ -1,3 +1,6 @@
 [submodule "MNRL"]
 	path = MNRL
 	url = https://github.com/kevinaangstadt/MNRL.git
+[submodule "pugixml"]
+	path = pugixml
+	url = https://github.com/zeux/pugixml
