@@ -36,7 +36,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 #
-all: vasim_release
+all: submodule_init vasim_release
 
 vasim_release: mnrl pugi
 	$(info  )
@@ -44,7 +44,6 @@ vasim_release: mnrl pugi
 	$(MAKE) $(TARGET)
 
 mnrl:	
-	@git submodule update --init --recursive
 	$(info  )
 	$(info Compiling MNRL Library...)
 	$(MAKE) $(LIBMNRL)
@@ -86,4 +85,7 @@ cleanpugi:
 	$(info Cleaning PugiXML...)
 	rm -rf $(PUGI)/build
 
-.PHONY: clean cleanvasim cleanmnrl cleanpugi vasim_release mnrl pugi
+submodule_init:
+	@git submodule update --init --recursive
+
+.PHONY: clean cleanvasim cleanmnrl cleanpugi vasim_release mnrl pugi submodule_init
