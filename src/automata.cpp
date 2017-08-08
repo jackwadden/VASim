@@ -10,10 +10,19 @@ using namespace MNRL;
  */
 Automata::Automata() {
 
-    // Disable profiling by default
+    // Initialize status code
+    setErrorCode(E_SUCCESS);
+    
+    // Disable report vector by default
     report = false;
+
+    // Disable profiling by default
     profile = false;
+
+    // Enable output by default
     quiet = false;
+
+    // Initialize cycle to start at 0
     cycle = 0;
 
     // debug
@@ -25,14 +34,10 @@ Automata::Automata() {
 /*
  *
  */
-Automata::Automata(string filename): filename(filename), 
-                                     cycle(0), 
-                                     dump_state(false), 
-                                     dump_state_cycle(0) {
+Automata::Automata(string fn): Automata() {
 
-    // Initialize status code
-    setErrorCode(E_SUCCESS);
-
+    filename = fn;    
+    
     if(getFileExt(filename).compare("mnrl") == 0) {
         // Read in automata description from MNRL file
         MNRLAdapter parser(filename);
@@ -45,14 +50,6 @@ Automata::Automata(string filename): filename(filename),
         setErrorCode(result);
     }
 
-    // Disable report vector by default
-    report = false;
-
-    // Disable profiling by default
-    profile = false;
-
-    // Enable output by default
-    quiet = false;
 
     // for all elements
     for(auto e : elements) {
