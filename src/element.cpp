@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "element.h"
 #include "ste.h"
 

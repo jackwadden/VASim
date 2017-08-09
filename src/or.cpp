@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "or.h"
 
 using namespace std;

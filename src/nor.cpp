@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "nor.h"
 
 using namespace std;

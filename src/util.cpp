@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #include "util.h"
 
 std::string getFileExt(const std::string& s) {

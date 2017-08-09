@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #include "MNRLAdapter.h"
 #include <iostream>
 

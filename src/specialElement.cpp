@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "specialElement.h"
 
 using namespace std;

@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #ifndef ANMLPARSER_H
 #define ANMLPARSER_H
 

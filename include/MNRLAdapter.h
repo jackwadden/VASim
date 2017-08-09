@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #ifndef MNRLADAPTER_H
 #define MNRLADAPTER_H
 

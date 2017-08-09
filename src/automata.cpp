@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #include "automata.h"
 #include "util.h"
 

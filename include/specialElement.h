@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 //
 #ifndef SPECIAL_ELEMENT_H
 #define SPECIAL_ELEMENT_H

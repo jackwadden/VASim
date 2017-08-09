@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "gate.h"
 
 using namespace std;

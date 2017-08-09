@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "counter.h"
 
 using namespace std;

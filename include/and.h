@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #ifndef AND_H
 #define AND_H
 

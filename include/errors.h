@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 //
 #ifndef VASIM_ERRORS_H
 #define VASIM_ERRORS_H

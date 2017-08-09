@@ -1,6 +1,7 @@
-//
+/**
+ * @file
+ */
 #include "ste.h"
-//#include "util.h"
 #define MAX_ERROR_MSG 0x1000
 
 using namespace std;

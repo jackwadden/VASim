@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 //
 #ifndef NOR_H
 #define NOR_H

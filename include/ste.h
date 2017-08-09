@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 //
 #ifndef STE_H
 #define STE_H

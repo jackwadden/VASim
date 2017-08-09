@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 //
 #ifndef INVERTER_H
 #define INVERTER_H

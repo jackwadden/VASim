@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "and.h"
 
 using namespace std;

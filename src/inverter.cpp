@@ -1,4 +1,6 @@
-//
+/**
+ * @file
+ */
 #include "inverter.h"
 
 using namespace std;
