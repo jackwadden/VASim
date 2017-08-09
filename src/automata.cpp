@@ -138,23 +138,12 @@ void Automata::reset() {
  */
 void Automata::addSTE(STE *ste, vector<string> &outputs) {
 
-    elements[ste->getId()] = static_cast<Element *>(ste);
-
-    if(ste->isStart()){
-        starts.push_back(ste);
-    }
-
-    if(ste->isReporting()){
-        reports.push_back(ste);
-    }
-
-    // for all edges
+    rawAddSTE(ste);
+    
+    // for all outputs, add a proper edge
     for(auto str : outputs) {
 
-        ste->addOutput(str);
-
-        // inputs are of the form "fromNodeId:toPort"
-        elements[Element::stripPort(str)]->addInput(ste->getId() + Element::getPort(str));
+        addEdge(ste->getId(), str);
     }
 }
 
@@ -200,10 +189,11 @@ void Automata::rawAddSpecialElement(SpecialElement *specel) {
 vector<Automata *> Automata::generateGNFAs(){
 
     //
-    cout << "  GENERATING GNFAs..." << endl;
-
-    cout << "  Original size: " << elements.size() << endl;
-
+    if(!quiet){
+        cout << "  GENERATING GNFAs..." << endl;
+        cout << "  Original size: " << elements.size() << endl;
+    }
+    
     // maps nodes to a list of start/end nodes
     unordered_map<string, vector<string>> start_markers;
     unordered_map<string, vector<string>> end_markers;
@@ -346,7 +336,9 @@ vector<Automata *> Automata::generateGNFAs(){
                 a->removeElement(remove_this);
             }
 
-            cout << "    extracted automata with size: " << a->getElements().size() << endl;
+            if(!quiet) {
+                cout << "    extracted automata with size: " << a->getElements().size() << endl;
+            }
 
             GNFAs.push_back(a);
             //a->automataToDotFile("automata_" + to_string(counter) + ".dot");
@@ -591,7 +583,7 @@ Automata *Automata::clone() {
 
     if(dump_state)
         ap->enableDumpState(dump_state_cycle);
-
+    
     return ap;
 }
 
@@ -603,23 +595,14 @@ Automata *Automata::clone() {
  */
 void Automata::removeElement(Element *el) {
 
-    //cout << "removing element: " << el->getId() << endl;
-    //cout << el->toString() << endl;
-
     // remove traces from output elements
-    for(auto output : el->getOutputSTEPointers()){
-        output.first->removeInput(el->getId());
-    }
-
-    for(auto output : el->getOutputSpecelPointers()){
-        output.first->removeInput(el->getId());
+    for(string output : el->getOutputs()){
+        removeEdge(el->getId(), output);
     }
 
     // remove traces from input elements
-    for(auto in : el->getInputs()){
-        Element *input = elements[Element::stripPort(in.first)];
-        input->removeOutput(el->getId());
-        input->removeOutputPointer(make_pair(el, el->getId()));
+    for(pair<string, bool> in : el->getInputs()){
+        removeEdge(in.first, el->getId());
     }
 
     // clear input data structures
@@ -632,6 +615,7 @@ void Automata::removeElement(Element *el) {
         reports.erase(find(reports.begin(), reports.end(), el));
     }
 
+    // clear from special elements array and starts array
     if(el->isSpecialElement()){
         specialElements.erase(specialElements.find(el->getId()));
     }else{
@@ -641,6 +625,7 @@ void Automata::removeElement(Element *el) {
         }
     }
 
+    // Clear from global element map
     unordered_map<string, Element*>::iterator it = elements.find(el->getId());
     if(it != elements.end())
         elements.erase(elements.find(el->getId()));
@@ -3476,11 +3461,37 @@ void Automata::dumpSpecelState(string filename) {
 /*
  *
  */
-void Automata::removeEdge(Element* from, Element *to){
+void Automata::removeEdge(Element* from, Element *to) {
 
     from->removeOutput(to->getId());
     from->removeOutputPointer(make_pair(to, to->getId()));
     to->removeInput(from->getId());
+}
+
+/*
+ *
+ */
+void Automata::removeEdge(string from_str, string to_str) {
+
+    Element *from = elements[Element::stripPort(from_str)];
+    Element *to = elements[Element::stripPort(to_str)];
+
+    string to_port = Element::getPort(to_str);
+    string from_port = Element::getPort(from_str);
+
+    // either string may specify the port
+    // TODO: assert that they match if either has info
+    if(to_port.empty()){
+        to_port = from_port;
+        to_str += to_port;
+    }
+    
+    // remove outputs from parent
+    from->removeOutput(to_str);
+    from->removeOutputPointer(make_pair(to, to_port));
+
+    // remove inputs from child
+    to->removeInput(from->getId() + to_port);
 }
 
 /*
@@ -3492,6 +3503,14 @@ void Automata::addEdge(string from_str, string to_str) {
     Element *to = elements[Element::stripPort(to_str)];
 
     string to_port = Element::getPort(to_str);
+    string from_port = Element::getPort(from_str);
+
+    // either string may specify the port
+    // TODO: assert that they match if either has info
+    if(to_port.empty()){
+        to_port = from_port;
+        to_str += to_port;
+    }
 
     // add proper outputs to parent
     from->addOutput(to_str);

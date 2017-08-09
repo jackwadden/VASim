@@ -29,7 +29,6 @@ class Element {
 protected:
     std::vector<std::string> outputs;
     std::vector<std::pair<Element *, std::string>> outputSTEPointers;
-    //std::vector<Element *> outputSTEPointers;
     std::vector<std::pair<Element *, std::string>> outputSpecelPointers;
     std::map<std::string, bool> inputs;
     std::string id;    
