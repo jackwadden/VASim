@@ -3536,38 +3536,34 @@ void Automata::addEdge(Element* from, Element *to){
 void Automata::updateElementId(Element *el, string newId) {
 
     string oldId = el->getId();
-    vector<Element *> children;
-    vector<Element *> parents;
+    vector<string> children;
+    vector<string> parents;
 
-    // remove old STE outputs
-    for(pair<Element *, string> outputs : el->getOutputSTEPointers()) {
-        removeEdge(el, outputs.first);
-        children.push_back(outputs.first);
-    }
-
-    // remove old Specel outputs
-    for(pair<Element *, string> outputs : el->getOutputSpecelPointers()) {
-        removeEdge(el, outputs.first);
-        children.push_back(outputs.first);
+    // remove old outputs
+    for(string output : el->getOutputs()) {
+        removeEdge(el->getId(), output);
+        // save child
+        children.push_back(output);
     }
 
     // remove old inputs
     for(pair<string,bool> input : el->getInputs()){
-        removeEdge(elements[input.first], el);
-        parents.push_back(elements[input.first]);
+        removeEdge(input.first, el->getId());
+        // save parent
+        parents.push_back(input.first);
     }
 
     // CHANGE ID
     el->setId(newId);
 
     // add back in all child edges
-    for(Element *child : children){
-        addEdge(el, child);
+    for(string child : children){
+        addEdge(el->getId(), child);
     }
 
     // add back in parent edges
-    for(Element *parent : parents){
-        addEdge(parent, el);
+    for(string parent : parents){
+        addEdge(parent, el->getId());
     }
 }
 
