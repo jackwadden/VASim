@@ -2526,10 +2526,6 @@ Automata* Automata::generateDFA() {
 }
 
 
-/*************************************
- *            Simulation             *
- *************************************/
-
 /*
  *
  */
@@ -2743,34 +2739,6 @@ uint64_t Automata::tick() {
 
     return cycle++;
 }
-
-
-/*************************************
- *          Optimizations            *
- *************************************/
-
-bool ste_sort(STE a, STE b) {
-
-    return a.compare(&b);
-}
-
-void vector_sort(vector<STE*> &vec) {
-
-    STE * swap;
-    unsigned int c,d;
-    unsigned int n = vec.size();
-
-    for (c = 0 ; c < ( n - 1 ); c++){
-        for (d = 0 ; d < n - c - 1; d++){
-            if (vec[d]->compare(vec[d+1])) {
-                swap       = vec[d];
-                vec[d]   = vec[d+1];
-                vec[d+1] = swap;
-            }
-        }
-    }
-}
-
 
 /*
  * depth first search on the automata, combining states with identical
@@ -3071,7 +3039,6 @@ void Automata::printGraphStats() {
     cout << "  Max Fan-in (not including self loops): " << max_in << endl;
     cout << "  Max Fan-out (not including self loops): " << max_out << endl;
     cout << "  Average Node Degree: " << (double)sum_out / (double)elements.size() << endl << endl;
-
 
 }
 
