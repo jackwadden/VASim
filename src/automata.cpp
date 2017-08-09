@@ -5,8 +5,8 @@ using namespace std;
 using namespace MNRL;
 
 
-/*
- *
+/**
+ * Constructs an empty Automata object.
  */
 Automata::Automata() {
 
@@ -31,10 +31,10 @@ Automata::Automata() {
 }
 
 
-/*
- *
+/**
+ * Constructs an Automata object from a given ANML or MNRL homogeneous automata description file.
  */
-Automata::Automata(string fn): Automata() {
+Automata::Automata(string fn) : Automata() {
 
     filename = fn;    
 
@@ -75,8 +75,8 @@ Automata::Automata(string fn): Automata() {
 }
 
 
-/*
- * Disables and deactivates all elements in the automata
+/**
+ * Disables and deactivates all elements in the automata. TODO::handle latched STEs?
  */
 void Automata::reset() {
 
@@ -133,8 +133,8 @@ void Automata::reset() {
     
 }
 
-/*
- *
+/**
+ * Adds an STE to the current automata. Adds all edges specified by input vector "outputs".
  */
 void Automata::addSTE(STE *ste, vector<string> &outputs) {
 
@@ -147,8 +147,8 @@ void Automata::addSTE(STE *ste, vector<string> &outputs) {
     }
 }
 
-/*
- *
+/** 
+ *Adds an STE to the current automata. Does not update any dangling connections.
  */
 void Automata::rawAddSTE(STE *ste) {
 
@@ -163,8 +163,8 @@ void Automata::rawAddSTE(STE *ste) {
     }
 }
 
-/*
- *
+/**
+ * Adds a special element to the current automata. Does not update any dangling connections.
  */
 void Automata::rawAddSpecialElement(SpecialElement *specel) {
 
@@ -182,9 +182,8 @@ void Automata::rawAddSpecialElement(SpecialElement *specel) {
 
 
 
-/*
- * Converts an automata with multiple start or end states into multiple
- *   automata with single start and single end states
+/**
+ * Converts an automata with multiple start or end states into multiple automata with single start and single end states.
  */
 vector<Automata *> Automata::generateGNFAs(){
 
@@ -354,9 +353,8 @@ vector<Automata *> Automata::generateGNFAs(){
 }
 
 
-/*
- * Adds all outputs of ste2 to ste1
- * then removes ste2 from the automata.
+/**
+ * Adds all outputs of ste2 to ste1 then removes ste2 from the automata. Used in leftMinimize() prefix merging algorithm.
  */
 void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
 
@@ -429,9 +427,8 @@ void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
     removeElement(ste2);
 }
 
-/*
- * Returns a vector of every separate connected component in the 
- *   automaton. Does not delete the original automata.
+/**
+ * Returns a vector of every connected component automaton as a separate Automata object. Does not delete the original automata.
  */
 vector<Automata*> Automata::splitConnectedComponents() {
 
@@ -547,9 +544,8 @@ vector<Automata*> Automata::splitConnectedComponents() {
     return connectedComponents;
 }
 
-/*
- * Merges two automata but does not make sure
- *   that the two automata don't have name clashes.
+/**
+ * Merges all states in input automata into current automata. "Unsafe" because it does not make sure that the two automata don't have name clashes.
  */
 void Automata::unsafeMerge(Automata *a) {
 
@@ -562,8 +558,8 @@ void Automata::unsafeMerge(Automata *a) {
     }
 }
 
-/*
- * Clones current automata
+/**
+ * Clones current automata graph. Does not clone current simulation state.
  */
 Automata *Automata::clone() {
 
@@ -588,10 +584,8 @@ Automata *Automata::clone() {
 }
 
 
-/*
- * Removes STE from the global element map
- * TODO:: this works, but probably leaves some traces behind
- * does not destroy object
+/**
+ * Removes STE from the automata. Removes the element from all data structures and removes references to this element from other elements. TODO:: this works, but probably leaves some traces behind. Also, does not destroy Element object.
  */
 void Automata::removeElement(Element *el) {
 
@@ -633,80 +627,65 @@ void Automata::removeElement(Element *el) {
     //  delete el;
 }
 
-/*
- *
+/**
+ * Returns a vector of all start elements in the automata.
  */
 vector<STE *> &Automata::getStarts() {
 
     return starts;
 }
 
-/*
- *
+/**
+ * Returns a vector of all reporting elements in the automata.
  */
 vector<Element *> &Automata::getReports() {
 
     return reports;
 }
 
-/*
- *
+/**
+ * Returns the report vector. Each report entry is a <cycle, Element ID> pair.
  */
 std::vector<std::pair<uint64_t, std::string>> &Automata::getReportVector() {
 
     return reportVector;
 }
 
-/*
- *
+/**
+ * Returns a map of string IDs to every Element in the automata. This is the main automata data structure.
  */
 unordered_map<string, Element *> &Automata::getElements() {
 
     return elements;
 }
 
-/*
- *
+/**
+ * Returns a map of string IDs to every SpecialElement in the automata.
  */
 unordered_map<string, SpecialElement *> &Automata::getSpecialElements() {
 
     return specialElements;
 }
 
-/*
- *
- */
-Stack<Element *> &Automata::getEnabledSTEs() {
 
-    return enabledSTEs;
-}
-
-/*
- *
- */
-Stack<STE *> &Automata::getActivatedSTEs() {
-
-    return activatedSTEs;
-}
-
-/*
- *
+/**
+ * Returns a queue of elements that were enabled on the most recent simulated symbol cycle.
  */
 queue<Element *> &Automata::getEnabledLastCycle() {
 
     return enabledLastCycle;
 }
 
-/*
- *
+/**
+ * Returns a queue of elements that activated on the most recent simulated symbol cycle.
  */
 queue<Element *> &Automata::getActivatedLastCycle() {
 
     return activatedLastCycle;
 }
 
-/*
- *
+/**
+ * Returns a queue of elements that reported on the most recent simulated symbol cycle.
  */
 queue<Element *> &Automata::getReportedLastCycle() {
 
@@ -714,24 +693,24 @@ queue<Element *> &Automata::getReportedLastCycle() {
 }
 
 
-/*
- *
+/**
+ * Returns the activation histogram mapping Element IDs to activation counts.
  */
 unordered_map<string, uint32_t> &Automata::getActivationHist() {
 
     return activationHist;
 }
 
-/*
- *
+/**
+ * Get the largest number of times an element activated over the course of simulation.
  */
 uint32_t Automata::getMaxActivations() {
 
     return maxActivations;
 }
 
-/*
- *
+/**
+ * Enables automata profiling during automata simulation.
  */
 void Automata::enableProfile() {
 
@@ -746,37 +725,37 @@ void Automata::enableProfile() {
     }
 }
 
-/*
- *
+/**
+ * Enables report recording during automata simulation.
  */
 void Automata::enableReport() {
     report = true;
 }
 
-/*
- *
+/**
+ * Supresses all output.
  */
 void Automata::enableQuiet() {
     quiet = true;
 }
 
-/*
- *
+/**
+ * Enables dynamic state logging. Dumps all states that activated on cycle dump_cycle. Acts as a debug break point. Currently only works for STEs. 
  */
 void Automata::enableDumpState(uint64_t dump_cycle) {
     dump_state = true;
     dump_state_cycle = dump_cycle;
 }
 
-/*
- *
+/**
+ * Disables automata profiling.
  */
 void Automata::disableProfile() {
     profile = false;
 }
 
-/*
- *
+/**
+ * SHOULD BE MOVED TO UTIL
  */
 void Automata::writeStringToFile(string str, string fn) {
 
@@ -785,8 +764,8 @@ void Automata::writeStringToFile(string str, string fn) {
     out.close();
 }
 
-/*
- *
+/**
+ * SHOULD BE MOVED TO UTIL
  */
 void Automata::appendStringToFile(string str, string fn) {
 
@@ -795,8 +774,8 @@ void Automata::appendStringToFile(string str, string fn) {
     out.close();
 }
 
-/*
- *
+/**
+ * SHOULD BE MOVED TO UTIL
  */
 void Automata::writeIntVectorToFile(vector<uint32_t> &vec, string fn) {
 
@@ -806,8 +785,8 @@ void Automata::writeIntVectorToFile(vector<uint32_t> &vec, string fn) {
     out.close();
 }
 
-/*
- *
+/**
+ * Prints out all elements in the automata.
  */
 void Automata::print() {
 
@@ -818,8 +797,8 @@ void Automata::print() {
     }
 }
 
-/*
- *
+/**
+ * Simulates the automata on a single input symbol.
  */
 void Automata::simulate(uint8_t symbol) {
 
@@ -863,6 +842,9 @@ void Automata::simulate(uint8_t symbol) {
     tick();
 }
 
+/**
+ * Saves the Elements that are currently enabled so that they can be recovered after each complete symbol cycle.
+ */
 void Automata::profileEnables() {
 
     // clear data structures
@@ -892,6 +874,9 @@ void Automata::profileEnables() {
     }
 }
 
+/**
+ * Saves the Elements that are currently activated so that they can be recovered after each complete symbol cycle.
+ */
 void Automata::profileActivations() {
 
     // clear data structures
@@ -934,6 +919,9 @@ void Automata::profileActivations() {
     }        
 }
 
+/**
+ * Enables start states and primes simulation. Must be executed before simulation.
+ */
 void Automata::initializeSimulation() {
     
     // Initiate simulation by enabling all start states
@@ -945,8 +933,8 @@ void Automata::initializeSimulation() {
     
 }
 
-/*
- *
+/**
+ * Simulates the automata on input string. Starts at start_index and runs for length symbols.
  */
 void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, bool step) {
 
@@ -1021,21 +1009,8 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
     }
 }
 
-/*
- *
- */
-void Automata::printReport() {
-
-    // print report vector
-    //cout << "REPORTS:" << endl;
-    for(pair<uint32_t,string> s : reportVector) {
-        // cycle space colon space ID
-        cout << s.first << " : " << s.second << " : " << elements[s.second]->getReportCode() << endl;
-    }
-}
-
-/*
- *
+/**
+ * Writes the report vector to a file. Each report consists of the cycle the report occured on, the element ID, and the report ID of the element if set, all delimited by " : ".
  */
 void Automata::writeReportToFile(string fn) {
 
@@ -1049,8 +1024,8 @@ void Automata::writeReportToFile(string fn) {
 }
 
 
-/*
- *
+/**
+ * Prints report vector in the style of the Micron AP SDK batchSim automata simulator.
  */
 void Automata::printReportBatchSim() {
 
@@ -1065,22 +1040,10 @@ void Automata::printReportBatchSim() {
     }
 }
 
-/*
- *
+
+/**
+ * Calculates proportions of elements that capture total amounts of automata activity. Prints automata proportions to stdout.
  */
-void Automata::printActivations() {
-
-    // print activation vector
-    cout << "ACTIVATIONS:" << endl;
-    for(auto s: activationVector) {
-        list<string> l = s.second;
-        cout << s.first << "::" << endl;
-        for(auto e: l) {
-            cout << "\t" << e << endl;
-        }
-    }
-}
-
 void Automata::calcEnableDistribution() {
     
     // gather enables into vector
@@ -1144,23 +1107,25 @@ void Automata::calcEnableDistribution() {
     }
 }
 
-/*
- *
+/**
+ * Returns a data structure mapping element pointers to the total number of times they were enabled. Only populated after simulation.
  */
 unordered_map<Element*, uint32_t> &Automata::getEnabledCount() {
 
     return enabledCount;
 }
 
-/*
- *
+/**
+ * Returns a data structure mapping element pointers to the total number of times they were activated. Only populated after simulation.
  */
 unordered_map<Element*, uint32_t> &Automata::getActivatedCount() {
 
     return activatedCount;
 }
 
-
+/**
+ * Constructs a histogram counting how many times each element in the automata was activated. Writes the histogram out to file.
+ */
 void Automata::buildActivationHistogram(string fn) {
 
     maxActivations = 0;
@@ -1181,8 +1146,8 @@ void Automata::buildActivationHistogram(string fn) {
 }
 
 
-/*
- *
+/**
+ * Writes the activation histogram to a string.
  */
 string Automata::activationHistogramToString() {
 
@@ -1195,20 +1160,8 @@ string Automata::activationHistogramToString() {
 }
 
 
-/*
- *
- */
-void Automata::printActivationHistogram() {
-
-    // print histogram vector
-    cout << "ACTIVATIONS HISTOGRAM:" << endl;
-    cout << activationHistogramToString();
-}
-
-/*
- * Takes an ID and returns a red color proportional to the number
- * of total activations of this element out of the max number of
- * activations in the automata.
+/**
+ * Takes an ID and returns a red color proportional to the number of total activations of this element out of the max number of activations in the automata. Used to generate color heat maps in automataToDotFile().
  */
 string Automata::getElementColor(string id) {
 
@@ -1274,10 +1227,8 @@ string Automata::getElementColor(string id) {
     return string(hexcol);
 }
 
-/*
- * Takes an ID and returns a red color proportional to the number
- * of total activations of this element out of the max number of
- * activations in the automata.
+/**
+ * Takes an ID and returns a log-scaled red color proportional to the number of total activations of this element out of the max number of activations in the automata. Used to generate color heat maps in automataToDotFile().
  */
 string Automata::getElementColorLog(string id) {
 
@@ -1338,8 +1289,8 @@ string Automata::getElementColorLog(string id) {
     return string(hexcol);
 }
 
-/*
- * 
+/**
+ * Takes an ID and returns a log-scaled color based on the number of times an element has been activated during computation. Used for generating colorized heat maps in automataToDotFile().
  */
 string Automata::getLogElementColor(string id) {
 
@@ -1382,8 +1333,8 @@ string Automata::getLogElementColor(string id) {
     return string(hexcol);
 }
 
-/*
- *
+/**
+ * Writes automata to .dot file for visualization using GraphML.
  */
 void Automata::automataToDotFile(string out_fn) {
 
@@ -1463,11 +1414,8 @@ void Automata::automataToDotFile(string out_fn) {
     writeStringToFile(str, out_fn);
 }
 
-/*
- * Removes OR gates from the automata. OR gates are syntactic sugar introduced
- *  by Micron's optimizing compiler. Other automata engines may not support
- *  them, so we allow their removal.
- * TODO:: THIS IS NOT SAFE
+/**
+ * UNFINISHED:: Removes OR gates from the automata. OR gates are syntactic sugar introduced by Micron's optimizing compiler and other automata engines may not support them, so we allow their removal.
  */
 void Automata::removeOrGates() {
 
@@ -1523,9 +1471,8 @@ void Automata::removeOrGates() {
     }
 }
 
-/*
- * Removes Counters from the automata. Counters can sometimes be replaced by 
- *  an equivalent number of matching elements. TODO.
+/**
+ * UNFINISHED:: Removes Counters from the automata. Counters can sometimes be replaced by an equivalent number of matching elements.
  */
 void Automata::removeCounters() {
 
@@ -1637,9 +1584,8 @@ void Automata::removeCounters() {
     }
 }
 
-/*
- * Converts the automata to a theoretical NFA style
- *   readable by Michela Becchi's NFA/DFA/HFA engine
+/**
+ * Writes automata to a file in an NFA style readable by Michela Becchi's NFA/DFA/HFA engine and iNFAnt GPU automata processing engine.
  */
 void Automata::automataToNFAFile(string out_fn) {
 
@@ -1802,9 +1748,8 @@ void Automata::automataToNFAFile(string out_fn) {
     writeStringToFile(str, out_fn);
 }
 
-/*
- * Outputs automata to ANML file
- *  meant to be called after optimization passes
+/**
+ * Writes automata to ANML file.
  */
 void Automata::automataToANMLFile(string out_fn) {
 
@@ -1835,9 +1780,8 @@ void Automata::automataToANMLFile(string out_fn) {
     writeStringToFile(str, out_fn);
 }
 
-/*
- * Outputs automata to MNRL file
- * Meant to be called after optimization passes
+/**
+ * Writes automata to the MNRL file format.
  */
 void Automata::automataToMNRLFile(string out_fn) {
     MNRLNetwork net("vasim");
@@ -1869,9 +1813,8 @@ void Automata::automataToMNRLFile(string out_fn) {
     
 }
 
-/*
- * Outputs automata to Verilog HDL description following the algorithm
- *   originally developed by Xiaoping Huang and Mohamed El-Hadedy
+/**
+ * Outputs automata to Verilog HDL description following the algorithm originally developed by Xiaoping Huang and Mohamed El-Hadedy.
  */
 void Automata::automataToHDLFile(string out_fn) {
 
@@ -2063,10 +2006,8 @@ void Automata::automataToHDLFile(string out_fn) {
     writeStringToFile(str, out_fn);
 }
 
-/*
- * Outputs automata to .blif circuit description file.
- *  Currently works for STE-only designs.
- *  Reporting architecture assumes 2 static ports per row.
+/**
+ * Write automata to .blif circuit readable by "Automata-to-Routing" (https://github.com/jackwadden/Automata-To-Routing).
  */
 void Automata::automataToBLIFFile(string out_fn) {
 
@@ -2184,8 +2125,8 @@ void Automata::automataToBLIFFile(string out_fn) {
 }
 
 
-/*
- *
+/**
+ * Write out automata to file readable by graphgrep (https://github.com/jackwadden/graphgrep).
  */
 void Automata::automataToGraphFile(string out_fn) {
 
@@ -2259,9 +2200,8 @@ void Automata::automataToGraphFile(string out_fn) {
     writeStringToFile(str, out_fn);
 }
 
-/*
- * Converts all-input start elements to "start-of-data"
- *   preserves functionality by installing self referencing star states
+/**
+ * Converts each "all-input" type start element to "start-of-data" type. Preserves automata semantics by installing self referencing star states that act like "all-input" start states.
  */
 void Automata::convertAllInputStarts() {
 
@@ -2320,30 +2260,30 @@ inline bool state_comp(pair<set<STE*>*, STE*> lhs, pair<set<STE*>*, STE*> rhs) {
 }
 
 
-/*
- *
+/**
+ * Returns the set of STEs reachable from the input set of STEs on this input symbol.
  */
-set<STE*>* Automata::follow(uint32_t character, set<STE*>* current_dfa_state) {
+set<STE*>* Automata::follow(uint32_t symbol, set<STE*>* state_set) {
 
 
     set<STE*>* follow_set = new set<STE*>;
 
-    // for each all-input start
+    // for each start
     for(STE *start : getStarts()){
-        if(start->match((uint8_t)character)){
+        if(start->match((uint8_t)symbol)){
             // add to follow_set
             //cout << start->getId() << " matched on input " << endl; 
             follow_set->insert(start);
         }
     }
     
-    // for each STE in the DFA state
-    for(STE *ste : *current_dfa_state){
+    // for each STE in the set
+    for(STE *ste : *state_set){
         // for each child
         for(auto e : ste->getOutputSTEPointers()){
             STE * child = static_cast<STE*>(e.first);
             // if they match this character
-            if(child->match((uint8_t)character)){
+            if(child->match((uint8_t)symbol)){
                 // add to follow_set
                 follow_set->insert(child);
             }
@@ -2354,12 +2294,13 @@ set<STE*>* Automata::follow(uint32_t character, set<STE*>* current_dfa_state) {
 }
 
 
-/*
- *
+/**
+ * Constructs an equivalent homogeneous DFA from the current automata. This algorithm is worst case exponential in space and time and so may not be feasible for even medium-sized automata.
  */
 Automata* Automata::generateDFA() {
 
-    cout << "Generating DFA..." << endl;
+    if(!quiet)
+        cout << "Generating DFA..." << endl;
 
     // DFAs need a failure state and cannot use all-input start nodes
     //  we convert all-inputs to start-of-data plus a failure node to
@@ -2395,8 +2336,9 @@ Automata* Automata::generateDFA() {
     
     // main loop
     while(!workq.empty()){
-    
-        cout << "DFA States:" <<  dfa_state_counter << " -- Stack:" << workq.size() << endl;
+
+        if(!quiet)
+            cout << "DFA States:" <<  dfa_state_counter << " -- Stack:" << workq.size() << endl;
 
         // get current working DFA state set and STE
         set<STE*>* dfa_state = workq.front().first;
@@ -2526,8 +2468,8 @@ Automata* Automata::generateDFA() {
 }
 
 
-/*
- *
+/**
+ * Enable all elements that are start states. Start states initiate computation by being enabled on the first cycle (for start-of-data type) or every cycle (for all-input type).
  */
 void Automata::enableStartStates() {
 
@@ -2549,9 +2491,8 @@ void Automata::enableStartStates() {
 
 }
 
-/*
- * If an STE is enabled and matches on the current input, activate.
- * If we're a reporter, report. 
+/**
+ * If an STE is enabled and matches on the current input, activate. If the STE is a report STE, record a report in the report vector. 
  */
 void Automata::computeSTEMatches(uint8_t symbol) {
 
@@ -2590,8 +2531,8 @@ void Automata::computeSTEMatches(uint8_t symbol) {
     }
 }
 
-/*
- * Propagate enable signal of active STEs to all other elements
+/**
+ * Propagate activation signal of STEs that match on the current input symbol. Enables Element children of active STEs.
  */
 void Automata::enableSTEMatchingChildren() {
 
@@ -2624,8 +2565,8 @@ void Automata::enableSTEMatchingChildren() {
 }
 
 
-/*
- *
+/**
+ * Simulates SpecialElements. SpecialElements are unbuffered and behave as traditional electrical circuit elements. Therefore, all special elements need to continuously calculate based on their inputs until a steady state is reached. SpecialElement simulation is extremely slow compared to STE-only simulation.
  */
 void Automata::specialElementSimulation() {
 
@@ -2732,18 +2673,16 @@ void Automata::specialElementSimulation() {
 }
 
 
-/*
- * Tick advances the cycle count representing an automata "symbol cycle"
+/**
+ * Tick advances the cycle count representing an automata "symbol cycle."
  */
 uint64_t Automata::tick() {
 
     return cycle++;
 }
 
-/*
- * depth first search on the automata, combining states with identical
- * inputs and properties, but varying outputs. Essentially creates a tree
- * structure where possible.
+/**
+ * Merges identical prefixes of automaton. Uses a depth first search on the automata, combining states with identical inputs and properties, but varying outputs. Does not currently merge prefixes with back references (loops).
  */
 uint32_t Automata::leftMinimize() {
 
@@ -2770,9 +2709,8 @@ uint32_t Automata::leftMinimize() {
     return merged;
 }
 
-/*
- * Recursive call that merges the current child level, and calls left minimization
- *  on every subsequent unique child in a depth-first fashion.
+/**
+ * Recursive function that considers merging all candidate STEs at the current level, and calls left minimization on every subsequent unique child in a depth-first fashion.
  */
 uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
 
@@ -2831,10 +2769,8 @@ uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
     return merged;
 }
 
-/*
- *
- *
- *
+/**
+ * Merges all identical start states.
  */
 void Automata::leftMinimizeStartStates() {
 
@@ -2889,8 +2825,8 @@ void Automata::leftMinimizeStartStates() {
         cout << "    merged " << merge_count << " start states!" << endl;
 }
 
-/*
- *
+/**
+ * Checks Automata graph for inconsistencies and errors. Sets the Automata error code to something other than E_SUCCESS if the automata has an error.
  */
 void Automata::validate() {
 
@@ -2968,8 +2904,8 @@ void Automata::validate() {
     automataToDotFile("failed_verification.dot");
 }
 
-/*
- *
+/**
+ * Gathers and displays the average STE character set complexity using the Quine-McKlusky algorithm as a measure of "complexity."
  */
 void Automata::printSTEComplexity() {
 
@@ -2996,8 +2932,8 @@ void Automata::printSTEComplexity() {
 
 }
 
-/*
- *
+/**
+ * Prints various automata graph summary statistics.
  */
 void Automata::printGraphStats() {
 
@@ -3043,9 +2979,8 @@ void Automata::printGraphStats() {
 }
 
 
-/*
- * Adds all inputs of ste2 to ste1
- * then removes ste2 from the automata
+/**
+ * Adds all inputs of ste2 to ste1 then removes ste2 from the automata.
  */
 void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
 
@@ -3092,8 +3027,8 @@ void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
     removeElement(ste2);
 }
 
-/*
- * Guarantees that the fan-in for every node does not exceed fanin_max
+/**
+ * Guarantees that the fan-in for every node does not exceed fanin_max.
  */
 void Automata::enforceFanIn(uint32_t fanin_max){
     
@@ -3223,8 +3158,8 @@ void Automata::enforceFanIn(uint32_t fanin_max){
     }
 }
 
-/*
- * Guarantees that the fan-in for every node does not exceed fanin_max
+/**
+ * Guarantees that the fan-in for every node does not exceed fanin_max.
  */
 void Automata::enforceFanOut(uint32_t fanout_max){
 
@@ -3361,7 +3296,7 @@ void Automata::enforceFanOut(uint32_t fanout_max){
 }
 
 
-/*
+/**
  * Dumps active states on parameter designated cycle to file stes_<cycle>.state
  */
 void Automata::dumpSTEState(string filename) {
@@ -3390,7 +3325,7 @@ void Automata::dumpSTEState(string filename) {
     writeStringToFile(s, filename);
 }
 
-/*
+/**
  * Dumps active special elements on parameter designated cycle to file stes_<cycle>.state
  *  *always* dumps counters and prints the current counter value and target.
  */
@@ -3425,8 +3360,8 @@ void Automata::dumpSpecelState(string filename) {
     writeStringToFile(s, filename);
 }
 
-/*
- *
+/**
+ * Removes a directed edge between two elements.
  */
 void Automata::removeEdge(Element* from, Element *to) {
 
@@ -3435,8 +3370,8 @@ void Automata::removeEdge(Element* from, Element *to) {
     to->removeInput(from->getId());
 }
 
-/*
- *
+/**
+ * Removes a directed edge between two elements. Either string input can define a connection to a specific Element port using the form "ElementID:port". 
  */
 void Automata::removeEdge(string from_str, string to_str) {
 
@@ -3461,8 +3396,18 @@ void Automata::removeEdge(string from_str, string to_str) {
     to->removeInput(from->getId() + to_port);
 }
 
-/*
- *
+/**
+ * Adds a directed edge between two elements.
+ */
+void Automata::addEdge(Element* from, Element *to){
+    
+    from->addOutput(to->getId());
+    from->addOutputPointer(make_pair(to, to->getId()));
+    to->addInput(from->getId());
+}
+
+/**
+ * Adds a directed edge between two elements. Either string input can define a connection to a specific Element port using the form "ElementID:port". 
  */
 void Automata::addEdge(string from_str, string to_str) {
 
@@ -3487,18 +3432,9 @@ void Automata::addEdge(string from_str, string to_str) {
     to->addInput(from->getId() + to_port);
 }
 
-/*
- *
- */
-void Automata::addEdge(Element* from, Element *to){
-    
-    from->addOutput(to->getId());
-    from->addOutputPointer(make_pair(to, to->getId()));
-    to->addInput(from->getId());
-}
 
-/*
- *
+/**
+ * Updates an element's string ID.
  */
 void Automata::updateElementId(Element *el, string newId) {
 
@@ -3523,6 +3459,8 @@ void Automata::updateElementId(Element *el, string newId) {
     // CHANGE ID
     el->setId(newId);
 
+    // TODO: Make sure the the element gets put back into the elements array with the new ID. This is not sufficient!
+    
     // add back in all child edges
     for(string child : children){
         addEdge(el->getId(), child);
@@ -3535,8 +3473,8 @@ void Automata::updateElementId(Element *el, string newId) {
 }
 
 
-/*
- *
+/**
+ * Makes sure that the element is in (or out of) the data structure that tracks start elements.
  */
 void Automata::validateStartElement(Element* el){
 
@@ -3566,8 +3504,8 @@ void Automata::validateStartElement(Element* el){
     } 
 }
 
-/*
- *
+/**
+ * Makes sure that the element is in (or out of) the data structure that tracks reporting elements.
  */
 void Automata::validateReportElement(Element* el){
 
@@ -3591,8 +3529,8 @@ void Automata::validateReportElement(Element* el){
     }
 }
 
-/*
- *
+/**
+ * Makes sure that the input element is in the proper Automata data structures given its internal properties.
  */
 void Automata::validateElement(Element* el) {
 
@@ -3603,16 +3541,16 @@ void Automata::validateElement(Element* el) {
     validateReportElement(el);
 }
 
-/*
- * Sets the status error code
+/**
+ * Sets the status error code.
  */
 void Automata::setErrorCode(vasim_err_t err) {
 
     error = err;
 }
 
-/*
- * Returns the current status error code
+/**
+ * Returns the current status error code.
  */
 vasim_err_t Automata::getErrorCode() {
 

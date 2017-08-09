@@ -80,9 +80,6 @@ public:
     std::vector<Element *> &getReports();
     std::unordered_map<std::string, Element *> &getElements();
     std::unordered_map<std::string, SpecialElement *> &getSpecialElements();
-    Stack<Element *> &getEnabledElements();
-    Stack<Element *> &getEnabledSTEs();
-    Stack<STE *> &getActivatedSTEs();
     std::unordered_map<std::string, uint32_t> &getActivationHist();
     std::vector<std::pair<uint64_t, std::string>> &getReportVector();
     uint32_t getMaxActivations();
@@ -99,10 +96,8 @@ public:
     void appendStringToFile(std::string str, std::string fn);
     void writeIntVectorToFile(std::vector<uint32_t> &, std::string fn);
     void print();
-    void printReport();
     void writeReportToFile(std::string fn);
     void printReportBatchSim();
-    void printActivations();
     std::string activationHistogramToString();
     void automataToDotFile(std::string fn);
     void automataToNFAFile(std::string fn);
@@ -111,8 +106,6 @@ public:
     void automataToHDLFile(std::string fn);
     void automataToBLIFFile(std::string fn);
     void automataToGraphFile(std::string fn);
-
-    std::vector<std::string> automataToRegex(std::string fn);
 
     // Simulation
     void initializeSimulation();
@@ -136,7 +129,6 @@ public:
     std::queue<Element *> &getReportedLastCycle();
     void buildActivationHistogram(std::string fn);
     void calcEnableDistribution();
-    void printActivationHistogram();
     void printGraphStats();
     void printSTEComplexity();
     void dumpSTEState(std::string fn);
