@@ -9,11 +9,15 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <string>
 
+void writeStringToFile(std::string str, std::string fn);
+void appendStringToFile(std::string str, std::string fn);
+void writeIntVectorToFile(std::vector<uint32_t> &vec, std::string fn);
 std::string getFileExt(const std::string& s);
 void setRange(std::bitset<256> &column, int start, int end, int value);
 void parseSymbolSet(std::bitset<256> &column, std::string symbol_set);

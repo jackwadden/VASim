@@ -10,6 +10,7 @@
 #include "ANMLParser.h"
 #include "MNRLAdapter.h"
 #include "errors.h"
+#include "util.h"
 
 #include <cmath>
 #include <iostream>
@@ -95,9 +96,6 @@ public:
     vasim_err_t getErrorCode();
     
     // I/O
-    void writeStringToFile(std::string str, std::string fn);
-    void appendStringToFile(std::string str, std::string fn);
-    void writeIntVectorToFile(std::vector<uint32_t> &, std::string fn);
     void print();
     void writeReportToFile(std::string fn);
     void printReportBatchSim();

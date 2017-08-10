@@ -3,6 +3,38 @@
  */
 #include "util.h"
 
+/**
+ * Writes ints in vector \arg vec one per line to file with filename \arg fn.
+ */
+void writeIntVectorToFile(std::vector<uint32_t> &vec, std::string fn) {
+
+    std::ofstream out(fn);
+    for(uint32_t val : vec)
+        out << val << std::endl;
+    out.close();
+}
+
+/**
+ * Appends string \arg str to file with filename \arg fn.
+ */
+void appendStringToFile(std::string str, std::string fn) {
+
+    std::ofstream out(fn, std::ios::out | std::ios::app);
+    out << str;
+    out.close();
+}
+
+/**
+ * Writes string \arg str to file with filename \arg fn.
+ */
+void writeStringToFile(std::string str, std::string fn) {
+
+    std::ofstream out(fn);
+    out << str;
+    out.close();
+}
+
+
 std::string getFileExt(const std::string& s) {
 
    size_t i = s.rfind('.', s.length());

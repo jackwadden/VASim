@@ -2,7 +2,6 @@
  * @file
  */
 #include "automata.h"
-#include "util.h"
 
 using namespace std;
 using namespace MNRL;
@@ -757,36 +756,6 @@ void Automata::disableProfile() {
     profile = false;
 }
 
-/**
- * SHOULD BE MOVED TO UTIL
- */
-void Automata::writeStringToFile(string str, string fn) {
-
-    std::ofstream out(fn);
-    out << str;
-    out.close();
-}
-
-/**
- * SHOULD BE MOVED TO UTIL
- */
-void Automata::appendStringToFile(string str, string fn) {
-
-    std::ofstream out(fn, ios::out | ios::app);
-    out << str;
-    out.close();
-}
-
-/**
- * SHOULD BE MOVED TO UTIL
- */
-void Automata::writeIntVectorToFile(vector<uint32_t> &vec, string fn) {
-
-    std::ofstream out(fn);
-    for(uint32_t val : vec)
-        out << val << endl;
-    out.close();
-}
 
 /**
  * Prints out all elements in the automata.
