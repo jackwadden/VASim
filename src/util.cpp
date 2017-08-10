@@ -4,7 +4,7 @@
 #include "util.h"
 
 /**
- * Writes ints in vector \arg vec one per line to file with filename \arg fn.
+ * Writes ints in vector vec one per line to file with filename fn.
  */
 void writeIntVectorToFile(std::vector<uint32_t> &vec, std::string fn) {
 
@@ -15,7 +15,7 @@ void writeIntVectorToFile(std::vector<uint32_t> &vec, std::string fn) {
 }
 
 /**
- * Appends string \arg str to file with filename \arg fn.
+ * Appends string str to file with filename fn.
  */
 void appendStringToFile(std::string str, std::string fn) {
 
@@ -25,7 +25,7 @@ void appendStringToFile(std::string str, std::string fn) {
 }
 
 /**
- * Writes string \arg str to file with filename \arg fn.
+ * Writes string str to file with filename fn.
  */
 void writeStringToFile(std::string str, std::string fn) {
 
