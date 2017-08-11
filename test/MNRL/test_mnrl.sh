@@ -6,7 +6,7 @@
 # Note that diffing the output can use large amounts of memory
 # Since we need to read everything in and handle reordering of reports
 
-VASIM=../vasim
+VASIM=../../vasim
 
 # generate mnrl
 
