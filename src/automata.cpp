@@ -601,11 +601,6 @@ void Automata::removeElement(Element *el) {
         removeEdge(in.first, el->getId());
     }
 
-    // clear input data structures
-    el->clearInputs();
-    el->clearOutputs();
-    el->clearOutputPointers();
-
     // clear automata data structures
     if(el->isReporting()){
         reports.erase(find(reports.begin(), reports.end(), el));
@@ -783,7 +778,8 @@ void Automata::simulate(uint8_t symbol) {
     if(profile){
         profileActivations();
     }
-    
+
+    // Debug state
     if(dump_state && (dump_state_cycle == cycle)){
         dumpSTEState("stes_" + to_string(cycle) + ".state");
     }
@@ -3428,10 +3424,18 @@ void Automata::updateElementId(Element *el, string newId) {
         parents.push_back(input.first);
     }
 
+    // remove from data structures that have string->ptr maps
+    if(el->isSpecialElement()){
+        specialElements.erase(el->getId());
+    }
+
+    elements.erase(el->getId());
+
     // CHANGE ID
     el->setId(newId);
 
-    // TODO: Make sure the the element gets put back into the elements array with the new ID. This is not sufficient!
+    // Re-insert element into proper automata data structures
+    validateElement(el);
     
     // add back in all child edges
     for(string child : children){
@@ -3506,11 +3510,17 @@ void Automata::validateReportElement(Element* el){
  */
 void Automata::validateElement(Element* el) {
 
+    elements[el->getId()] = el;
+    
     // make sure we're in the start array if we're a start and vice versa
     validateStartElement(el);
     
     // if we're a report, make sure we're in the report array
     validateReportElement(el);
+
+    // make sure we're in the special element array with the right ID
+    if(el->isSpecialElement())
+        specialElements[el->getId()] = static_cast<SpecialElement*>(el);
 }
 
 /**
