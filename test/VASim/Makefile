@@ -14,4 +14,4 @@ PROGS = $(patsubst %.cpp, %,$(SRCS))
 all: $(PROGS)
 
 %: %.cpp
-	$(CC) $(IDIRS) $(FLAGS) $< $(LIBVASIM) $(LIBMNRL)  -o $@
+	$(CC) $(IDIRS) $(FLAGS) $< $(LIBVASIM) $(LIBMNRL)  -o $@Runner

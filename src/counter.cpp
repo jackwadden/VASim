@@ -6,7 +6,7 @@
 using namespace std;
 using namespace MNRL;
 
-/*
+/**
  *
  */
 Counter::Counter(string id, uint32_t target, string at_target) : SpecialElement(id), 
@@ -28,7 +28,7 @@ Counter::~Counter() {
 
 
 
-/*
+/**
  * Calculate should return whether or not this element is activated for the next cycle.
  */
 bool Counter::calculate() {
@@ -273,9 +273,8 @@ string Counter::toANML() {
     s.append(to_string(target));
     s.append("\">\n");
 
-    s.append("\t");
     for(string s2 : outputs) {
-        s.append("<activate-on-target element=\"");
+        s.append("\t<activate-on-target element=\"");
         s.append(s2);
         s.append("\"/>\n");
     }
