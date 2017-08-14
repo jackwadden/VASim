@@ -23,10 +23,3 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-This software was originally developed by Jack Wadden (jackwadden@gmail.com). 
-A list of all contributors is maintained at https://github.com/jackwadden/VASim.
-
-If you use VASim in your project, please use the following citation:
-Wadden, J. and Skadron, K. "VASim: An Open Source Simulation and Analysis Platform for Finite Automata Applications and Architecture Research." GitHub repository, https://github.com/jackwadden/VASim. University of Virginia, 2016.
-
-
