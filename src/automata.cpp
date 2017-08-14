@@ -2672,7 +2672,9 @@ uint32_t Automata::leftMinimize() {
         STE * s = static_cast<STE *>(e);
         merged += leftMinimizeChildren(s, 0);
     }
-    cout << "    merged " << merged << " inner states..." << endl;
+
+    if(!quiet)
+        cout << "    merged " << merged << " inner states..." << endl;
 
     return merged;
 }
