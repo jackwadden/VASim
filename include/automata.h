@@ -92,6 +92,7 @@ public:
     void enableQuiet();
     void enableDumpState(uint64_t);
     void disableProfile();
+    Element *getElement(std::string);
     void setErrorCode(vasim_err_t err);
     vasim_err_t getErrorCode();
     

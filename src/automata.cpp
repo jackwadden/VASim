@@ -64,9 +64,7 @@ Automata::Automata(string fn) : Automata() {
         for(string child : children) {
 
             // inputs are of the form "fromNodeId:toPort"
-            if(elements[Element::stripPort(child)] == NULL){
-                cout << "COULD NOT FIND ELEMENT WITH NAME: " << Element::stripPort(child) << "  DURING PARSE." << endl;
-                setErrorCode(E_ELEMENT_NOT_FOUND);
+            if(getElement(child) == NULL){
                 return;
             }
 
@@ -279,7 +277,7 @@ vector<Automata *> Automata::generateGNFAs(){
             // push parents to work_queue if not visited
             for(auto e : node->getInputs()){
                 string parent_id = e.first;
-                STE *parent = static_cast<STE*>(elements[parent_id]);
+                STE *parent = static_cast<STE*>(getElement(parent_id));
                 if(!visited[parent_id]){
                     work_queue.push(parent);
                     visited[parent_id] = true;
@@ -369,7 +367,7 @@ void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
         // add outputs from ste2 to outputs list of ste1
         if(Element::stripPort(str).compare(ste2->getId()) != 0){
             ste1->addOutput(str);
-            Element * e = elements[Element::stripPort(str)];
+            Element * e = getElement(str);
             // we may have already removed this
             if( e != NULL ){
                 pair<Element *, string> output(e, Element::getPort(str)); 
@@ -383,7 +381,7 @@ void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
             string port = Element::getPort(str);
             //if(!port.empty())
             //port = ":" + port;
-            Element * e2 = elements[Element::stripPort(str)]; 
+            Element * e2 = getElement(str);
             if(e2 != NULL){
                 e2->removeInput(ste2->getId() + port);
                 // add new input to child from ste1
@@ -401,7 +399,7 @@ void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
         if(Element::stripPort(e.first).compare(ste2->getId()) != 0) {
             
             // get parent node if it exists
-            Element * parent = elements[Element::stripPort(e.first)];
+            Element * parent = getElement(e.first);
             
             string port = Element::getPort(e.first);
             if(!port.empty())
@@ -417,7 +415,7 @@ void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
         if(Element::stripPort(e.first).compare(ste2->getId()) != 0) {
 
             // get parent node if it exists
-            Element * parent = elements[Element::stripPort(e.first)];
+            Element * parent = getElement(e.first);
             for(string e2 : parent->getOutputs()) {
                 if(e2.compare(ste2->getId()) == 0)
                     cout << "WAS NOT REMOVED" << endl;
@@ -495,7 +493,7 @@ vector<Automata*> Automata::splitConnectedComponents() {
             // Get unique parents
             for(auto input : current->getInputs()){
                 // only keep track of unique inputs
-                Element * to_add = elements[Element::stripPort(input.first)];
+                Element * to_add = getElement(input.first);
 
                 if(to_add == nullptr){
                     cout << input.first << endl;
@@ -985,7 +983,7 @@ void Automata::writeReportToFile(string fn) {
     std::ofstream out(fn);
     string str;
     for(pair<uint64_t,string> s : reportVector) {
-        str += to_string(s.first) + " : " + s.second + " : " + elements[s.second]->getReportCode() + "\n";
+        str += to_string(s.first) + " : " + s.second + " : " + getElement(s.second)->getReportCode() + "\n";
     }
     out << str;
     out.close();
@@ -1372,7 +1370,7 @@ void Automata::automataToDotFile(string out_fn) {
     for(auto e : id_map) {
         uint32_t from = e.second;
 
-        for(auto to : elements[Element::stripPort(e.first)]->getOutputs()) {
+        for(auto to : getElement(e.first)->getOutputs()) {
             str += to_string(from) + " -> " + to_string(id_map[Element::stripPort(to)]) + ";\n";
         }
     }
@@ -1409,7 +1407,7 @@ void Automata::removeOrGates() {
 
             //// make all of its parents report with the same ID
             for(auto e : specel->getInputs()){
-                Element *parent = elements[Element::stripPort(e.first)];
+                Element *parent = getElement(e.first);
                 parent->setReporting(true);
                 parent->setReportCode(specel->getReportCode());
                 // remove or gate from outputs
@@ -1441,6 +1439,7 @@ void Automata::removeOrGates() {
 
 /**
  * UNFINISHED:: Removes Counters from the automata. Counters can sometimes be replaced by an equivalent number of matching elements.
+ * TODO
  */
 void Automata::removeCounters() {
 
@@ -1490,7 +1489,7 @@ void Automata::removeCounters() {
         // for the guaranteed one STE on the count input
         STE *input;
         for(auto in : counter->getInputs()){
-            input = static_cast<STE*>(elements[Element::stripPort(in.first)]);
+            input = static_cast<STE*>(getElement(in.first));
 
             // remove output to counter
             string output = counter->getId() + Element::getPort(in.first);
@@ -1537,7 +1536,7 @@ void Automata::removeCounters() {
         // add outputs of counter to outputs of last node
         for(string out : counter->getOutputs()){
             input_prev->addOutput(out);
-            input_prev->addOutputPointer(make_pair(elements[out], out));
+            input_prev->addOutputPointer(make_pair(getElement(out), out));
         }
 
         //if counter reported, make last node report
@@ -1622,7 +1621,7 @@ void Automata::automataToNFAFile(string out_fn) {
 
         // for every output, 
         for(string s : start->getOutputs()) {
-            STE * ste = dynamic_cast<STE *>(elements[s]);
+            STE * ste = dynamic_cast<STE *>(getElement(s));
 
             //create a new state and make a transition
             if(id_map.find(s) == id_map.end())
@@ -1657,7 +1656,7 @@ void Automata::automataToNFAFile(string out_fn) {
         // get an element
         string id = to_process.front();
         //cout << elements[id]->toString() << endl;
-        STE * ste = dynamic_cast<STE *>(elements[id]);
+        STE * ste = dynamic_cast<STE *>(getElement(id));
 
         // make sure not to double add states
         // still not sure why this is necessary but it is...
@@ -1682,7 +1681,7 @@ void Automata::automataToNFAFile(string out_fn) {
 
         // for every output, 
         for(string s : ste->getOutputs()) {
-            STE * ste_to = dynamic_cast<STE *>(elements[s]);
+            STE * ste_to = dynamic_cast<STE *>(getElement(s));
             //create a new state and make a transition
             if(id_map.find(s) == id_map.end())
                 id_map[s] = state_counter++;
@@ -2587,7 +2586,7 @@ void Automata::specialElementSimulation() {
         bool ready = true;
         for(auto in : spel->getInputs()){
 
-            if(!calculated[elements[Element::stripPort(in.first)]->getIntId()]){
+            if(!calculated[getElement(in.first)->getIntId()]){
                 ready = false;
                 break;
             }
@@ -2808,14 +2807,14 @@ void Automata::validate() {
         // check inputs
         for(auto ins : el->getInputs()){
             // does my input exist?
-            if(elements[Element::stripPort(ins.first)] == NULL){
+            if(getElement(ins.first) == NULL){
                 cout << "FAILED INPUTS EXISTANCE TEST!" << endl;
                 cout << "  " << Element::stripPort(ins.first) << " input of element: " << e.first << " does not exist in the element map." << endl;
                 setErrorCode(E_MALFORMED_AUTOMATA);
                 return;
             }
 
-            Element * parent = elements[Element::stripPort(ins.first)];
+            Element * parent = getElement(ins.first);
 
             // does my input have me as an output?
             bool has_ref = false;
@@ -2841,14 +2840,14 @@ void Automata::validate() {
             string output = Element::stripPort(output_tmp);
 
             // does my output exist in the map?
-            if(elements[output] == NULL){
+            if(getElement(output) == NULL){
                 cout << "FAILED OUTPUTS TEST!" << endl;
                 cout << "  " << output << " output of element: " << e.first << " does not exist in the element map." << endl;
                 setErrorCode(E_MALFORMED_AUTOMATA);
                 return;
             }
 
-            Element * child = elements[output];
+            Element * child = getElement(output);
 
             // does my output have me as an input?
             bool has_ref = false;
@@ -2963,7 +2962,7 @@ void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
         Element * input_el;
         if(Element::stripPort(input_str).compare(ste2->getId()) != 0){
             ste1->addInput(input_str);
-            input_el = elements[Element::stripPort(input_str)];
+            input_el = getElement(input_str);
         }else{
             continue;
         }
@@ -3096,7 +3095,7 @@ void Automata::enforceFanIn(uint32_t fanin_max){
                 for(string output : s->getOutputs()){
                     // ignore selfref output, we'll handle it later
                     if(output.compare(s->getId()) != 0){
-                        Element *to = elements[output];
+                        Element *to = getElement(output);
                         addEdge(new_node, to);
 
                         // make sure we reconsider the output even if it was already marked
@@ -3109,7 +3108,7 @@ void Automata::enforceFanIn(uint32_t fanin_max){
                 uint32_t input_counter = 0;
                 while(input_counter < fanin_max && !old_inputs.empty()){
                     // add edge from input node to new node
-                    Element *from = elements[old_inputs.front()];
+                    Element *from = getElement(old_inputs.front());
                     addEdge(from ,new_node);
 
                     old_inputs.pop();
@@ -3164,7 +3163,7 @@ void Automata::enforceFanOut(uint32_t fanout_max){
         // add all parents to workq if they are not marked (visited)
         // NOTE: this implicitly does not handle special element children
         for(auto in : s->getInputs()){
-            Element *el = elements[in.first];
+            Element *el = getElement(in.first);
             // if not marked
             if(!el->isMarked()){
                 // add parent to workq
@@ -3230,7 +3229,7 @@ void Automata::enforceFanOut(uint32_t fanout_max){
                     if(input.compare(s->getId()) != 0){
 
                         //
-                        Element *from = elements[input];
+                        Element *from = getElement(input);
                         addEdge(from, new_node);
 
                         // make sure we reconsider the input node, even if it was already marked
@@ -3246,7 +3245,7 @@ void Automata::enforceFanOut(uint32_t fanout_max){
                 while(output_counter < fanout_max && !old_outputs.empty()){
 
                     // add output edge to new node
-                    addEdge(new_node, elements[old_outputs.front()]);
+                    addEdge(new_node, getElement(old_outputs.front()));
 
                     old_outputs.pop();
                     output_counter++;
@@ -3345,8 +3344,8 @@ void Automata::removeEdge(Element* from, Element *to) {
  */
 void Automata::removeEdge(string from_str, string to_str) {
 
-    Element *from = elements[Element::stripPort(from_str)];
-    Element *to = elements[Element::stripPort(to_str)];
+    Element *from = getElement(from_str);
+    Element *to = getElement(to_str);
 
     string to_port = Element::getPort(to_str);
     string from_port = Element::getPort(from_str);
@@ -3381,8 +3380,8 @@ void Automata::addEdge(Element* from, Element *to){
  */
 void Automata::addEdge(string from_str, string to_str) {
 
-    Element *from = elements[Element::stripPort(from_str)];
-    Element *to = elements[Element::stripPort(to_str)];
+    Element *from = getElement(from_str);
+    Element *to = getElement(to_str);
 
     string to_port = Element::getPort(to_str);
     string from_port = Element::getPort(from_str);
@@ -3523,6 +3522,22 @@ void Automata::validateElement(Element* el) {
     // make sure we're in the special element array with the right ID
     if(el->isSpecialElement())
         specialElements[el->getId()] = static_cast<SpecialElement*>(el);
+}
+
+/**
+ * Returns an element
+ */
+Element *Automata::getElement(std::string elementId) {
+
+    Element *el = elements[Element::stripPort(elementId)];
+
+    if(el == NULL){
+        setErrorCode(E_ELEMENT_NOT_FOUND);
+        if(!quiet)
+            cout << "WARNING: Element " << elementId << " was not found." << endl;
+    }
+
+    return el;
 }
 
 /**
