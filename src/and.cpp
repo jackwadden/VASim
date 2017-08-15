@@ -24,7 +24,7 @@ AND::~AND() {
  * DOES AND OPERATION OVER INPUTS
  */
 bool AND::calculate() {
-
+    
     bool result = true;
     
     for(auto e : inputs) {

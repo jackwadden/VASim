@@ -307,7 +307,7 @@ bool Element::clearInputs() {
  *
  */
 bool Element::addInput(string s) {
-
+    
     inputs[s] = false;
     return true;
 }
@@ -407,10 +407,7 @@ uint32_t Element::enableChildSpecialElements(queue<Element *> *enabledSpecialEls
         // consider all special elements
         numEnabledSpecEls++;
 
-        // if we can be enabled without an input, 
-        //we're already in the queue (stage one)
-        //enabledSpecialEls->push(child);
-        // adds enable signal as "fromElementId:toPort"        
+        // adds enable signal as "fromElementId:toPort"
         child->enable(getId() + e.second);
     }
 

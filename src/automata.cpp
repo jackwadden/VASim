@@ -126,7 +126,7 @@ void Automata::reset() {
         reportedLastCycle.pop();
 
     // clear report vector
-    reports.clear();
+    reportVector.clear();
 
     // reset cycle counter to be 0
     cycle = 0;
@@ -767,10 +767,12 @@ void Automata::print() {
  */
 void Automata::simulate(uint8_t symbol) {
 
+    
     // -----------------------------
     // Step 1: if STEs are enabled and we match, activate
     computeSTEMatches(symbol);
     // -----------------------------
+
     
     // Activation Statistics
     if(profile){
@@ -787,11 +789,13 @@ void Automata::simulate(uint8_t symbol) {
     enableSTEMatchingChildren();
     // -----------------------------
 
+
     // -----------------------------
     // Step 3:  enable start states
     enableStartStates();
     // -----------------------------
 
+    
     // -----------------------------
     // Step 4: special element computation
     if(specialElements.size() > 0){        
@@ -2546,10 +2550,10 @@ void Automata::specialElementSimulation() {
     map<uint32_t, bool> queued;
 
     queue<SpecialElement *> work_q;
-
+    
     // initialize tracking structures
     for( auto e : elements) {
-                
+        
         // initialize claculated map
         calculated[e.second->getIntId()] = false;
 
@@ -3369,9 +3373,12 @@ void Automata::removeEdge(string from_str, string to_str) {
  * Adds a directed edge between two elements.
  */
 void Automata::addEdge(Element* from, Element *to){
-    
+
     from->addOutput(to->getId());
-    from->addOutputPointer(make_pair(to, to->getId()));
+
+    // output pointers are paired with the output port
+    // for two element pointers the output port is blank
+    from->addOutputPointer(make_pair(to, ""));
     to->addInput(from->getId());
 }
 
@@ -3395,9 +3402,10 @@ void Automata::addEdge(string from_str, string to_str) {
 
     // add proper outputs to parent
     from->addOutput(to_str);
+    // output pointers are paired with their ports
     from->addOutputPointer(make_pair(to, to_port));
     
-    // add proper input to child
+    // add proper input to child as "fromId:toport
     to->addInput(from->getId() + to_port);
 }
 
