@@ -113,6 +113,7 @@ public:
     void initializeSimulation();
     void simulate(uint8_t *, uint64_t, uint64_t, bool);
     void simulate(uint8_t);
+    void simulate(uint8_t, std::vector<std::string> injects);
     void reset();
     void enableStartStates(); // formerly stageOne
     void computeSTEMatches(uint8_t); // formerly stageTwo

@@ -763,6 +763,24 @@ void Automata::print() {
 }
 
 /**
+ * Simulates the automata on a single input symbol. Injects is a list of element IDs injecting enable signals into the automata. All children of each injecting Element is enabled for the next symbol cycle.
+ */
+void Automata::simulate(uint8_t symbol, vector<string> injects) {
+
+    // enable all element children of injected signal
+    for(string inject : injects) {
+
+        Element *el = getElement(inject);
+        el->enableChildSTEs(&enabledSTEs);
+        if(specialElements.size() > 0)
+            el->enableChildSpecialElements(&enabledSpecialElements);
+        
+    }
+
+    simulate(symbol);
+}
+
+/**
  * Simulates the automata on a single input symbol.
  */
 void Automata::simulate(uint8_t symbol) {
