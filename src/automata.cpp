@@ -44,6 +44,7 @@ Automata::Automata(string fn) : Automata() {
     if(getFileExt(filename).compare("mnrl") == 0) {
         // Read in automata description from MNRL file
         MNRLAdapter parser(filename);
+        // TODO:: GET THIS TO RETURN PROPER ERROR CODE
         parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
     } else {
         // Read in automata description from ANML file
@@ -809,8 +810,8 @@ void Automata::simulate(uint8_t symbol) {
 
 
     // -----------------------------
-    // Step 3:  enable start states
-    enableStartStates();
+    // Step 3:  enable all-input start states
+    enableStartStates(false);
     // -----------------------------
 
     
@@ -913,7 +914,8 @@ void Automata::profileActivations() {
 void Automata::initializeSimulation() {
     
     // Initiate simulation by enabling all start states
-    enableStartStates();
+    bool enableStartOfDataStates = true;
+    enableStartStates(enableStartOfDataStates);
 
     //
     if(profile)
@@ -2460,16 +2462,14 @@ Automata* Automata::generateDFA() {
 /**
  * Enable all elements that are start states. Start states initiate computation by being enabled on the first cycle (for start-of-data type) or every cycle (for all-input type).
  */
-void Automata::enableStartStates() {
+void Automata::enableStartStates(bool enableStartOfData) {
 
     //for each start element
     for(STE * s: starts) {
 
         // Enable if start is "all input"
-        // or if it's the first cycle, enable start-of-data STEs
-        if(s->startIsAllInput() ||         
-           (cycle == 0 && s->startIsStartOfData())) {
-
+        if(s->startIsAllInput() || (enableStartOfData && s->startIsStartOfData())) { 
+           
             // add to enabled queue if we were not already enabled
             if(!s->isEnabled()){
                 s->enable();

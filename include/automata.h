@@ -115,7 +115,7 @@ public:
     void simulate(uint8_t);
     void simulate(uint8_t, std::vector<std::string> injects);
     void reset();
-    void enableStartStates(); // formerly stageOne
+    void enableStartStates(bool enableStartOfData); // formerly stageOne
     void computeSTEMatches(uint8_t); // formerly stageTwo
     void enableSTEMatchingChildren(); // formerly stageThree
     void specialElementSimulation(); // formerly stageFour/Five
