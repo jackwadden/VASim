@@ -23,6 +23,9 @@ int main(int argc, char * argv[]) {
     
     assert(bitsetToCharset(ste1->getBitColumn()).compare("[\\x41\\x43\\x4a-\\x4d]") == 0, testname + "2");
 
+    ste2->setBitColumn(ste1->getBitColumn());
+    assert(ste2->getSymbolSet().compare(ste1->getSymbolSet()) == 0, testname + "3");
+        
     // pass if no failures
     pass(testname);
 }

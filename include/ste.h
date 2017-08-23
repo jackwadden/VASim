@@ -39,6 +39,7 @@ public:
     std::string getSymbolSet();
     std::string getRegexSymbolSet();
     std::bitset<256> getBitColumn();
+    bool setBitColumn(std::bitset<256>);
     bool addSymbolToSymbolSet(uint32_t);
     bool setStart(std::string);
     bool setStart(Start);

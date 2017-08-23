@@ -326,9 +326,21 @@ shared_ptr<MNRLNode> STE::toMNRLObj() {
 /*
  *
  */
-//bool * STE::getBitColumn(){
-//    return bit_column;
-//}
+bool STE::setBitColumn(bitset<256> new_column){
+
+    // clear column
+    bit_column.reset();
+
+    // set all bits in our column to input column
+    for(size_t i = 0; i < 256; i++){
+        bit_column[i] = new_column[i];
+    }
+
+    // update string version of charset
+    setSymbolSet(bitsetToCharset(bit_column));
+
+    return true;
+}
 
 /*
  *
