@@ -352,27 +352,7 @@ bool STE::addSymbolToSymbolSet(uint32_t symbol) {
         // add to bit column
         bit_column.set(symbol);
         
-        // add to "symbol set"
-        // remove brackets if they exist
-        bool had_brackets = false;
-        if(symbol_set[0] == '[' &&
-           symbol_set[symbol_set.length() - 1] == ']'){
-            symbol_set = symbol_set.substr(1, symbol_set.length() - 2);
-            had_brackets = true;
-        }
-        
-        // add symbol as hex code
-        std::stringstream stream;
-        stream << std::hex 
-               << std::setfill ('0') << std::setw(sizeof(uint8_t)*2) 
-               << symbol;
-        std::string result( stream.str() );
-        symbol_set = symbol_set + "\\x" + result;
-        
-        // add back brackets if charset had them
-        if(had_brackets){
-            symbol_set = "[" + symbol_set + "]";
-        }
+        setSymbolSet(bitsetToCharset(bit_column));
     }
 
     return already_exists;

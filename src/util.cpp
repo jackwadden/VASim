@@ -34,7 +34,9 @@ void writeStringToFile(std::string str, std::string fn) {
     out.close();
 }
 
-
+/**
+ * Given a string, finds the first occurence of '.' from the right and returns everything after.
+ */
 std::string getFileExt(const std::string& s) {
 
    size_t i = s.rfind('.', s.length());
@@ -45,7 +47,72 @@ std::string getFileExt(const std::string& s) {
    return("");
 }
 
+/**
+ * Converts bitset to string representation of character set.
+ */
+std::string bitsetToCharset(std::bitset<256> column) {
 
+    std::stringstream stream;
+    stream << "[";
+
+    size_t last_val;
+    bool first = true;
+    bool range = false;
+    for(size_t i = 0; i < 256; i++){
+
+        if(column.test(i)){
+            
+            // handle first occurence of a value
+            if(first){
+                last_val = i;
+                first = false;
+            }
+
+            // if we're not in a range, check to see if we need to emit a dash
+            if(!range) {
+                // if this is a consecutive number, set range
+                if(last_val == (i - 1)) {
+                    range = true;
+                    stream << "-";
+                }else{
+                    stream << "\\x" << std::setfill('0') << std::setw(2) << std::hex << i;
+                }
+            }else{
+
+                // if we are in a range, a dash has already been set
+                // check to see if we need to end the range
+                if(last_val != (i - 1)) {
+                    // if we're out of range
+                    // print the last value
+                    stream << "\\x" << std::setfill('0') << std::setw(2) << std::hex << last_val;
+                    // print current value
+                    stream << "\\x" << std::setfill('0') << std::setw(2) << std::hex << i;
+
+                    // indicate we're no longer in a range
+                    range = false;
+                }
+
+                // otherwise do nothing
+            }
+
+            last_val = i;
+        }
+    }
+
+    // if we were in a range when we finished, make sure to emit the last value
+    if(range){
+        stream << "\\x" << std::setfill('0') << std::setw(2) << std::hex << last_val;
+    }
+
+    // emit final bracket
+    stream << "]";
+
+    return stream.str();
+}
+
+/**
+ * Sets a range for a given bitset from start to end as value.
+ */
 void setRange(std::bitset<256> &column, int start, int end, int value) {
 
     for(;start <= end; start++){
@@ -53,6 +120,9 @@ void setRange(std::bitset<256> &column, int start, int end, int value) {
     }
 }
 
+/**
+ * Parses a string representation of a symbol/character set and sets each corresponding bit in column.
+ */
 void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
 
     if(symbol_set.compare("*") == 0){

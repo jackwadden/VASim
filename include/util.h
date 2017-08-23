@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <string>
 
+std::string bitsetToCharset(std::bitset<256> column);
 void writeStringToFile(std::string str, std::string fn);
 void appendStringToFile(std::string str, std::string fn);
 void writeIntVectorToFile(std::vector<uint32_t> &vec, std::string fn);
