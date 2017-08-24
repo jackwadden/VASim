@@ -14,7 +14,7 @@ PUGI = ./libs/pugixml
 
 # LIBRARY DEPENDENCIES
 LIBMNRL = $(MNRL)/libmnrl.a
-LIBPUGI = $(PUGI)/build/make-g++-release-standard-c++11/src/pugixml.cpp.o
+LIBPUGI = $(PUGI)/build/make-$(CXX)-release-standard-c++11/src/pugixml.cpp.o
 
 # FLAGS
 CXXFLAGS= -I$(IDIR) -I$(MNRL)/include -I$(PUGI)/src -pthread --std=c++11
