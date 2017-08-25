@@ -12,6 +12,8 @@ using namespace MNRL;
  */
 Automata::Automata() {
 
+    cout << "BASE_CONSTRUCTOR" << endl;
+    
     // Initialize status code
     setErrorCode(E_SUCCESS);
     
@@ -32,28 +34,41 @@ Automata::Automata() {
     dump_state_cycle = 0;
 }
 
-
-/**
- * Constructs an Automata object from a given ANML or MNRL homogeneous automata description file.
+/** 
+ * Constructs an Automata object from a given ANML or MNRL homogeneous automata description file and the file type "mnrl" or "anml".
  */
-Automata::Automata(string fn) : Automata() {
+Automata::Automata(string fn, string filetype) {
 
-    filename = fn;    
-
-    // Read Automata from file
-    if(getFileExt(filename).compare("mnrl") == 0) {
+    // set file name
+    filename = fn;
+    
+    if(filetype.compare("mnrl") == 0){
+        cout << "MNRL" << endl;
         // Read in automata description from MNRL file
         MNRLAdapter parser(filename);
         // TODO:: GET THIS TO RETURN PROPER ERROR CODE
-        parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
+        parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);  
     } else {
         // Read in automata description from ANML file
         ANMLParser parser(filename);
         vasim_err_t result = parser.parse(elements, starts, reports, specialElements, &id, activateNoInputSpecialElements);
 
-        setErrorCode(result);
+        setErrorCode(result);        
     }
+}
 
+
+/**
+ * Constructs an Automata object from a given ANML or MNRL homogeneous automata description file.
+ */
+Automata::Automata(string fn) : Automata() {
+    
+    // Read Automata from file based on extension
+    if(getFileExt(fn).compare("mnrl") == 0) {
+        Automata(fn, "mnrl");
+    } else {
+        Automata(fn, "anml");
+    }
 
     // Populate Elements with back references and pointers
     for(auto e : elements) {

@@ -77,7 +77,8 @@ private:
     
 public:
     Automata();
-    Automata(std::string);
+    Automata(std::string fn);
+    Automata(std::string fn, std::string filetype);
     
     // Get/set
     std::vector<STE *> &getStarts();
