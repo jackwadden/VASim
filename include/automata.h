@@ -76,9 +76,13 @@ private:
     uint64_t cycle;
     
 public:
+
+    // Constructors
     Automata();
     Automata(std::string fn);
     Automata(std::string fn, std::string filetype);
+    void parseAutomataFile(std::string fn, std::string filetype);
+    void finalizeAutomata();
     
     // Get/set
     std::vector<STE *> &getStarts();
