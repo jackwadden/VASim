@@ -121,7 +121,7 @@ Please see https://www.github.com/jackwadden/VASim/issues for a list of known bu
 ## Citation
 If you use VASim in a publication, please use the following citation:
 
-Wadden, J., and Skadron, K. "VASim: An Open Virtual Automata Simulator for Automata Processing Application and Architecture Research." University of Virgini, Tech Report #CS2016-03, 2016.
+Wadden, J., and Skadron, K. "VASim: An Open Virtual Automata Simulator for Automata Processing Application and Architecture Research." University of Virginia, Tech Report #CS2016-03, 2016.
 
 ```
 @techreport{vasim,
