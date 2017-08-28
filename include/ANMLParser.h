@@ -32,6 +32,7 @@ public:
                       std::string *,
                       std::vector<SpecialElement*>&);
     STE *parseSTE(pugi::xml_node);
+    template<typename T> T*parseGate(pugi::xml_node);
     AND *parseAND(pugi::xml_node);
     OR *parseOR(pugi::xml_node);
     NOR *parseNOR(pugi::xml_node);

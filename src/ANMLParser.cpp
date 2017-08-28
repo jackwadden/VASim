@@ -10,12 +10,15 @@ ANMLParser::ANMLParser(string filename) : filename(filename) {
 
 }
 
+/**
+ *
+ */
 STE *ANMLParser::parseSTE(pugi::xml_node ste) {
 
     string id;
     string symbol_set;
     string start;
-
+    bool eod = false;
     
     // gather attributes
     for (pugi::xml_attribute attr = ste.first_attribute(); 
@@ -31,13 +34,19 @@ STE *ANMLParser::parseSTE(pugi::xml_node ste) {
         }else if(str.compare("start") == 0) {
             start = attr.value();
         } 
+
+        if(str.compare("high-only-on-eod") == 0) {
+            eod = true;
+        }
+
     }
 
 
     // create new STE
     STE *s = new STE(id, symbol_set, start);
     s->setIntId(unique_ids++);
-
+    s->setEod(eod);
+    
     for(pugi::xml_node aom : ste.children("activate-on-match")) {
         s->addOutput(aom.attribute("element").value());
     }
@@ -53,10 +62,15 @@ STE *ANMLParser::parseSTE(pugi::xml_node ste) {
     return s;    
 }
 
-AND *ANMLParser::parseAND(pugi::xml_node a) {
+/**
+ *
+ */
+template <typename T>
+T *ANMLParser::parseGate(pugi::xml_node a) {
 
     string id;
-
+    bool eod = false;
+    
     // gather attributes
     for (pugi::xml_attribute attr = a.first_attribute(); 
          attr; 
@@ -67,10 +81,15 @@ AND *ANMLParser::parseAND(pugi::xml_node a) {
         if(str.compare("id") == 0) { 
             id = attr.value();
         }
+
+        if(str.compare("high-only-on-eod") == 0) {
+            eod = true;
+        }
     }
 
-    // create new AND gate
-    AND *s = new AND(id);
+    // create new gate
+    T *s = new T(id);
+    s->setEod(eod);
     s->setIntId(unique_ids++);
 
     for(pugi::xml_node aom : a.children("activate-on-high")) {
@@ -85,41 +104,6 @@ AND *ANMLParser::parseAND(pugi::xml_node a) {
         s->setReportCode(aom.attribute("reportcode").value());
     }
 
-
-    return s;
-}
-
-/*
- *
- */
-OR *ANMLParser::parseOR(pugi::xml_node a) {
-
-    string id;
-
-    // gather attributes
-    for (pugi::xml_attribute attr = a.first_attribute(); 
-         attr; 
-         attr = attr.next_attribute()) {
-        
-        string str = attr.name();
-        
-        if(str.compare("id") == 0) { 
-            id = attr.value();
-        }
-    }
-
-    // create new OR gate
-    OR *s = new OR(id);
-    s->setIntId(unique_ids++);
-
-    for(pugi::xml_node aom : a.children("activate-on-high")) {
-        s->addOutput(aom.attribute("element").value());
-    }
-    
-    for(pugi::xml_node aom : a.children("report-on-high")) {
-        s->setReporting(true);
-    }
-
     for(pugi::xml_node aom : a.children("report-on-high")) {
         s->setReportCode(aom.attribute("reportcode").value());
     }
@@ -128,84 +112,9 @@ OR *ANMLParser::parseOR(pugi::xml_node a) {
     return s;
 }
 
-/*
+/**
  *
  */
-NOR *ANMLParser::parseNOR(pugi::xml_node a) {
-
-    string id;
-
-    // gather attributes
-    for (pugi::xml_attribute attr = a.first_attribute(); 
-         attr; 
-         attr = attr.next_attribute()) {
-        
-        string str = attr.name();
-        
-        if(str.compare("id") == 0) { 
-            id = attr.value();
-        }
-    }
-
-    // create new NOR gate
-    NOR *s = new NOR(id);
-    s->setIntId(unique_ids++);
-
-    for(pugi::xml_node aom : a.children("activate-on-high")) {
-        s->addOutput(aom.attribute("element").value());
-    }
-    
-    for(pugi::xml_node aom : a.children("report-on-high")) {
-        s->setReporting(true);
-    }
-
-    for(pugi::xml_node aom : a.children("report-on-high")) {
-        s->setReportCode(aom.attribute("reportcode").value());
-    }
-
-    return s;
-}
-
-
-/*
- *
- */
-Inverter *ANMLParser::parseInverter(pugi::xml_node inv) {
-
-    string id;
-
-    // gather attributes
-    for (pugi::xml_attribute attr = inv.first_attribute(); 
-         attr; 
-         attr = attr.next_attribute()) {
-        
-        string str = attr.name();
-        
-        if(str.compare("id") == 0) { 
-            id = attr.value();
-        }
-    }
-
-    // create new OR gate
-    Inverter *s = new Inverter(id);
-    s->setIntId(unique_ids++);
-
-    for(pugi::xml_node aom : inv.children("activate-on-high")) {
-        s->addOutput(aom.attribute("element").value());
-    }
-    
-    for(pugi::xml_node aom : inv.children("report-on-high")) {
-        s->setReporting(true);
-    }
-
-    for(pugi::xml_node aom : inv.children("report-on-high")) {
-        s->setReportCode(aom.attribute("reportcode").value());
-    }
-
-
-    return s;
-}
-
 Counter *ANMLParser::parseCounter(pugi::xml_node a) {
 
     string id;
@@ -255,6 +164,9 @@ Counter *ANMLParser::parseCounter(pugi::xml_node a) {
     return c;
 }
 
+/**
+ *
+ */
 vasim_err_t ANMLParser::parse(unordered_map<string, Element*> &elements, 
                        vector<STE*> &starts, 
                        vector<Element*> &reports, 
@@ -294,21 +206,22 @@ vasim_err_t ANMLParser::parse(unordered_map<string, Element*> &elements,
                 reports.push_back(s);
             }
         } else if(str.compare("and") == 0) {
-            AND *a = parseAND(node);
+            AND *a = parseGate<AND>(node);
             elements[a->getId()] = dynamic_cast<Element*>(a);
             if(a->isReporting()){
                 reports.push_back(a);
             }
             specialElements[a->getId()] = a;
         } else if(str.compare("or") == 0) {
-            OR *a = parseOR(node);
+            //OR *a = parseOR(node);
+            OR *a = parseGate<OR>(node);
             elements[a->getId()] = dynamic_cast<Element*>(a);
             if(a->isReporting()){
                 reports.push_back(a);
             }
             specialElements[a->getId()] = a;
         }else if(str.compare("nor") == 0) {
-            NOR *a = parseNOR(node);
+            NOR *a = parseGate<NOR>(node);
             elements[a->getId()] = dynamic_cast<Element*>(a);
             if(a->isReporting()){
                 reports.push_back(a);
@@ -323,7 +236,7 @@ vasim_err_t ANMLParser::parse(unordered_map<string, Element*> &elements,
             }
             specialElements[a->getId()] = a; 
         } else if (str.compare("inverter") == 0) {
-            Inverter *a = parseInverter(node);
+            Inverter *a = parseGate<Inverter>(node);
             elements[a->getId()] = dynamic_cast<Element*>(a);
             if(a->isReporting()){
                 reports.push_back(a);
