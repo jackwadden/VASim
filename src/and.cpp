@@ -55,7 +55,12 @@ string AND::toString() {
  */
 string AND::toANML() {
 
-    string str("AND: NOT IMPLEMENTED YET\n");
+    string str("<and ");
+
+    str += Gate::toANML();
+
+    str.append("</and>");
+
     return str;
 }
 

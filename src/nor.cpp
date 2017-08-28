@@ -56,23 +56,9 @@ string NOR::toString() {
 string NOR::toANML() {
 
     string str("<nor ");
-    str.append("id=\"");
-    str.append(id);
-    str.append("\">\n");
 
-    for(string s2 : outputs) {
-        str.append("<activate-on-match element=\"");
-        str.append(s2);
-        str.append("\"/>\n");
-    }
-
-    if(reporting){
-        str.append("\t<report-on-high reportcode=\"");
-        str.append(report_code);
-        str.append("\"/>\n");
-    }
-    str.append("</nor>");
-
+    str += Gate::toANML();
+    
     return str;
 }
 

@@ -23,7 +23,7 @@ public:
     bool isGate();
    
     virtual std::string toString() = 0;
-    virtual std::string toANML() = 0;
+    virtual std::string toANML();
     virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj() = 0;
     virtual bool isStateful();
 };

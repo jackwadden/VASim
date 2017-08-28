@@ -55,7 +55,12 @@ string Inverter::toString() {
  */
 string Inverter::toANML() {
 
-    string str("INV: NOT IMPLEMENTED YET\n");
+    string str("<inverter ");
+
+    str += Gate::toANML();
+
+    str.append("</inverter>");
+
     return str;
 }
 
