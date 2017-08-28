@@ -38,6 +38,7 @@ private:
     bool quiet;
     bool report;
     bool dump_state;
+    bool endOfData;
     uint32_t dump_state_cycle;
     
     std::unordered_map<std::string, Element*> elements;
@@ -116,7 +117,7 @@ public:
 
     // Simulation
     void initializeSimulation();
-    void simulate(uint8_t *, uint64_t, uint64_t, bool);
+    void simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, uint64_t end_index);
     void simulate(uint8_t);
     void simulate(uint8_t, std::vector<std::string> injects);
     void reset();

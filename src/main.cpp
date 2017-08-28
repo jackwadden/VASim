@@ -16,7 +16,6 @@ void usage(char * argv) {
 
     printf("USAGE: %s [OPTIONS] <automata anml> <input file/string> \n", argv);
     printf("  -i, --input               Input chars are taken from command line\n");
-    printf("  -s, --step                Useful if debugging; simulation advances one cycle per when a key is pressed\n");
     printf("  -t, --time                Time simulation\n");
     printf("  -r, --report              Print reports to stdout\n");
     printf("  -b, --batchsim            Output report mimics format of batchsim\n");
@@ -112,8 +111,8 @@ vector<unsigned char> file2CharVector(string fn) {
 /*
  *
  */
-void simulateAutomaton(Automata *a, uint8_t *input, uint64_t start_index, uint64_t size, bool step) {
-    a->simulate(input, start_index, size, step);
+void simulateAutomaton(Automata *a, uint8_t *input, uint64_t start_index, uint64_t sim_length, uint64_t total_length) {
+    a->simulate(input, start_index, sim_length, total_length);
 }
 
 /*
@@ -160,7 +159,6 @@ int main(int argc, char * argv[]) {
 
 
     bool input_string = false;
-    bool step = false;
     bool quiet = false;
     bool batchsim = false;
     bool report = false;
@@ -197,7 +195,6 @@ int main(int argc, char * argv[]) {
 
     struct option long_opt[] = {
         {"help",          no_argument, NULL, 'h'},
-        {"step",          no_argument, NULL, 's'},
         {"quiet",          no_argument, NULL, 'q'},
         {"report",         no_argument, NULL, 'r'},
         {"batchsim",         no_argument, NULL, 'b'},
@@ -238,10 +235,6 @@ int main(int argc, char * argv[]) {
             
         case 'q':
             quiet = true;
-            break;
-
-        case 's':
-            step = true;
             break;
 
         case 'r':
@@ -724,7 +717,7 @@ int main(int argc, char * argv[]) {
                                               input,
                                               packet_offset,
                                               length, 
-                                              step);
+                                              size);
             
                 packet_offset += packet_size;
             }

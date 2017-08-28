@@ -40,6 +40,8 @@ protected:
     std::string report_code;
     bool activated;
     bool enabled;
+    bool eod;
+
     bool marked;
 
     
@@ -65,6 +67,8 @@ public:
     virtual bool deactivate();
     inline bool isActivated() { return activated; }
     inline bool isEnabled() {return enabled; }
+    inline bool isEod() { return eod; }
+    void setEod(bool isEod);
     virtual bool isSpecialElement() = 0;
     virtual bool canActivateNoEnable();
     std::vector<std::string> getOutputs();

@@ -27,6 +27,9 @@ Automata::Automata() {
     // Initialize cycle to start at 0
     cycle = 0;
 
+    // End of data is false until last cycle
+    endOfData = false;
+    
     // debug
     dump_state = false;
     dump_state_cycle = 0;
@@ -955,7 +958,7 @@ void Automata::initializeSimulation() {
 /**
  * Simulates the automata on input string. Starts at start_index and runs for length symbols.
  */
-void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, bool step) {
+void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, uint64_t total_length) {
 
     cycle = start_index;
 
@@ -965,6 +968,10 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
     // for all inputs
     for(uint64_t i = start_index; i < start_index + length; i = i + 1) {
 
+        // set end of data flag
+        if( i == total_length - 1 )
+            endOfData = true;;
+        
         // measure progress on longer runs
         if(!quiet) {
 
@@ -981,10 +988,6 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
         }
 
         simulate(inputs[i]);
-
-        // if we are stepping, wait for a key to be pressed
-        if(step)
-            getchar();
 
     }
 
@@ -2535,8 +2538,12 @@ void Automata::computeSTEMatches(uint8_t symbol) {
 
             // report
             if(report && s->isReporting()) {
-
-                reportVector.push_back(make_pair(cycle, s->getId()));
+                if(s->isEod()) {
+                    if(endOfData)
+                        reportVector.push_back(make_pair(cycle, s->getId()));
+                }else{
+                    reportVector.push_back(make_pair(cycle, s->getId()));
+                }
             }
 
         }

@@ -13,7 +13,9 @@ Element::Element(string id) : id(id),
                               reporting(false), 
                               activated(false),
                               enabled(false),
-                              marked(false){
+                              marked(false),
+                              eod(false)
+{
 
 }
 
@@ -97,7 +99,7 @@ string Element::getReportCode() {
 }
 
 
-/*
+/**
  *
  */
 void Element::activate() {
@@ -105,7 +107,7 @@ void Element::activate() {
     activated = true;
 }
 
-/*
+/**
  * 
  */
 bool Element::deactivate() {
@@ -114,8 +116,14 @@ bool Element::deactivate() {
     return true;
 }
 
+/**
+ * 
+ */
+void Element::setEod(bool isEod) {
+    eod = isEod;
+}
 
-/*
+/**
  *
  */
 vector<string> Element::getOutputs() {
