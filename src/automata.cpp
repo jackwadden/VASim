@@ -1821,11 +1821,25 @@ void Automata::automataToMNRLFile(string out_fn) {
             
             string dst_port = Element::getPort(dst);
             
+            // determine the corret destination port
+            switch(getElement(dst)->getType()) {
+                case STE_T:
+                    dst_port = MNRLDefs::H_STATE_INPUT;
+                    break;
+                case COUNTER_T:
+                    dst_port = Element::getPort(dst);
+                    break;
+                default:
+                    // for Boolean
+                    dst_port = "b0"; // this is the first boolean port
+                    break;
+            }
+            
             net.addConnection(
                 el.second->getId(),// src id
                 MNRLDefs::H_STATE_OUTPUT,// src port
                 Element::stripPort(dst),// dest id
-                dst_port.compare("") == 0 ? MNRLDefs::H_STATE_INPUT : dst_port// dest port
+                dst_port// dest port
             );
         }
         
