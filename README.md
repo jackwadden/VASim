@@ -133,4 +133,4 @@ Wadden, J., and Skadron, K. "VASim: An Open Virtual Automata Simulator for Autom
 
 ```
 ## Acknowledgements
-This work was started at the University of Virginia and was supported by the following organizations at some point in time: The ARCS Foundation, the National Science Foundation, Micron Technologies, and the Center for Future Architectures Research (C-FAR), one of the six centers of STARnet, a Semiconductor Research Corporation program sponsored by MARCO and Darpa.
+This work was started at the University of Virginia and was supported by the following organizations at some point in time: The ARCS Foundation, the National Science Foundation (CCF-1116673, CCF-1629450, EF-1124931), Micron Technologies, and the Center for Future Architectures Research (C-FAR), one of the six centers of STARnet, a Semiconductor Research Corporation program sponsored by MARCO and Darpa.
