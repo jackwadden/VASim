@@ -11,11 +11,12 @@ using namespace MNRL;
  *
  */
 STE::STE(string id, string symbol_set, string strt) : Element(id), 
-                                                      symbol_set(symbol_set),
+                             
                                                       latched(false) {
 
     setStart(strt);
-
+    setSymbolSet(symbol_set);
+    
     for(uint32_t i = 0; i < 256; i++) {
         bit_column.set(i,0);
     }
@@ -37,7 +38,7 @@ STE::~STE() {
 bool STE::setSymbolSet(string symbol_set) {
 
     this->symbol_set = symbol_set;
-
+    sanitizeSymbolSet();
     return true;
 }
 
@@ -247,8 +248,8 @@ string STE::toString() {
     return s;
 }
 
-/*
- *
+/**
+ * Returns a string representation of this node as an ANML state transition element.
  */
 string STE::toANML() {
 
@@ -291,8 +292,9 @@ string STE::toANML() {
     return s;
 }
 
-/*
- * Note that this doesn't contain the connections
+/**
+ * Returns a MNRL object corresponding to this STE.
+ * Note: that this doesn't contain the connections
  */
 shared_ptr<MNRLNode> STE::toMNRLObj() {
     
@@ -323,7 +325,7 @@ shared_ptr<MNRLNode> STE::toMNRLObj() {
     return s;
 }
 
-/*
+/**
  *
  */
 bool STE::setBitColumn(bitset<256> new_column){
@@ -342,14 +344,14 @@ bool STE::setBitColumn(bitset<256> new_column){
     return true;
 }
 
-/*
+/**
  *
  */
 bitset<256> STE::getBitColumn(){
     return bit_column;
 }
 
-/*
+/**
  * Adds a character to a symbol set.
  *  If symbol set is wrapped with brackets, they are removed
  *  and then added after the symbol is added.
@@ -371,7 +373,7 @@ bool STE::addSymbolToSymbolSet(uint32_t symbol) {
 }
 
 
-/*
+/**
  * Implements compare for STEs (greater than)
  */
 int STE::compare(STE *other) {
@@ -529,7 +531,7 @@ int STE::compare(STE *other) {
     return 0;
 }
 
-/*
+/**
  * Implements compare for STE columns (greater than)
  */
 int STE::compareSymbolSet(STE *other) {
@@ -551,6 +553,9 @@ int STE::compareSymbolSet(STE *other) {
     return 0;
 }
 
+/**
+ *
+ */
 STE *STE::clone() {
 
     STE * clone = new STE(getId(), getSymbolSet(), getStringStart());
@@ -581,7 +586,7 @@ STE *STE::clone() {
     return clone;
 }
 
-/*
+/**
  *
  */
 void STE::follow(uint32_t character, set<STE*> *follow_set){
@@ -594,10 +599,39 @@ void STE::follow(uint32_t character, set<STE*> *follow_set){
     }
 }
 
-/*
+/**
  *
  */
 ElementType STE::getType() {
 
     return ElementType::STE_T;
+}
+
+
+
+/**
+ * Replaces illegal XML chars in charset with hex version
+ */
+void STE::sanitizeSymbolSet() {
+
+    // &
+    size_t loc = symbol_set.find("&");
+    while(loc != string::npos) {
+        symbol_set.replace(loc, string("\\x26").length(), "\\x26");
+        loc = symbol_set.find("&");
+    }
+
+    // <
+    loc = symbol_set.find("<");
+    while(loc != string::npos) {
+        symbol_set.replace(loc, string("\\x3C").length(), "\\x3C");
+        loc = symbol_set.find("<");
+    }
+
+    // "
+    loc = symbol_set.find("\"");
+    while(loc != string::npos) {
+        symbol_set.replace(loc, string("\\x22").length(), "\\x22");
+        loc = symbol_set.find("\"");
+    }
 }

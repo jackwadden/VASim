@@ -72,6 +72,7 @@ public:
     void merge(STE*);
     STE* clone();
     void follow(uint32_t, std::set<STE*> *);
+    void sanitizeSymbolSet();
     
 };
 
