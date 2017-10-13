@@ -628,10 +628,24 @@ void STE::sanitizeSymbolSet() {
         loc = symbol_set.find("<");
     }
 
+    // <
+    loc = symbol_set.find(">");
+    while(loc != string::npos) {
+        symbol_set.replace(loc, string("\\x3E").length(), "\\x3E");
+        loc = symbol_set.find(">");
+    }
+
     // "
     loc = symbol_set.find("\"");
     while(loc != string::npos) {
         symbol_set.replace(loc, string("\\x22").length(), "\\x22");
         loc = symbol_set.find("\"");
+    }
+
+    // '
+    loc = symbol_set.find("\'");
+    while(loc != string::npos) {
+        symbol_set.replace(loc, string("\\x27").length(), "\\x27");
+        loc = symbol_set.find("\'");
     }
 }
