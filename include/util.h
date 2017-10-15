@@ -74,5 +74,9 @@ void mul(std::vector<size_t> &a, const std::vector<size_t> &b);
 
 int QMScore(std::bitset<256> column); 
 
+void find_and_replace(std::string& source,
+                      std::string const& find,
+                      std::string const& replace);
+
 
 #endif

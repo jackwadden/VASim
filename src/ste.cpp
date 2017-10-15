@@ -223,10 +223,10 @@ string STE::toString() {
         
     s.append("\n\t");
     s.append("activate-on-match=\n\t  ");
-  //  for(string s2 : outputs) {
-  //      s.append(s2);
-  //      s.append("\n\t  ");
-  //  }
+    //  for(string s2 : outputs) {
+    //      s.append(s2);
+    //      s.append("\n\t  ");
+    //  }
     s.append("reporting=");
     if(reporting)
         s.append("true");
@@ -300,27 +300,27 @@ shared_ptr<MNRLNode> STE::toMNRLObj() {
     
     MNRLDefs::EnableType en;
     switch(start) {
-        case NONE:
-            en = MNRLDefs::EnableType::ENABLE_ON_ACTIVATE_IN;
-            break;
-        case START_OF_DATA:
-            en = MNRLDefs::EnableType::ENABLE_ON_START_AND_ACTIVATE_IN;
-            break;
-        case ALL_INPUT:
-            en = MNRLDefs::EnableType::ENABLE_ALWAYS;
-            break;
+    case NONE:
+        en = MNRLDefs::EnableType::ENABLE_ON_ACTIVATE_IN;
+        break;
+    case START_OF_DATA:
+        en = MNRLDefs::EnableType::ENABLE_ON_START_AND_ACTIVATE_IN;
+        break;
+    case ALL_INPUT:
+        en = MNRLDefs::EnableType::ENABLE_ALWAYS;
+        break;
     }
     
     shared_ptr<MNRLHState> s =
         shared_ptr<MNRLHState>(new MNRLHState(
-            symbol_set,
-            en,
-            id,
-            reporting,
-            false, // latched
-            report_code,
-            shared_ptr<map<string,string>>(new map<string,string>())
-        ));
+                                              symbol_set,
+                                              en,
+                                              id,
+                                              reporting,
+                                              false, // latched
+                                              report_code,
+                                              shared_ptr<map<string,string>>(new map<string,string>())
+                                              ));
     
     return s;
 }
@@ -390,11 +390,11 @@ int STE::compare(STE *other) {
             //cout << "charset greater: " << getSymbolSet() << " :: " << other->getSymbolSet() << endl;
             return -1;
         } 
-   }
+    }
 
     // check start
     // Greater conditions
-     bool debug_out = false;
+    bool debug_out = false;
     if(getStart() != other->getStart()){
         if(getStart() == ALL_INPUT){
             return 1;
@@ -441,12 +441,12 @@ int STE::compare(STE *other) {
 
         //can merge start states that self reference
         if(inputs.size() > other->getInputs().size()){
-        if(debug_out)
-            cout << "input size mismatch1" << endl;
+            if(debug_out)
+                cout << "input size mismatch1" << endl;
             return 1;
         } else {
-        if(debug_out)
-            cout << "input size mismatch2" << endl;
+            if(debug_out)
+                cout << "input size mismatch2" << endl;
             return -1;
         }
     }
@@ -477,7 +477,7 @@ int STE::compare(STE *other) {
     // check input sizes again
     if(keys.size() != other_keys.size()) {
         if(debug_out)
-        cout << "inputs don't match" << endl;
+            cout << "inputs don't match" << endl;
         if(keys.size() > other_keys.size())
             return 1;
         else 
@@ -486,15 +486,15 @@ int STE::compare(STE *other) {
 
     // compare sorted input keys, returning lexocographic ordering of first mismatch
     /*if(debug_out){
-        for(int i = 0; i < keys.size(); i++){
-    	    cout << keys[i] << "asf" << endl;
-            cout << other_keys[i] << endl;
-        }
-    }
-*/
+      for(int i = 0; i < keys.size(); i++){
+      cout << keys[i] << "asf" << endl;
+      cout << other_keys[i] << endl;
+      }
+      }
+    */
     for(int i = 0; i < keys.size(); i++){
 	if(debug_out) 
-	cout<< keys[i] << " " << other_keys[i]<<endl;
+            cout<< keys[i] << " " << other_keys[i]<<endl;
         int comp_result = keys[i].compare(other_keys[i]);
         if(comp_result > 0){
             if(debug_out){
@@ -503,29 +503,29 @@ int STE::compare(STE *other) {
             return 1;
             
         }else if(comp_result < 0) {
-        if(debug_out)
-            cout << "inputs don't match3" << endl;
+            if(debug_out)
+                cout << "inputs don't match3" << endl;
             return -1;
         }
     }
 
     // match returns 0
     /*
-    cout << "*************" << endl;
-    cout << toString() << "\n" << other->toString();
-    cout << "*************" << endl;
+      cout << "*************" << endl;
+      cout << toString() << "\n" << other->toString();
+      cout << "*************" << endl;
     */
     /*
-    if(symbol_set.compare(other->getSymbolSet()) != 0){
-        cout << "MISMATCH" << endl;
-        cout << "*************" << endl;
-        cout << toString() << "\n" << other->toString();
-        for(int i = 0; i < 256; i++){
-            cout << bit_column.test(i) << endl;
-        }
-        cout << "*************" << endl;
+      if(symbol_set.compare(other->getSymbolSet()) != 0){
+      cout << "MISMATCH" << endl;
+      cout << "*************" << endl;
+      cout << toString() << "\n" << other->toString();
+      for(int i = 0; i < 256; i++){
+      cout << bit_column.test(i) << endl;
+      }
+      cout << "*************" << endl;
         
-    }
+      }
     */
 
     return 0;
@@ -548,7 +548,7 @@ int STE::compareSymbolSet(STE *other) {
             //cout << "charset greater: " << getSymbolSet() << " :: " << other->getSymbolSet() << endl;
             return -1;
         } 
-   }
+    }
 
     return 0;
 }
@@ -573,13 +573,13 @@ STE *STE::clone() {
     /*
     // add all inputs
     for(auto in : inputs){
-        clone->addInput(in.first);
+    clone->addInput(in.first);
     }
 
     // add all outputs
     for(auto out : getOutputSTEPointers()){
-        clone->addOutput(out.second);
-        clone->addOutputPointer(out.first, out.second);
+    clone->addOutput(out.second);
+    clone->addOutputPointer(out.first, out.second);
     }
     */
                 
@@ -608,44 +608,24 @@ ElementType STE::getType() {
 }
 
 
-
 /**
  * Replaces illegal XML chars in charset with hex version
  */
 void STE::sanitizeSymbolSet() {
 
     // &
-    size_t loc = symbol_set.find("&");
-    while(loc != string::npos) {
-        symbol_set.replace(loc, string("\\x26").length(), "\\x26");
-        loc = symbol_set.find("&");
-    }
+    find_and_replace(symbol_set, "&", "\\x26");
 
     // <
-    loc = symbol_set.find("<");
-    while(loc != string::npos) {
-        symbol_set.replace(loc, string("\\x3C").length(), "\\x3C");
-        loc = symbol_set.find("<");
-    }
+    find_and_replace(symbol_set, "<", "\\x3C");
 
-    // <
-    loc = symbol_set.find(">");
-    while(loc != string::npos) {
-        symbol_set.replace(loc, string("\\x3E").length(), "\\x3E");
-        loc = symbol_set.find(">");
-    }
+    // >
+    find_and_replace(symbol_set, ">", "\\x3E");
+    
+    // "
+    find_and_replace(symbol_set, "\"", "\\x22");
 
     // "
-    loc = symbol_set.find("\"");
-    while(loc != string::npos) {
-        symbol_set.replace(loc, string("\\x22").length(), "\\x22");
-        loc = symbol_set.find("\"");
-    }
+    find_and_replace(symbol_set, "\'", "\\x27");
 
-    // '
-    loc = symbol_set.find("\'");
-    while(loc != string::npos) {
-        symbol_set.replace(loc, string("\\x27").length(), "\\x27");
-        loc = symbol_set.find("\'");
-    }
 }
