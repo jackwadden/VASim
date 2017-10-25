@@ -101,6 +101,7 @@ public:
     Element *getElement(std::string);
     void setErrorCode(vasim_err_t err);
     vasim_err_t getErrorCode();
+    void unmarkAllElements();
     
     // I/O
     void print();
@@ -170,6 +171,7 @@ public:
     uint32_t leftMinimize();
     uint32_t leftMinimizeChildren(STE*, int);
     Automata * generateDFA();
+    void eliminateDeadStates();
 
     // Util
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);

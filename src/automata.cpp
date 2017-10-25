@@ -118,9 +118,11 @@ void Automata::reset() {
         Element *e = ee.second;
         e->deactivate();
         e->disable();
-        e->unmark();
     }
 
+    // unmark all elements
+    unmarkAllElements();
+    
     // clear all functional maps
     while(!enabledSTEs.empty())
         enabledSTEs.pop_back();
@@ -466,9 +468,7 @@ void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
 vector<Automata*> Automata::splitConnectedComponents() {
 
     // unmark all elements
-    for(auto e : getElements()){
-        e.second->unmark();
-    }
+    unmarkAllElements();
 
     vector<Automata*> connectedComponents;
     uint32_t index = 0;
@@ -2736,9 +2736,7 @@ uint32_t Automata::leftMinimize() {
     for(auto e : starts){
 
         // unmark all elements
-        for(auto e : getElements()){
-            e.second->unmark();
-        }
+        unmarkAllElements();
 
         STE * s = static_cast<STE *>(e);
         merged += leftMinimizeChildren(s, 0);
@@ -2821,9 +2819,7 @@ void Automata::leftMinimizeStartStates() {
     uint32_t merge_count = 0;
 
     // unmark all elements
-    for(auto e : getElements()){
-        e.second->unmark();
-    }
+    unmarkAllElements();
 
     queue<STE *> workq;
     queue<STE *> workq_tmp;
@@ -3076,11 +3072,11 @@ void Automata::enforceFanIn(uint32_t fanin_max){
     // BFS queue of elements to process 
     queue<STE*> workq;
 
+    // unmark all elements
+    unmarkAllElements();
+    
     // push all start states to workq
     for(auto el : getElements()){ 
-
-        // unmark all elements
-        el.second->unmark();
 
         // ignore special elements
         if(el.second->isSpecialElement()){
@@ -3207,10 +3203,12 @@ void Automata::enforceFanOut(uint32_t fanout_max){
     // BFS queue of elements to process 
     queue<STE*> workq;
 
-    // unmark all stes
+    // unmark all elements
+    unmarkAllElements();
+    
     // push report states to workq
     for(auto el : getElements()){ 
-        el.second->unmark();
+
         if(el.second->isSpecialElement()){
             continue;
         }
@@ -3630,4 +3628,138 @@ void Automata::setErrorCode(vasim_err_t err) {
 vasim_err_t Automata::getErrorCode() {
 
     return error;
+}
+
+/**
+ * Unmarks all elements in the automata.
+ */
+void Automata::unmarkAllElements() {
+
+    for(auto e : elements){
+        e.second->unmark();
+    }
+}
+
+/**
+ * Removes elements that are unreachable or cannot result in a match.
+ */
+void Automata::eliminateDeadStates() {
+
+    // if we can't reach a report state, we should be eliminated
+    // for each state, check if we can reach a report state
+    queue<Element *> toRemove;
+    for(auto e : elements){
+
+        // unmark all elements
+        unmarkAllElements();
+        
+        Element *el = e.second;
+
+        // Can we reach a report state from el?
+        bool report_unreachable = true;
+        queue<Element *> workq;
+        
+        // push outputs to workq
+        for(string out : el->getOutputs()){
+            Element *output = getElement(out);
+            if(output->isReporting()) {
+                report_unreachable = false;
+            }
+
+            // push to queue
+            if(!output->isMarked()) {
+                output->mark();
+                workq.push(output);
+            }
+        }
+
+        // BFS and attempt to find a report state
+        while(!workq.empty() && report_unreachable){
+
+            Element *child = workq.front();
+            workq.pop();
+            
+            for(string out : child->getOutputs()){
+                Element *output = getElement(out);
+                if(output->isReporting()) {
+                    report_unreachable = false;
+                }
+                
+                // push to queue
+                if(!output->isMarked()) {
+                    output->mark();
+                    workq.push(output);
+                }
+            }
+        }
+
+        //
+        if(report_unreachable){
+            toRemove.push(el);
+        }
+    }
+
+    // Remove all dead states from the automata
+    while(!toRemove.empty()){
+        Element *el = toRemove.front();
+        toRemove.pop();
+        removeElement(el);
+    }
+
+
+    // we also need to find elements that are unreachable from start states
+    //   even if they can lead to reports
+
+    // unmark all elements
+    unmarkAllElements();
+
+    // BFS all reachable states from the start states
+    for(STE *el : getStarts()){
+        
+        queue<Element *> workq;
+        
+        // push outputs to workq
+        for(string out : el->getOutputs()){
+            Element *output = getElement(out);
+
+            // push to queue
+            if(!output->isMarked()) {
+                output->mark();
+                workq.push(output);
+            }
+        }
+
+        // BFS and attempt to find a report state
+        while(!workq.empty()){
+
+            Element *child = workq.front();
+            workq.pop();
+            
+            for(string out : child->getOutputs()){
+                Element *output = getElement(out);
+                
+                // push to queue
+                if(!output->isMarked()) {
+                    output->mark();
+                    workq.push(output);
+                }
+            }
+        }
+
+    }
+
+    // Remove all dead states from the automata
+    for(auto e : elements){
+        // if an element wasn't marked, delete it
+        if(!e.second->isMarked()){
+            toRemove.push(e.second);
+        }
+    }
+    
+    // remove all unmarked elements
+    while(!toRemove.empty()){
+        Element *el = toRemove.front();
+        toRemove.pop();
+        removeElement(el);
+    }
 }
