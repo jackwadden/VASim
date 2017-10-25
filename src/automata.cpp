@@ -3657,8 +3657,14 @@ void Automata::eliminateDeadStates() {
 
         // Can we reach a report state from el?
         bool report_unreachable = true;
-        queue<Element *> workq;
         
+        // are we a report state?
+        if(el->isReporting()) {
+            el->mark();
+            report_unreachable = false;
+        }
+        
+        queue<Element *> workq;
         // push outputs to workq
         for(string out : el->getOutputs()){
             Element *output = getElement(out);
@@ -3715,6 +3721,8 @@ void Automata::eliminateDeadStates() {
 
     // BFS all reachable states from the start states
     for(STE *el : getStarts()){
+
+        el->mark();
         
         queue<Element *> workq;
         
