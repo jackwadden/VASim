@@ -3771,3 +3771,25 @@ void Automata::eliminateDeadStates() {
         removeElement(el);
     }
 }
+
+/**
+ * Redundant edges include those that connect to "all-input" start states.
+ *   all input start states are enabled on every cycle and so incoming edges
+ *   are always redundant.
+ */
+void Automata::removeRedundantEdges() {
+
+    // remove any input edge to an all-input start state
+    for(STE *ste: getStarts()){
+
+        if(ste->getStringStart().compare("all-input") == 0){
+
+            // remove all incoming edges
+            for(auto in : ste->getInputs()){
+                removeEdge(getElement(in.first), ste);
+            }
+        }
+    }
+
+    // add other instances here.
+}

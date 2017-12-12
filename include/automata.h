@@ -172,7 +172,8 @@ public:
     uint32_t leftMinimizeChildren(STE*, int);
     Automata * generateDFA();
     void eliminateDeadStates();
-
+    void removeRedundantEdges();
+    
     // Util
     std::set<STE*>* follow(uint32_t, std::set<STE*>*);
     std::string getElementColor(std::string);
