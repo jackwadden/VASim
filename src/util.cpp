@@ -798,3 +798,97 @@ void find_and_replace(std::string & source,
         i += replace.length();
     }
 }
+
+uint32_t fileSize(std::string fn) {
+
+    // open the file:
+    std::ifstream file(fn, std::ios::binary);
+
+    // Stop eating new lines in binary mode!!!
+    file.unsetf(std::ios::skipws);
+
+    // get its size:
+    std::streampos fileSize;
+
+    file.seekg(0, std::ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    return fileSize;
+}
+
+void inputFileCheck() {
+    if(errno == ENOENT) {
+        std::cout<< "VAsim Error: no such input file." << std::endl;
+        exit(-1);
+    }
+}
+
+std::vector<unsigned char> file2CharVector(std::string fn) {
+
+    // open the file:
+    std::ifstream file(fn, std::ios::binary);
+    if(file.fail()){
+        inputFileCheck();
+    }
+
+    // get its size:
+    std::streampos fileSize;
+
+    file.seekg(0, std::ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // Stop eating new lines in binary mode!!!
+    file.unsetf(std::ios::skipws);
+
+    // reserve capacity
+    std::vector<unsigned char> vec;
+    vec.reserve(fileSize);
+
+    // read the data:
+    vec.insert(vec.begin(),
+               std::istream_iterator<unsigned char>(file),
+               std::istream_iterator<unsigned char>());
+
+    return vec;
+
+}
+
+/*                                                                                         
+ * Returns the input stream byte array, stores length in size pointer input                
+ */
+uint8_t * parseInputStream(bool simulate, bool input_string, uint64_t *size, char ** argv,\
+                           uint32_t optind) {
+
+    uint8_t * input;
+
+    if(simulate){
+        // From command line
+        if(input_string){
+            std::string input2 = argv[optind];
+            *size = (uint64_t)input2.length();
+            uint64_t counter = 0;
+            input = (uint8_t*)malloc(sizeof(uint8_t) * *size);
+            // copy bytes to unsigned ints
+            for(unsigned char val : input2){
+                input[counter] = (uint8_t)val;
+                counter++;
+            }
+            // From file
+        } else {
+            std::string input_fn = argv[optind];
+            std::vector<unsigned char> input2 = file2CharVector(input_fn);
+            *size = input2.size();
+            input = (uint8_t*)malloc(sizeof(uint8_t) * input2.size());
+            // copy bytes to unsigned ints
+            uint64_t counter = 0;
+            for(uint8_t val : input2){
+                input[counter] = (uint8_t)val;
+                counter++;
+            }
+        }
+    }
+
+    return input;
+}

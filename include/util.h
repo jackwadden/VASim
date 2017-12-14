@@ -14,7 +14,13 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <ios>
+#include <iterator>
 
+uint32_t fileSize(std::string fn);
+void inputFileCheck();
+std::vector<unsigned char> file2CharVector(std::string fn);
+uint8_t * parseInputStream(bool simulate, bool input_string, uint64_t *size, char ** argv, uint32_t optind);
 std::string bitsetToCharset(std::bitset<256> column);
 void writeStringToFile(std::string str, std::string fn);
 void appendStringToFile(std::string str, std::string fn);
