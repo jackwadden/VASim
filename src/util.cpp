@@ -555,23 +555,10 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
         exit(1);
     }
 
-
-    /*    
-    std::cout << "***" << std::endl;
-    for(int i = 0; i < 256; i++){
-        if(column.test(i))
-            std::cout << i << " : 1" << std::endl;
-        else
-            std::cout << i << " : 0" << std::endl;
-    }
-    std::cout << "***" << std::endl;
-    */
 }
 
 
-/*
- * Quine-Mcklusky Algorithm for calculating character-set complexity
- */
+// QMS helper
 int count1s(size_t x) {
     int o = 0;
     while (x) {
@@ -581,13 +568,7 @@ int count1s(size_t x) {
     return o;
 }
 
-/*
-void printTab(const std::vector<Implicant> &imp) {
-    for (size_t i = 0; i < imp.size(); ++i)
-        //std::cout << imp[i] << std::endl;
-    std::cout << "-------------------------------------------------------\n";
-}
-*/
+// QMS helper
 void mul(std::vector<size_t> &a, const std::vector<size_t> &b) {
 
     std::vector<size_t> v;
@@ -615,6 +596,9 @@ void mul(std::vector<size_t> &a, const std::vector<size_t> &b) {
     a = v;
 }
 
+/**
+ * Quine-Mcklusky Algorithm to use as a measure of character-set complexity
+ */
 int QMScore(std::bitset<256> column) {
 
     int combs = 8;
@@ -799,6 +783,9 @@ void find_and_replace(std::string & source,
     }
 }
 
+/**
+ * Checks the size of a file in bytes given a file name.
+ */
 uint32_t fileSize(std::string fn) {
 
     // open the file:
@@ -817,6 +804,9 @@ uint32_t fileSize(std::string fn) {
     return fileSize;
 }
 
+/**
+ * Checks errno to see if there was an error opening the file.
+ */
 void inputFileCheck() {
     if(errno == ENOENT) {
         std::cout<< "VAsim Error: no such input file." << std::endl;
@@ -824,6 +814,9 @@ void inputFileCheck() {
     }
 }
 
+/**
+ * Opens and parses a file name and returns its contents as a vector of unsigned chars.
+ */
 std::vector<unsigned char> file2CharVector(std::string fn) {
 
     // open the file:
@@ -855,11 +848,10 @@ std::vector<unsigned char> file2CharVector(std::string fn) {
 
 }
 
-/*                                                                                         
- * Returns the input stream byte array, stores length in size pointer input                
+/**
+ * Returns the input stream byte array, stores length in size pointer input
  */
-uint8_t * parseInputStream(bool simulate, bool input_string, uint64_t *size, char ** argv,\
-                           uint32_t optind) {
+uint8_t * parseInputStream(bool simulate, bool input_string, uint64_t *size, char ** argv, uint32_t optind) {
 
     uint8_t * input;
 

@@ -150,6 +150,7 @@ public:
     void removeEdge(Element *from, Element *to);
     void removeEdge(std::string from, std::string to);
     void updateElementId(Element *el, std::string newId);
+    void addSTE(STE *);
     void addSTE(STE *, std::vector<std::string>&);
     void rawAddSTE(STE *);
     void rawAddSpecialElement(SpecialElement *);

@@ -36,7 +36,7 @@ Automata::Automata() {
 }
 
 /**
- *
+ * Populates all internal graph data structures based on the connections defined in the string output arrays of Elements. Should be run after any modification to the graph.
  */
 void Automata::finalizeAutomata() {
     
@@ -60,6 +60,9 @@ void Automata::finalizeAutomata() {
     }
 }
 
+/**
+ * Constructs an automata object based on a string file name and a file type. Supported file types are "anml" and "mnrl". All unrecognized file types are assumed to be anml.
+ */
 void Automata::parseAutomataFile(string fn, string filetype) {
 
     // set filename
@@ -92,7 +95,7 @@ Automata::Automata(string fn, string filetype) : Automata() {
 
 
 /**
- * Constructs an Automata object from a given ANML or MNRL homogeneous automata description file.
+ * Constructs an Automata object from a given ANML or MNRL homogeneous automata description file. Automatically determines file type based on the file extension. Currently VASim only supports MNRL (.mnrl) and ANML (.anml) files.
  */
 Automata::Automata(string fn) : Automata() {
 
@@ -169,6 +172,19 @@ void Automata::reset() {
 }
 
 /**
+ * Adds an STE to the current automata. Adds all edges contained in STEs output list.
+ */
+void Automata::addSTE(STE *ste) {
+
+    rawAddSTE(ste);
+    
+    // for all outputs, add a proper edge
+    for(auto str : ste->getOutputs()) {
+        addEdge(ste->getId(), str);
+    }
+}
+
+/**
  * Adds an STE to the current automata. Adds all edges specified by input vector "outputs".
  */
 void Automata::addSTE(STE *ste, vector<string> &outputs) {
@@ -177,13 +193,12 @@ void Automata::addSTE(STE *ste, vector<string> &outputs) {
     
     // for all outputs, add a proper edge
     for(auto str : outputs) {
-
         addEdge(ste->getId(), str);
     }
 }
 
 /** 
- *Adds an STE to the current automata. Does not update any dangling connections.
+ * Adds an STE to the current automata. Does not update any dangling connections.
  */
 void Automata::rawAddSTE(STE *ste) {
 
@@ -1582,8 +1597,8 @@ void Automata::removeCounters() {
             input_prev->addOutput(input_next->getId());
             input_prev->addOutputPointer(make_pair(input_next, input_next->getId()));
 
-            vector<string> does_nothing;
-            addSTE(input_next, does_nothing);
+            // add STE to the automata
+            rawAddSTE(input_next);
 
             // march along
             input_prev = input_next;
