@@ -38,7 +38,7 @@ private:
     bool quiet;
     bool report;
     bool dump_state;
-    bool endOfData;
+    bool end_of_data;
     uint32_t dump_state_cycle;
     
     std::unordered_map<std::string, Element*> elements;

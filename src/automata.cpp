@@ -28,7 +28,7 @@ Automata::Automata() {
     cycle = 0;
 
     // End of data is false until last cycle
-    endOfData = false;
+    end_of_data = false;
     
     // debug
     dump_state = false;
@@ -985,7 +985,7 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
 
         // set end of data flag
         if( i == total_length - 1 )
-            endOfData = true;;
+            end_of_data = true;;
         
         // measure progress on longer runs
         if(!quiet) {
@@ -2568,7 +2568,7 @@ void Automata::computeSTEMatches(uint8_t symbol) {
             // report
             if(report && s->isReporting()) {
                 if(s->isEod()) {
-                    if(endOfData)
+                    if(end_of_data)
                         reportVector.push_back(make_pair(cycle, s->getId()));
                 }else{
                     reportVector.push_back(make_pair(cycle, s->getId()));
