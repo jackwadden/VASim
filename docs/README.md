@@ -13,7 +13,7 @@ VASim is an open-source, freely licensed, homogeneous automata simulator. VASim 
 * Emit automata as synthesizable HDL for an FPGA platform
 * Profile and track automata behavior during simulation
 
-VASim operates exclusively on _homogeneous automata_(#homogeneous-automata)
+VASim operates exclusively on [_homogeneous automata_](#homogeneous-automata)
 
 ## Reference
 ### Homogeneous Automata
