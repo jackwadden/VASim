@@ -361,7 +361,9 @@ bool STE::addSymbolToSymbolSet(uint32_t symbol) {
 
 
 /**
- * Implements compare for STEs (greater than)
+ * Compare compares this STE to the input STE and returns 0 (equal)
+ *   if the two STEs are "left identical". This means that they are
+ *   redundant in the direction of computation and can be merged.
  */
 int STE::compare(STE *other) {
 
@@ -615,4 +617,63 @@ void STE::sanitizeSymbolSet() {
     // "
     find_and_replace(symbol_set, "\'", "\\x27");
 
+}
+
+/**
+ * Right compare compares this STE to the input STE and returns 0 (equal)
+ *   if the two STEs are "right identical". This means that they are
+ *   redundant opposite the direction of computation and can be right merged.
+ */
+bool STE::rightCompare(STE *other) {
+
+    // check bit vector
+    bitset<256> other_column = other->getBitColumn();
+    if(other_column != getBitColumn()) {
+        return false;
+    }
+
+    // check start
+    if(getStart() != other->getStart()) {
+        return false;
+    }
+
+    // check report
+  
+    if(isReporting() != other->isReporting()) {
+        return false;
+    }
+    
+    // check input sizes
+    if(inputs.size() != other->getInputs().size()) {
+        return false;
+    }
+
+    // for each input key, check if output has it;
+    // if it doesn't, just say we are greater; 
+    // disregard self references because these are safe
+    // TODO:: this seems very inefficient but isn't too slow in practice
+
+    vector<uint32_t> keys;
+    vector<uint32_t> other_keys;
+
+    bool input_check = false;
+    // get sorted list of our inputs
+    for(auto e : getOutputSTEPointers()) { 
+        keys.push_back(e.first->getIntId());
+    }
+    sort(keys.begin(), keys.end());
+
+    // get sorted list of others inputs
+    for(auto e : other->getOutputSTEPointers()) { 
+        other_keys.push_back(e.first->getIntId());
+    }
+    sort(other_keys.begin(), other_keys.end());
+
+    // compare sorted lists
+    for(int i = 0; i < keys.size(); i++){
+        if(keys[i] != other_keys[i])
+            return false;
+    }
+
+    return true;
 }

@@ -68,6 +68,7 @@ public:
     virtual std::string toANML();
     virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj();
     int compare(STE*);
+    bool rightCompare(STE*);
     int compareSymbolSet(STE*);
     void merge(STE*);
     STE* clone();
