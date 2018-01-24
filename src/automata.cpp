@@ -845,7 +845,10 @@ void Automata::simulate(uint8_t symbol) {
 
     // -----------------------------
     // Step 3:  enable all-input start states
-    enableStartStates(false);
+    bool start_of_data = false;
+    if(symbol == '\n')
+        start_of_data = true;
+    enableStartStates(start_of_data);
     // -----------------------------
 
     
