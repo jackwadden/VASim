@@ -970,10 +970,19 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
     // for all inputs
     for(uint64_t i = start_index; i < start_index + length; i = i + 1) {
 
-        // set end of data flag
-        if( i == total_length - 1 )
+        // set end of data flag if its the last byte
+        if( i == total_length - 1 ) {
             setEndOfData(true);
-        
+        }    
+        // set end of data flag if the byte is a "\n"
+        else if( inputs[i] == (uint32_t)'\n' ) {
+            setEndOfData(true);
+        }
+        // unset end of data otherwise
+        else {
+            setEndOfData(false);
+        }
+
         // measure progress on longer runs
         if(!quiet) {
 
@@ -3792,3 +3801,4 @@ void Automata::removeRedundantEdges() {
 
     // add other instances here.
 }
+

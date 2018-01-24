@@ -107,7 +107,6 @@ string STE::getStringStart() {
     }else{
         return "none";
     }
-
 }
 
 /*
@@ -213,13 +212,7 @@ string STE::toString() {
     s.append(" symbol-set=");
     s.append(symbol_set);
     s.append(" start=");
-    if(start == ALL_INPUT){
-        s.append("all-input");
-    }else if( start == START_OF_DATA) {
-        s.append("start-of-data");
-    } else {
-        s.append("none");
-    }
+    s.append(getStringStart());
         
     s.append("\n\t");
     s.append("activate-on-match=\n\t  ");
@@ -262,13 +255,7 @@ string STE::toANML() {
     s.append(symbol_set);
     s.append("\" ");
     s.append(" start=\"");
-    if(start == ALL_INPUT){
-        s.append("all-input");
-    }else if( start == START_OF_DATA) {
-        s.append("start-of-data");
-    } else {
-        s.append("none");
-    }
+    s.append(getStringStart());
     s.append("\">\n");
 
     if(reporting){

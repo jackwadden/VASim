@@ -15,6 +15,8 @@ static string convertStart(MNRLDefs::EnableType st) {
             return "none";
         case MNRLDefs::EnableType::ENABLE_ON_START_AND_ACTIVATE_IN:
             return "start-of-data";
+        case MNRLDefs::EnableType::ENABLE_ON_LAST:
+            return "on-last";
         default:
             cerr << "Non-ANML-like enable signal. Exiting." << endl;
             exit(1);
@@ -60,6 +62,18 @@ STE *MNRLAdapter::parseSTE(shared_ptr<MNRLHState> hState) {
     string id = hState->getId();
     string symbol_set = hState->getSymbolSet();
     string start = convertStart(hState->getEnable());
+
+    // if the start/enable type indicates an "on last" MNRL state
+    //   we interpret this as a tail anchored reporting state
+    //   tail anchored states need to be enabled on the first input
+    //   and also after any "\n" end of line character.
+    //   NOTE: until MNRL is fixed, this will not allow a state that
+    //         is both EOD report and a start state
+    bool is_eod = false;
+    if(start.compare("on-last") == 0){
+        start = "none";
+        is_eod = true;
+    }
     
     // create new STE
     STE *s = new STE(id, symbol_set, start);
@@ -70,6 +84,8 @@ STE *MNRLAdapter::parseSTE(shared_ptr<MNRLHState> hState) {
     addOutputs(hState, s);
     
     s->setReportCode(hState->getReportId()->toString());
+    
+    s->setEod(is_eod);
     
     return s;
 }
