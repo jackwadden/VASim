@@ -420,72 +420,18 @@ vector<Automata *> Automata::generateGNFAs(){
  */
 void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
 
-
-    // for all output edges in ste2;
-    // 1) add outputs to ste1
-    // 2) adjust inputs of output target nodes to reflect ste1, not ste2
-    for(string str : ste2->getOutputs()) {
-        
-        // add outputs from ste2 to outputs list of ste1
-        if(Element::stripPort(str).compare(ste2->getId()) != 0){
-            ste1->addOutput(str);
-            Element * e = getElement(str);
-            // we may have already removed this
-            if( e != NULL ){
-                pair<Element *, string> output(e, Element::getPort(str)); 
-                ste1->addOutputPointer(output);
-            }
-            
-            // adjust inputs of output to reflect new parent
-            // inputs are of the form "fromNodeId:toPort"
-            // remove old input to child from ste2            
-            
-            string port = Element::getPort(str);
-            //if(!port.empty())
-            //port = ":" + port;
-            Element * e2 = getElement(str);
-            if(e2 != NULL){
-                e2->removeInput(ste2->getId() + port);
-                // add new input to child from ste1
-                e2->addInput(ste1->getId() + port);
-            }
-        }
-    }
-    
-    // for all input edges; 
-    // 1) remove the output to ste2 from the parent node if it exists
-    //    output to ste1 must necessarily exist
-    for(auto e : ste2->getInputs()) {
-        
-        // if the input node is not ourself
-        if(Element::stripPort(e.first).compare(ste2->getId()) != 0) {
-            
-            // get parent node if it exists
-            Element * parent = getElement(e.first);
-            
-            string port = Element::getPort(e.first);
-            if(!port.empty())
-                port = ":" + port;
-            parent->removeOutput(ste2->getId() + port);
-            pair<Element *, string> output(ste2, ste2->getId() + port); 
-            parent->removeOutputPointer(output);
-        }
-    }
-    
-    // SANITY CHECK IF WE STILL EXIST
-    for(auto e : ste2->getInputs()) {
-        if(Element::stripPort(e.first).compare(ste2->getId()) != 0) {
-
-            // get parent node if it exists
-            Element * parent = getElement(e.first);
-            for(string e2 : parent->getOutputs()) {
-                if(e2.compare(ste2->getId()) == 0)
-                    cout << "WAS NOT REMOVED" << endl;
-            }
-        }
+    // all all outputs from ste2 to ste1
+    for(auto e : ste2->getOutputSTEPointers()){
+        STE *output = static_cast<STE*>(e.first);
+        addEdge(ste1, output);
     }
 
-    // remove merged ste from global maps
+    //
+    for(auto e : ste2->getOutputSTEPointers()){
+        STE *output = static_cast<STE*>(e.first);
+        removeEdge(ste2, output);
+    }
+
     removeElement(ste2);
 }
 
@@ -3029,44 +2975,16 @@ void Automata::printGraphStats() {
  */
 void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
 
-    // for all input edges in ste2
-    // 1) add inputs to ste1
-    // 2) adjust outputs of input target node to reflect ste1, not ste2
-    for(auto e : ste2->getInputs()) {
-        string input_str = e.first;
-        // add inputs from ste2 to inputs list of ste1
-        Element * input_el;
-        if(Element::stripPort(input_str).compare(ste2->getId()) != 0){
-            ste1->addInput(input_str);
-            input_el = getElement(input_str);
-        }else{
-            continue;
-        }
+    // add all inputs to ste1
+    for(auto input : ste2->getInputs()){
+        STE *in_ste = static_cast<STE*>(getElement(input.first));
+        addEdge(in_ste, ste1);
+    }
 
-        // adjust outputs of input to reflect new child
-        // outputs are of the form "toNodeId:toPort"
-        // remove old output from parent from ste2
-        string port = Element::getPort(input_str);
-        if(!port.empty())
-            port = ":" + port;
-        //
-        if( input_el != NULL) {
-
-            // remove old outputs 
-            input_el->removeOutput(ste2->getId() + port);
-            input_el->removeOutputPointer(make_pair(ste2, ste2->getId() + port));
-        
-            // add new outputs if it doesn't exist already
-            // NOT SURE WHY THIS IS NECESSARY
-            // note: removing before adding is a way to guarantee there is only one copy
-            //       in the outputs list. This was a bug that occured on Fermi.1chip.
-            //       Again, not sure where the bug is. TODO/FIXME.
-            input_el->removeOutput(ste1->getId() + port);
-            input_el->addOutput(ste1->getId() + port);
-            pair<Element *, string> output = make_pair(ste1,ste1->getId() + port);
-            input_el->removeOutputPointer(output);
-            input_el->addOutputPointer(output);
-        }
+    // 
+    for(auto input : ste2->getInputs()){
+        STE *in_ste = static_cast<STE*>(getElement(input.first));
+        removeEdge(in_ste, ste2);
     }
 
     removeElement(ste2);

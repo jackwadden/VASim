@@ -629,22 +629,26 @@ bool STE::rightCompare(STE *other) {
     // check bit vector
     bitset<256> other_column = other->getBitColumn();
     if(other_column != getBitColumn()) {
+        //cout << "Failed bitColumn test!" << endl;
         return false;
     }
 
     // check start
     if(getStart() != other->getStart()) {
+        // cout << "Failed start test" << endl;
         return false;
     }
 
     // check report
   
     if(isReporting() != other->isReporting()) {
+        //cout << "Failed report test" << endl;
         return false;
     }
     
     // check input sizes
-    if(inputs.size() != other->getInputs().size()) {
+    if(getOutputSTEPointers().size() != other->getOutputSTEPointers().size()) {
+        //cout << "Output size fail" << endl;
         return false;
     }
 
@@ -653,26 +657,29 @@ bool STE::rightCompare(STE *other) {
     // disregard self references because these are safe
     // TODO:: this seems very inefficient but isn't too slow in practice
 
-    vector<uint32_t> keys;
-    vector<uint32_t> other_keys;
+    vector<string> keys;
+    vector<string> other_keys;
 
-    bool input_check = false;
-    // get sorted list of our inputs
+    bool output_check = false;
+    // get sorted list of our outputs
     for(auto e : getOutputSTEPointers()) { 
-        keys.push_back(e.first->getIntId());
+        keys.push_back(e.first->getId());
     }
     sort(keys.begin(), keys.end());
 
     // get sorted list of others inputs
     for(auto e : other->getOutputSTEPointers()) { 
-        other_keys.push_back(e.first->getIntId());
+        other_keys.push_back(e.first->getId());
     }
     sort(other_keys.begin(), other_keys.end());
 
     // compare sorted lists
     for(int i = 0; i < keys.size(); i++){
-        if(keys[i] != other_keys[i])
+        if(keys[i].compare(other_keys[i]) != 0){
+            //cout << "Failed output equality test!" << endl;
             return false;
+            
+        }
     }
 
     return true;
