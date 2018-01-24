@@ -34,13 +34,16 @@ class Automata {
 private:
     std::string filename;
     std::string id;
+
+    // Automata Flags
     bool profile;
     bool quiet;
     bool report;
     bool dump_state;
     bool end_of_data;
     uint32_t dump_state_cycle;
-    
+
+    // Main automata data structures
     std::unordered_map<std::string, Element*> elements;
     std::vector<STE*> starts;
     std::vector<Element*> reports;
@@ -93,15 +96,16 @@ public:
     std::unordered_map<std::string, uint32_t> &getActivationHist();
     std::vector<std::pair<uint64_t, std::string>> &getReportVector();
     uint32_t getMaxActivations();
-    void enableProfile();
-    void enableReport();
-    void enableQuiet();
-    void enableDumpState(uint64_t);
-    void disableProfile();
+    void setProfile(bool);
+    void setQuiet(bool);
+    void setReport(bool);
+    void setDumpState(bool, uint64_t);
+    void setEndOfData(bool);
     Element *getElement(std::string);
     void setErrorCode(vasim_err_t err);
     vasim_err_t getErrorCode();
     void unmarkAllElements();
+    void copyFlagsFrom(Automata *);
     
     // I/O
     void print();

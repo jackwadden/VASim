@@ -18,7 +18,7 @@ LIBPUGI = $(PUGI)/build/make-$(CXX)-release-standard-c++11/src/pugixml.cpp.o
 
 # FLAGS
 CXXFLAGS= -I$(IDIR) -I$(MNRL)/include -I$(PUGI)/src -pthread --std=c++11
-OPTS = -Ofast -march=native -m64
+OPTS = -Ofast
 ARFLAGS = rcs
 
 CXXFLAGS += $(OPTS)

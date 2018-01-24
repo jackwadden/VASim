@@ -328,13 +328,13 @@ int main(int argc, char * argv[]) {
     uint32_t automata_size = ap.getElements().size();
     uint32_t orig_automata_size = ap.getElements().size();
 
+    ap.setQuiet(quiet);
+    
+    
     if(!quiet){
         ap.printGraphStats();
     }
-
-    if(quiet)
-        ap.enableQuiet();
-        
+    
     // Optimize automata before identifying connected components
     // "Global" optimizations
     // Start optimizations
@@ -402,9 +402,7 @@ int main(int argc, char * argv[]) {
             merged[counter % num_threads] = ccs[counter];
         }else{
             merged[counter % num_threads]->unsafeMerge(a);
-            
-            if(quiet)
-                merged[counter % num_threads]->enableQuiet();
+            merged[counter % num_threads]->copyFlagsFrom(a);
         }
         counter++;
     }
@@ -596,18 +594,13 @@ int main(int argc, char * argv[]) {
                  ***************************/
 
                 // enable runtime profiling
-                if(profile){
-                    a->enableProfile();
-                }
+                a->setProfile(profile);
 
                 // enable state dumping
-                if(dump_state){
-                    a->enableDumpState(dump_state_cycle);
-                }                
-                
-                if(report){
-                    a->enableReport();
-                }
+                a->setDumpState(dump_state, dump_state_cycle);
+
+                // enable report gathering
+                a->setReport(report);
 
                 // Handle odd divisors
                 uint64_t length = packet_size;

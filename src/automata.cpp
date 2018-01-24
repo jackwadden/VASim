@@ -16,23 +16,22 @@ Automata::Automata() {
     setErrorCode(E_SUCCESS);
     
     // Disable report vector by default
-    report = false;
+    setReport(false);
 
     // Disable profiling by default
-    profile = false;
+    setProfile(false);
 
     // Enable output by default
-    quiet = false;
+    setQuiet(false);
 
     // Initialize cycle to start at 0
     cycle = 0;
 
     // End of data is false until last cycle
-    end_of_data = false;
+    setEndOfData(false);
     
     // debug
-    dump_state = false;
-    dump_state_cycle = 0;
+    setDumpState(false, 0);
 }
 
 /**
@@ -169,6 +168,19 @@ void Automata::reset() {
     // reset cycle counter to be 0
     cycle = 0;
     
+}
+
+/**
+ * Copies flags from automata input to this automata.
+ */
+void Automata::copyFlagsFrom(Automata *a) {
+
+    setProfile(a->profile);
+    setQuiet(a->quiet);
+    setReport(a->report);
+    setDumpState(a->dump_state, a->dump_state_cycle);
+    setEndOfData(a->end_of_data);
+
 }
 
 /**
@@ -571,21 +583,7 @@ vector<Automata*> Automata::splitConnectedComponents() {
 
     // transfer flags
     for(Automata *a : connectedComponents) {
-        if(quiet){
-            a->enableQuiet();
-        }
-
-        if(profile){
-            a->enableProfile();
-        }
-
-        if(report){
-            a->enableReport();
-        }
-        
-        if(dump_state){
-            a->enableDumpState(dump_state_cycle);
-        }
+        a->copyFlagsFrom(this);
     }
 
     // return vector
@@ -616,17 +614,7 @@ Automata *Automata::clone() {
     // Create empty automata and merge us into it
     ap->unsafeMerge(this);
 
-    if(profile)
-        ap->enableProfile();
-
-    if(quiet)
-        ap->enableQuiet();
-
-    if(report)
-        ap->enableReport();
-
-    if(dump_state)
-        ap->enableDumpState(dump_state_cycle);
+    ap->copyFlagsFrom(this);
     
     return ap;
 }
@@ -755,9 +743,9 @@ uint32_t Automata::getMaxActivations() {
 /**
  * Enables automata profiling during automata simulation.
  */
-void Automata::enableProfile() {
+void Automata::setProfile(bool profile_flag) {
 
-    profile = true;
+    profile = profile_flag;
 
     // If we're profiling, map STEs to a counter for each state
     if(profile){
@@ -771,30 +759,29 @@ void Automata::enableProfile() {
 /**
  * Enables report recording during automata simulation.
  */
-void Automata::enableReport() {
-    report = true;
+void Automata::setReport(bool report_flag) {
+    report = report_flag;
 }
 
 /**
  * Supresses all output.
  */
-void Automata::enableQuiet() {
-    quiet = true;
+void Automata::setQuiet(bool quiet_flag) {
+    quiet = quiet_flag;
 }
 
 /**
  * Enables dynamic state logging. Dumps all states that activated on cycle dump_cycle. Acts as a debug break point. Currently only works for STEs. 
  */
-void Automata::enableDumpState(uint64_t dump_cycle) {
-    dump_state = true;
+void Automata::setDumpState(bool dump_flag, uint64_t dump_cycle) {
+    dump_state = dump_flag;
     dump_state_cycle = dump_cycle;
 }
-
 /**
- * Disables automata profiling.
+ * Sets end of data flag. If any reporting elements only report on end of data and this flag is set, the elements will report.
  */
-void Automata::disableProfile() {
-    profile = false;
+void Automata::setEndOfData(bool eod) {
+    end_of_data = eod;
 }
 
 
@@ -985,7 +972,7 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
 
         // set end of data flag
         if( i == total_length - 1 )
-            end_of_data = true;;
+            setEndOfData(true);
         
         // measure progress on longer runs
         if(!quiet) {
@@ -1001,15 +988,12 @@ void Automata::simulate(uint8_t *inputs, uint64_t start_index, uint64_t length, 
                 //
             }
         }
-
         simulate(inputs[i]);
-
     }
 
     if(!quiet) {
         cout << "\x1B[2K"; // Erase the entire current line.
         cout << "\x1B[0E";  // Move to the beginning of the current line.
-
         cout << "  Progress: " << length << " / " << length << "\r";
         flush(cout);
         cout << endl;
