@@ -619,6 +619,48 @@ void STE::sanitizeSymbolSet() {
 
 }
 
+bool STE::identicalProperties(STE *other) {
+
+    // check bit vector
+    bitset<256> other_column = other->getBitColumn();
+    if(other_column != getBitColumn()) {
+        return false;
+    }
+
+    // check start
+    if(getStart() != other->getStart()) {
+        return false;
+    }
+
+    // check report
+  
+    if(isReporting() != other->isReporting()) {
+        return false;
+    }
+
+    // identical STE properties!
+    return true;
+}
+
+/**
+ * Left compare compares this STE to the input STE and returns true
+ *   if the two STEs are "left identical". This means that they are
+ *   redundant in the direction of computation and can be left merged.
+ */
+bool STE::leftCompare(STE *other) {
+
+    // Check all node-level STE properties
+    if(!identicalProperties(other))
+       return false;
+    
+    // check if inputs are identical
+    if(!identicalInputs(other))
+        return false;
+
+    return true;
+}
+
+
 /**
  * Right compare compares this STE to the input STE and returns 0 (equal)
  *   if the two STEs are "right identical". This means that they are
@@ -626,61 +668,13 @@ void STE::sanitizeSymbolSet() {
  */
 bool STE::rightCompare(STE *other) {
 
-    // check bit vector
-    bitset<256> other_column = other->getBitColumn();
-    if(other_column != getBitColumn()) {
-        //cout << "Failed bitColumn test!" << endl;
-        return false;
-    }
-
-    // check start
-    if(getStart() != other->getStart()) {
-        // cout << "Failed start test" << endl;
-        return false;
-    }
-
-    // check report
-  
-    if(isReporting() != other->isReporting()) {
-        //cout << "Failed report test" << endl;
-        return false;
-    }
+    // Check all node-level STE properties
+    if(!identicalProperties(other))
+       return false;
     
-    // check input sizes
-    if(getOutputSTEPointers().size() != other->getOutputSTEPointers().size()) {
-        //cout << "Output size fail" << endl;
+    // check if outputs are identical
+    if(!identicalOutputs(other))
         return false;
-    }
-
-    // for each input key, check if output has it;
-    // if it doesn't, just say we are greater; 
-    // disregard self references because these are safe
-    // TODO:: this seems very inefficient but isn't too slow in practice
-
-    vector<string> keys;
-    vector<string> other_keys;
-
-    bool output_check = false;
-    // get sorted list of our outputs
-    for(auto e : getOutputSTEPointers()) { 
-        keys.push_back(e.first->getId());
-    }
-    sort(keys.begin(), keys.end());
-
-    // get sorted list of others inputs
-    for(auto e : other->getOutputSTEPointers()) { 
-        other_keys.push_back(e.first->getId());
-    }
-    sort(other_keys.begin(), other_keys.end());
-
-    // compare sorted lists
-    for(int i = 0; i < keys.size(); i++){
-        if(keys[i].compare(other_keys[i]) != 0){
-            //cout << "Failed output equality test!" << endl;
-            return false;
-            
-        }
-    }
 
     return true;
 }

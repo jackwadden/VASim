@@ -101,6 +101,8 @@ public:
     void unmark();
     virtual bool isStateful();
     bool isSelfRef();
+    bool identicalOutputs(Element *);
+    bool identicalInputs(Element *);
     
     // backport additions
     bool isCut();

@@ -477,3 +477,92 @@ bool Element::isSelfRef(){
 
     return selfref;
 }
+
+/**
+ * Returns whether or not the argument element has identical outputs.
+ *   Does not consider self references.
+ */
+bool Element::identicalOutputs(Element *other) {
+
+    // check input sizes
+    if(getOutputSTEPointers().size() != other->getOutputSTEPointers().size()) {
+        return false;
+    }
+
+    //
+    // for each input key, check if output has it;
+    // if it doesn't, just say we are greater; 
+    // disregard self references because these are safe
+
+    vector<string> keys;
+    vector<string> other_keys;
+
+    bool output_check = false;
+    // get sorted list of our outputs
+    for(auto e : getOutputSTEPointers()) {
+        if(e.second.compare(getId()) != 0)
+            keys.push_back(e.first->getId());
+    }
+    sort(keys.begin(), keys.end());
+
+    // get sorted list of others inputs
+    for(auto e : other->getOutputSTEPointers()) { 
+        if(e.second.compare(other->getId()) != 0)
+            other_keys.push_back(e.first->getId());
+    }
+    sort(other_keys.begin(), other_keys.end());
+
+    // compare sorted lists
+    for(int i = 0; i < keys.size(); i++){
+        if(keys[i].compare(other_keys[i]) != 0){
+            return false;
+        }
+    }
+
+    // identical!
+    return true;
+}
+
+/**
+ *
+ */
+bool Element::identicalInputs(Element *other) {
+
+    // Compare input list sizes
+    if(getInputs().size() != other->getInputs().size()) {
+        return false;
+    }
+
+    // for each input key, check if output has it;
+    // if it doesn't, just say we are greater;
+
+    vector<string> keys;
+    vector<string> other_keys;
+
+    bool output_check = false;
+    // get sorted list of our inputs
+    for(auto e : getInputs()) {
+        // ignore self references
+        if(e.first.compare(getId()) != 0)
+            keys.push_back(e.first);
+    }
+    sort(keys.begin(), keys.end());
+
+    // get sorted list of others inputs
+    for(auto e : other->getInputs()) {
+        //ignore self references
+        if(e.first.compare(other->getId()) != 0)
+            other_keys.push_back(e.first);
+    }
+    sort(other_keys.begin(), other_keys.end());
+
+    // compare sorted lists
+    for(int i = 0; i < keys.size(); i++){
+        if(keys[i].compare(other_keys[i]) != 0){
+            return false;
+        }
+    }
+
+    // identical!
+    return true;
+}
