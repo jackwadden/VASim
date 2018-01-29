@@ -186,7 +186,7 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
                     setRange(column,range_start,c,value);
                     range_set = false;
                 }
-
+                escaped = false;
                 last_char = c;
             }else{
                 bracket_sem--;
@@ -424,6 +424,7 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
                     setRange(column,range_start,'-',value);
                     range_set = false;
                 }
+                escaped = false;
                 last_char = '-';
             }else{
                 range_set = true;
