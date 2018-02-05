@@ -160,6 +160,7 @@ public:
     void rawAddSpecialElement(SpecialElement *);
     void leftMergeSTEs(STE*,STE*);
     void rightMergeSTEs(STE*,STE*);
+    void mergeSTEs(STE*,STE*);
     void removeElement(Element *);
     void removeOrGates();
     void removeCounters();

@@ -56,6 +56,20 @@ void Automata::finalizeAutomata() {
             // Add the element as a parent
             addEdge(parent->getId(), child);
         }
+
+        // add to proper data structures
+        if(!parent->isSpecialElement()) {
+            STE *ste = static_cast<STE*>(parent);
+            if(ste->isStart()){
+                starts.push_back(ste);
+            }
+
+            //
+            if(ste->isReporting()){
+                reports.push_back(ste);
+            }
+        }
+        
     }
 }
 
@@ -2985,6 +2999,21 @@ void Automata::rightMergeSTEs(STE *ste1, STE *ste2){
     for(auto input : ste2->getInputs()){
         STE *in_ste = static_cast<STE*>(getElement(input.first));
         removeEdge(in_ste, ste2);
+    }
+
+    removeElement(ste2);
+}
+
+/**
+ * Adds all members of ste2's charset to ste1's charset and then deletes ste2
+ */
+void Automata::mergeSTEs(STE *ste1, STE *ste2){
+
+    // add charset of ste2 to ste1
+    for(uint32_t i = 0; i < ste2->getBitColumn().size(); i++) {
+        if(ste2->match(i)){
+            ste1->addSymbolToSymbolSet(i);
+        }
     }
 
     removeElement(ste2);

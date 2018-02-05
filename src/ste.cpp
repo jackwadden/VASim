@@ -633,7 +633,6 @@ bool STE::identicalProperties(STE *other) {
     }
 
     // check report
-  
     if(isReporting() != other->isReporting()) {
         return false;
     }
