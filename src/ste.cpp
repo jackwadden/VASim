@@ -635,6 +635,9 @@ bool STE::identicalProperties(STE *other) {
     // check report
     if(isReporting() != other->isReporting()) {
         return false;
+    }else if(isReporting() && other->isReporting()) {
+        // report elements are not considered equal
+        return false;
     }
 
     // identical STE properties!

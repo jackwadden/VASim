@@ -173,9 +173,8 @@ public:
     void enforceFanOut(uint32_t fanout_max);
 
     // Optimization
-    void leftMinimizeStartStates();
-    uint32_t leftMinimize();
-    uint32_t leftMinimizeChildren(STE*, int);
+    uint32_t mergeCommonPrefixes();
+    uint32_t mergeCommonPrefixes(std::queue<STE*> &);
     Automata * generateDFA();
     void eliminateDeadStates();
     void removeRedundantEdges();

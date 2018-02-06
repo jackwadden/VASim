@@ -252,7 +252,7 @@ void Automata::rawAddSpecialElement(SpecialElement *specel) {
 
 
 /**
- * Adds all outputs of ste2 to ste1 then removes ste2 from the automata. Used in leftMinimize() prefix merging algorithm.
+ * Adds all outputs of ste2 to ste1 then removes ste2 from the automata. Used in common prefix merging algorithm.
  */
 void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
 
@@ -2512,46 +2512,34 @@ uint64_t Automata::tick() {
 /**
  * Merges identical prefixes of automaton. Uses a depth first search on the automata, combining states with identical inputs and properties, but varying outputs. Does not currently merge prefixes with back references (loops).
  */
-uint32_t Automata::leftMinimize() {
-
-
-    leftMinimizeStartStates();
+uint32_t Automata::mergeCommonPrefixes() {
 
     uint32_t merged = 0;
+    
+    unmarkAllElements();
 
-    for(auto e : starts){
-
-        // unmark all elements
-        unmarkAllElements();
-
-        STE * s = static_cast<STE *>(e);
-        merged += leftMinimizeChildren(s, 0);
+    // start search by considering all start states
+    queue<STE*> workq;
+    for(STE *ste : starts){
+        ste->mark();
+        workq.push(ste);
     }
+
+    merged += mergeCommonPrefixes(workq);
 
     return merged;
 }
 
 /**
- * Recursive function that considers merging all candidate STEs at the current level, and calls left minimization on every subsequent unique child in a depth-first fashion.
+ * Recursive function that considers merging all candidate STEs in the current workq. Recursively calls itselfe with a new workq with all child candidates that could possibly be merged.
  */
-uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
+uint32_t Automata::mergeCommonPrefixes(queue<STE *> &workq) {
 
-    queue<STE *> workq;
-    queue<STE *> workq_tmp;
-
-    vector<STE *> outputSTE;
-
+    queue<STE*> next_level;
+    queue<STE*> workq_tmp;
+    
     uint32_t merged = 0;
-
-    // add all children to the workq
-    for(auto e : s->getOutputSTEPointers()) {
-        STE * node = static_cast<STE*>(e.first);
-        if(!node->isMarked()) {
-            node->mark();
-            workq.push(node);	
-        }
-    }
-
+    
     // merge identical children of next level
     while(!workq.empty()) { 
         STE * first = workq.front();
@@ -2561,7 +2549,7 @@ uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
             STE * second = workq.front();
 
             workq.pop();
-            //if the same merge and place into second queue
+            //if the two STEs have identical prefixes, merge
             if(first->compare(second) == 0) {
                 merged++;
                 leftMergeSTEs(first, second);
@@ -2571,74 +2559,27 @@ uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
             }	 
         }
 
-        outputSTE.push_back(first);
+        // Add all children of first to the next level
+        for(auto c : first->getOutputSTEPointers()) {
+            STE * child = static_cast<STE*>(c.first);
+            if(!child->isMarked()){
+                child->mark();
+                next_level.push(child);
+            }
+        }
 
+        // Recurse downward
+        if(next_level.size() > 0)
+            merged += mergeCommonPrefixes(next_level);
+
+        // Try another candidate
         while(!workq_tmp.empty()) {
             workq.push(workq_tmp.front());
             workq_tmp.pop();
-        }
-    }
-
-    // left minimize children
-    for(auto e : outputSTE) {
-        if(e->getOutputSTEPointers().size() != 0) {
-            for(auto f : s->getOutputSTEPointers()) {
-                STE * node = static_cast<STE*>(f.first);
-                merged += leftMinimizeChildren(node, level + 1);
-            }
         }
     }
 
     return merged;
-}
-
-/**
- * Merges all identical start states.
- */
-void Automata::leftMinimizeStartStates() {
-
-    uint32_t merge_count = 0;
-
-    // unmark all elements
-    unmarkAllElements();
-
-    queue<STE *> workq;
-    queue<STE *> workq_tmp;
-
-    //push all start STE's onto the queue
-    for(auto e : starts) {
-        STE * s = static_cast<STE*>(e);
-        workq.push(s);
-    }
-
-    // Merge start states
-    while(!workq.empty()) { 
-
-        STE * first = workq.front();
-        bitset<256> first_column = first->getBitColumn();
-        workq.pop();
-
-        while(!workq.empty()) {
-            STE * second = workq.front();
-            workq.pop();
-            
-            //if the same, merge and place into second queue
-            if(first_column == second->getBitColumn() && 
-               first->getStart() == second->getStart()){ 
-                // merge
-                merge_count++;
-                leftMergeSTEs(first, second);
-            } else {
-                workq_tmp.push(second);
-            }	 
-        }
-
-        while(!workq_tmp.empty()) {
-            workq.push(workq_tmp.front());
-            workq_tmp.pop();
-        }
-    }
-
 }
 
 /**
@@ -3594,8 +3535,8 @@ void Automata::optimize(bool remove_ors,
         while(automata_size != elements.size()) {
             automata_size = elements.size();
             
-            // left minimize
-            merged += leftMinimize();
+            // prefix merge call
+            merged += mergeCommonPrefixes();
             
         }
         

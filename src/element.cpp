@@ -512,6 +512,11 @@ bool Element::identicalOutputs(Element *other) {
     }
     sort(other_keys.begin(), other_keys.end());
 
+    // check input sizes again
+    if(keys.size() != other_keys.size()) {
+        return false;
+    }
+    
     // compare sorted lists
     for(int i = 0; i < keys.size(); i++){
         if(keys[i].compare(other_keys[i]) != 0){
@@ -539,7 +544,7 @@ bool Element::identicalInputs(Element *other) {
     vector<string> keys;
     vector<string> other_keys;
 
-    bool output_check = false;
+
     // get sorted list of our inputs
     for(auto e : getInputs()) {
         // ignore self references
@@ -556,6 +561,11 @@ bool Element::identicalInputs(Element *other) {
     }
     sort(other_keys.begin(), other_keys.end());
 
+    // check input sizes again now that we've filtered out self loops
+    if(keys.size() != other_keys.size()) {
+        return false;
+    }
+    
     // compare sorted lists
     for(int i = 0; i < keys.size(); i++){
         if(keys[i].compare(other_keys[i]) != 0){
