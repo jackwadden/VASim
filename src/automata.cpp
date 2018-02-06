@@ -58,17 +58,8 @@ void Automata::finalizeAutomata() {
         }
 
         // add to proper data structures
-        if(!parent->isSpecialElement()) {
-            STE *ste = static_cast<STE*>(parent);
-            if(ste->isStart()){
-                starts.push_back(ste);
-            }
-
-            //
-            if(ste->isReporting()){
-                reports.push_back(ste);
-            }
-        }
+        validateStartElement(parent);
+        validateReportElement(parent);
         
     }
 }
@@ -434,13 +425,13 @@ vector<Automata *> Automata::generateGNFAs(){
  */
 void Automata::leftMergeSTEs(STE *ste1, STE *ste2) {
 
-    // all all outputs from ste2 to ste1
+    // add all outputs from ste2 to ste1
     for(auto e : ste2->getOutputSTEPointers()){
         STE *output = static_cast<STE*>(e.first);
         addEdge(ste1, output);
     }
 
-    //
+    // remove all edges from ste2 to output
     for(auto e : ste2->getOutputSTEPointers()){
         STE *output = static_cast<STE*>(e.first);
         removeEdge(ste2, output);
@@ -1407,58 +1398,57 @@ void Automata::automataToDotFile(string out_fn) {
 /**
  * UNFINISHED:: Removes OR gates from the automata. OR gates are syntactic sugar introduced by Micron's optimizing compiler and other automata engines may not support them, so we allow their removal.
  */
-void Automata::removeOrGates() {
+uint32_t Automata::removeOrGates() {
 
     // for each special element that is an OR gate
-    queue<Element *> toRemove;
+    queue<OR *> ORGates;
+    uint32_t removed = 0;
     for(auto el : specialElements) { 
         SpecialElement * specel = el.second;
 
         // if we're not an OR gate, continue
         if(dynamic_cast<OR*>(specel) == NULL) {
-            //cout << specel->toString() << endl;
             continue;
-
         }
 
-        // FOR NOW ONLY REMOVE IF WE DONT HAVE CHILDREN
-        // TODO
-        if(specel->getOutputs().size() > 0)
-            continue;
+        ORGates.push(static_cast<OR*>(specel));
 
+    }
+
+    // remove all the OR gates
+    while(!ORGates.empty()){
+
+        OR *or_gate = ORGates.front();
+        ORGates.pop();
+        
         // if it reports
-        if(specel->isReporting()){
+        if(or_gate->isReporting()){
 
             //// make all of its parents report with the same ID
-            for(auto e : specel->getInputs()){
+            for(auto e : or_gate->getInputs()){
                 Element *parent = getElement(e.first);
                 parent->setReporting(true);
-                parent->setReportCode(specel->getReportCode());
+                parent->setReportCode(or_gate->getReportCode());
                 // remove or gate from outputs
-                parent->removeOutput(specel->getId());
-                parent->removeOutputPointer(make_pair(specel, specel->getId()));
+                parent->removeOutput(or_gate->getId());
+                parent->removeOutputPointer(make_pair(or_gate, or_gate->getId()));
             }
-
-            //// mark OR gate for removal from the automata
-            toRemove.push(specel);
         }
 
-        // else if it does not report
+        // add edges between all parents and children
+        for(string output : or_gate->getOutputs()){
+            for(auto input : or_gate->getInputs()){
+                addEdge(input.first, output);
+            }
+        }
 
-        //// for each input element
+        // remove OR gate
+        removed++;
+        removeElement(or_gate);
 
-        ////// for each output element
-
-        //////// connect input to output
-
-        //////// remove OR gate from the automata
     }
 
-    // remove OR gates from the automata
-    while(!toRemove.empty()) { 
-        removeElement(toRemove.front());
-        toRemove.pop();
-    }
+    return removed;
 }
 
 /**
@@ -2698,9 +2688,6 @@ uint32_t Automata::leftMinimize() {
 
     uint32_t merged = 0;
 
-    if(!quiet)
-        cout << "  Merging inner states..." << endl;
-
     for(auto e : starts){
 
         // unmark all elements
@@ -2709,9 +2696,6 @@ uint32_t Automata::leftMinimize() {
         STE * s = static_cast<STE *>(e);
         merged += leftMinimizeChildren(s, 0);
     }
-
-    if(!quiet)
-        cout << "    merged " << merged << " inner states..." << endl;
 
     return merged;
 }
@@ -2741,11 +2725,12 @@ uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
     while(!workq.empty()) { 
         STE * first = workq.front();
         workq.pop();
+        
         while(!workq.empty()) {
             STE * second = workq.front();
+
             workq.pop();
             //if the same merge and place into second queue
-
             if(first->compare(second) == 0) {
                 merged++;
                 leftMergeSTEs(first, second);
@@ -2780,9 +2765,6 @@ uint32_t Automata::leftMinimizeChildren(STE * s, int level) {
  * Merges all identical start states.
  */
 void Automata::leftMinimizeStartStates() {
-
-    if(!quiet)
-        cout << "  Merging start states..." << endl;
 
     uint32_t merge_count = 0;
 
@@ -2826,8 +2808,6 @@ void Automata::leftMinimizeStartStates() {
         }
     }
 
-    if(!quiet)
-        cout << "    merged " << merge_count << " start states!" << endl;
 }
 
 /**
@@ -3749,3 +3729,52 @@ void Automata::removeRedundantEdges() {
     // add other instances here.
 }
 
+/**
+ *
+ */
+void Automata::optimize(bool remove_ors,
+                        bool left
+                        ){
+
+    // REMOVE OR GATES
+    uint32_t removed_ors = 0;
+    if(remove_ors) {
+        if(!quiet)
+            cout << " * Removing OR gates..." << endl;
+
+        removed_ors = removeOrGates();
+
+        if(!quiet)
+            cout << "     removed " << removed_ors << " OR gates..." << endl;
+
+    }
+
+
+    // NFA REDUCTION ALGORITHMS
+
+    // PREFIX MERGING
+    if(left) {
+        if(!quiet) {
+            cout << " * Merging common prefixes..." << endl;
+        }
+        
+        uint32_t automata_size = 0;
+        uint32_t merged = 0;
+        while(automata_size != elements.size()) {
+            automata_size = elements.size();
+            
+            // left minimize
+            merged += leftMinimize();
+            
+        }
+        
+        if(!quiet)
+            cout << "     removed " << merged << " elements..." << endl;
+        
+    }
+
+    //
+    
+    if(!quiet)
+        cout << endl;
+}

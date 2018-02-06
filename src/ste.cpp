@@ -415,8 +415,8 @@ int STE::compare(STE *other) {
         if(debug_out)
             cout << "report mismatch2" << endl;
         return -1;
-        //never merge reports
     }
+    
     // never merge two reports
     // NOTE: this is *not* the behavior of the micron compiler TODO
     else if(isReporting() || other->isReporting()){

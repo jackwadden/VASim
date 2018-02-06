@@ -78,6 +78,8 @@ int main(int argc, char * argv[]) {
     bool to_mnrl = false;
     bool time = false;
     bool optimize = false;
+    bool prefix_merge_global = false;
+    bool prefix_merge_local = false;
     bool optimize_after = false;
     bool remove_ors = false;
     bool to_nfa = false;
@@ -180,15 +182,18 @@ int main(int argc, char * argv[]) {
             break;
 
         case 'O':
+            prefix_merge_global = true;
             optimize = true;
             break;
 
         case 'L':
+            prefix_merge_local = true;
             optimize_after = true;
             break;
 
         case 'x':
             remove_ors = true;
+            optimize = true;
             break;
 
         case 'l':
@@ -340,39 +345,27 @@ int main(int argc, char * argv[]) {
     // Start optimizations
     if(optimize) {
         if(!quiet){
-            cout << "|------------------------|" << endl;
-            cout << "|       Optimization     |" << endl;
-            cout << "|------------------------|" << endl;
+            cout << "|--------------------------|" << endl;
+            cout << "|   Global Optimizations   |" << endl;
+            cout << "|--------------------------|" << endl;
          
             cout << "Starting Global Optimizations..." << endl; 
-
         }
 
-        /***********************
-         * GLOBAL OPTIMIZATIONS
-         ***********************/
-        
-        if(!quiet)
-            cout << "Left-merging automata..." << endl;
-        ap.leftMinimize();
-        
-        while(automata_size != ap.getElements().size()) {
-            automata_size = ap.getElements().size();
-            ap.leftMinimize();
-        }
-        
-        if(!quiet)
-            cout << endl;
-        
-        // ******
-        // ADD OTHER OPTIMIZATIONS
-        // ******
+        ap.optimize(remove_ors,
+                    prefix_merge_global);
     }
-    
-    
+
+    if(!quiet){
+        cout << "|---------------------------|" << endl;
+        cout << "|   Automata Partitioning   |" << endl;
+        cout << "|---------------------------|" << endl;
+        
+    }
+
     // Partition automata into connected components
     if(!quiet)
-        cout << "Finding distinct subgraphs..." << endl;
+        cout << "Finding connected components..." << endl;
     vector<Automata*> ccs;
     ccs = ap.splitConnectedComponents();
     
@@ -382,7 +375,7 @@ int main(int argc, char * argv[]) {
 
     // Combine connected components into N automata
     if(!quiet)
-        cout << "Combining " << ccs.size() << " distinct subgraphs into " << num_threads << " graphs..." << endl;
+        cout << "Distributing " << ccs.size() << " distinct subgraphs among " << num_threads << " threads..." << endl;
     
     // Check if there are too many threads for the available subgraphs
     if(ccs.size() < num_threads){
@@ -416,43 +409,20 @@ int main(int argc, char * argv[]) {
     
     counter = 0;
     for(Automata *a : merged) {        
-        /*****************
+        /*********************
          * LOCAL OPTIMIZATIONS
-         *****************/     
+         *********************/     
         // Optimize after connected component merging
         if(optimize_after) {
-            if(!quiet)
-                cout << "Starting Local Optimizations..." << endl; 
-
-            // Left minimization
-            automata_size = a->getElements().size();
-            a->leftMinimize();
-            while(automata_size != a->getElements().size()) {
-                automata_size = a->getElements().size();
-                a->leftMinimize();
-            }
-
-            if(!quiet)
-                cout << endl;
-            
-            // ******
-            // ADD OTHER OPTIMIZATIONS
-            // ******
-            
-        }
-
-        /*****************
-         * TRANSFORMATIONS
-         *****************/
-
-        // Remove OR gates, which are just syntactic sugar (benefitial for some hardware)
-        if(remove_ors) {
             if(!quiet){
-                cout << "Removing OR gates..." << endl;
-                cout << endl;
+                cout << "|-------------------------|" << endl;
+                cout << "|   Local Optimizations   |" << endl;
+                cout << "|-------------------------|" << endl;
+                cout << "Starting Local Optimizations for Thread " << counter << "..." << endl; 
             }
-
-            a->removeOrGates();
+            
+            a->optimize(false, // never do or gate removal locally
+                        prefix_merge_local);
         }
 
         // Enforce fan-in limit
