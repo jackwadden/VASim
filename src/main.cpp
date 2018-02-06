@@ -348,6 +348,7 @@ int main(int argc, char * argv[]) {
 
         ap.optimize(remove_ors,
                     prefix_merge_global,
+                    true,
                     true);
     }
 
@@ -425,6 +426,7 @@ int main(int argc, char * argv[]) {
             //
             a->optimize(false, // never do or gate removal locally
                         prefix_merge_local,
+                        false,
                         false);
         }
 

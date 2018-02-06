@@ -2662,6 +2662,92 @@ uint32_t Automata::mergeCommonSuffixes(queue<STE *> &workq) {
 }
 
 /**
+ * If two STEs share the same parents and the same children, they can be combined into
+ *   one STE with the union of their character sets.
+ */
+uint32_t Automata::mergeCommonPaths() {
+
+    uint32_t merged = 0;
+    
+    //
+    unmarkAllElements();
+
+    //
+    queue<STE*> to_remove;
+    
+    // for each element
+    for(auto e : elements) {
+        
+        //
+        Element *el = e.second;
+
+        // skip if we've been removed
+        if(el->isMarked())
+            continue;
+
+        el->mark();
+        
+        // skip special elements
+        if(el->isSpecialElement())
+            continue;
+
+        // skip reporting elements
+        if(el->isReporting())
+            continue;
+        
+        // find candidates to compare
+        // all children's parents
+        for(string c : el->getOutputs()){
+
+            Element *child = getElement(c);
+            if(child->isSpecialElement())
+                continue;
+
+            
+            for(auto p : child->getInputs()){
+                Element * childs_parent = getElement(p.first);
+
+                if(childs_parent->isSpecialElement())
+                    continue;
+
+                // skip if we've already considered this one
+                if(childs_parent->isMarked())
+                    continue;
+                
+                // if the two elements share identical parents and children lists
+                if(el->identicalInputs(childs_parent) &&
+                   el->identicalOutputs(childs_parent)) {
+
+                    STE *ste1 = static_cast<STE*>(el);
+                    STE *ste2 = static_cast<STE*>(childs_parent);
+                    
+                    // add charset of childs_parent to el
+                    for(uint32_t symbol = 0; symbol < 256; symbol++) {
+                        if(ste2->match(symbol))
+                            ste1->addSymbolToSymbolSet(symbol);
+                    }
+
+                    // delete ste2
+                    ste2->mark();
+                    to_remove.push(ste2);
+
+                    merged++;
+                }
+            }
+        }
+    }
+
+    // remove all elements marked for deletion
+    while(!to_remove.empty()){
+        removeElement(to_remove.front());
+        to_remove.pop();
+    }
+
+    return merged;
+    
+}
+
+/**
  * Checks Automata graph for inconsistencies and errors. Sets the Automata error code to something other than E_SUCCESS if the automata has an error.
  */
 void Automata::validate() {
@@ -3585,7 +3671,8 @@ void Automata::removeRedundantEdges() {
  */
 void Automata::optimize(bool remove_ors,
                         bool left,
-                        bool right
+                        bool right,
+                        bool common_path
                         ){
 
     // REMOVE OR GATES
@@ -3644,6 +3731,28 @@ void Automata::optimize(bool remove_ors,
         if(!quiet)
             cout << "     removed " << merged << " elements..." << endl;
         
+    }
+
+    if(common_path) {
+        
+        if(!quiet) {
+            cout << " * Merging common paths..." << endl;
+        }
+        
+        uint32_t automata_size = 0;
+        uint32_t merged = 0;
+        while(automata_size != elements.size()) {
+            automata_size = elements.size();
+            
+            // common path merge call
+            merged += mergeCommonPaths();
+            
+        }
+        
+        if(!quiet)
+            cout << "     removed " << merged << " elements..." << endl;
+        
+    
     }
 
     //
