@@ -77,10 +77,14 @@ int main(int argc, char * argv[]) {
     bool to_anml = false;
     bool to_mnrl = false;
     bool time = false;
-    bool optimize = false;
+    bool optimize_global = false;
     bool prefix_merge_global = false;
     bool prefix_merge_local = false;
-    bool optimize_after = false;
+    bool suffix_merge_global = false;
+    bool suffix_merge_local = false;
+    bool common_path_merge_global = false;
+    bool common_path_merge_local = false;
+    bool optimize_local = false;
     bool remove_ors = false;
     bool to_nfa = false;
     bool to_dfa = false;
@@ -181,17 +185,21 @@ int main(int argc, char * argv[]) {
 
         case 'O':
             prefix_merge_global = true;
-            optimize = true;
+            suffix_merge_global = true;
+            common_path_merge_global = true;
+            optimize_global = true;
             break;
 
         case 'L':
             prefix_merge_local = true;
-            optimize_after = true;
+            suffix_merge_local = true;
+            common_path_merge_local = true;
+            optimize_local = true;
             break;
 
         case 'x':
             remove_ors = true;
-            optimize = true;
+            optimize_global = true;
             break;
 
         case 'T':
@@ -337,7 +345,7 @@ int main(int argc, char * argv[]) {
     // Optimize automata before identifying connected components
     // "Global" optimizations
     // Start optimizations
-    if(optimize) {
+    if(optimize_global) {
         if(!quiet){
             cout << "|--------------------------|" << endl;
             cout << "|   Global Optimizations   |" << endl;
@@ -348,8 +356,8 @@ int main(int argc, char * argv[]) {
 
         ap.optimize(remove_ors,
                     prefix_merge_global,
-                    true,
-                    true);
+                    suffix_merge_global,
+                    prefix_merge_global);
     }
 
     if(!quiet){
@@ -405,7 +413,7 @@ int main(int argc, char * argv[]) {
     
     
 
-    if(optimize_after) {
+    if(optimize_local) {
         if(!quiet){
             cout << "|-------------------------|" << endl;
             cout << "|   Local Optimizations   |" << endl;
@@ -419,15 +427,15 @@ int main(int argc, char * argv[]) {
          * LOCAL OPTIMIZATIONS
          *********************/     
         // Optimize after connected component merging
-        if(optimize_after) {
+        if(optimize_local) {
             if(!quiet)
                 cout << "Starting Local Optimizations for Thread " << counter << "..." << endl; 
 
             //
             a->optimize(false, // never do or gate removal locally
                         prefix_merge_local,
-                        false,
-                        false);
+                        suffix_merge_local,
+                        common_path_merge_local);
         }
 
         // Enforce fan-in limit
