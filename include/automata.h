@@ -167,7 +167,6 @@ public:
     void removeCounters();
     void convertAllInputStarts();
     std::vector<Automata*> splitConnectedComponents();
-    std::vector<Automata*> generateGNFAs();
     void unsafeMerge(Automata *);
     Automata *clone();
     void enforceFanIn(uint32_t fanin_max);
