@@ -2923,7 +2923,7 @@ void Automata::printSTEComplexity() {
 void Automata::printGraphStats() {
 
 
-    cout << "Automata Statistics" << endl;
+    cout << "Automata Statistics:" << endl;
     cout << "  Elements: " << elements.size() << endl;
     cout << "  STEs: " << elements.size() - specialElements.size() << endl;
     cout << "  SpecialElements: " << specialElements.size() << endl;

@@ -407,6 +407,16 @@ int main(int argc, char * argv[]) {
     // Set up multi-dimensional structure for parallelization
     Automata *automata[num_threads][num_threads_packets];
     
+    
+
+    if(optimize_after) {
+        if(!quiet){
+            cout << "|-------------------------|" << endl;
+            cout << "|   Local Optimizations   |" << endl;
+            cout << "|-------------------------|" << endl;
+        }
+    }
+
     counter = 0;
     for(Automata *a : merged) {        
         /*********************
@@ -414,13 +424,10 @@ int main(int argc, char * argv[]) {
          *********************/     
         // Optimize after connected component merging
         if(optimize_after) {
-            if(!quiet){
-                cout << "|-------------------------|" << endl;
-                cout << "|   Local Optimizations   |" << endl;
-                cout << "|-------------------------|" << endl;
+            if(!quiet)
                 cout << "Starting Local Optimizations for Thread " << counter << "..." << endl; 
-            }
-            
+
+            //
             a->optimize(false, // never do or gate removal locally
                         prefix_merge_local);
         }
