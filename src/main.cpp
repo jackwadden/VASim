@@ -37,8 +37,8 @@ void usage(char * argv) {
     printf("      --graph               Output automata as .graph file for HyperScan.\n");
 
     printf("\n OPTIMIZATIONS:\n");    
-    printf("  -O, --optimize-global     Enable all optimizations on all automata subgraphs.\n");
-    printf("  -L, --optimize-logal      Enable all optimizations on automata subgraphs after partitioned among parallel threads.\n");
+    printf("  -O, --optimize-global     Run all optimizations on all automata subgraphs.\n");
+    printf("  -L, --optimize-logal      Run all optimizations on automata subgraphs after partitioned among parallel threads.\n");
     printf("  -x, --remove_ors          Remove all OR gates. Only applied globally.\n");
 
     printf("\n TRANSFORMATIONS:\n");
@@ -347,7 +347,8 @@ int main(int argc, char * argv[]) {
         }
 
         ap.optimize(remove_ors,
-                    prefix_merge_global);
+                    prefix_merge_global,
+                    true);
     }
 
     if(!quiet){
@@ -423,7 +424,8 @@ int main(int argc, char * argv[]) {
 
             //
             a->optimize(false, // never do or gate removal locally
-                        prefix_merge_local);
+                        prefix_merge_local,
+                        false);
         }
 
         // Enforce fan-in limit

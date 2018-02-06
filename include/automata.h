@@ -158,7 +158,7 @@ public:
     void addSTE(STE *, std::vector<std::string>&);
     void rawAddSTE(STE *);
     void rawAddSpecialElement(SpecialElement *);
-    void optimize(bool, bool);
+    void optimize(bool, bool, bool);
     void leftMergeSTEs(STE*,STE*);
     void rightMergeSTEs(STE*,STE*);
     void mergeSTEs(STE*,STE*);
@@ -175,6 +175,8 @@ public:
     // Optimization
     uint32_t mergeCommonPrefixes();
     uint32_t mergeCommonPrefixes(std::queue<STE*> &);
+    uint32_t mergeCommonSuffixes();
+    uint32_t mergeCommonSuffixes(std::queue<STE*> &);
     Automata * generateDFA();
     void eliminateDeadStates();
     void removeRedundantEdges();

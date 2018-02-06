@@ -2550,7 +2550,7 @@ uint32_t Automata::mergeCommonPrefixes(queue<STE *> &workq) {
 
             workq.pop();
             //if the two STEs have identical prefixes, merge
-            if(first->compare(second) == 0) {
+            if(first->leftCompare(second)) {
                 merged++;
                 leftMergeSTEs(first, second);
                 //else push back onto workq
@@ -2571,6 +2571,85 @@ uint32_t Automata::mergeCommonPrefixes(queue<STE *> &workq) {
         // Recurse downward
         if(next_level.size() > 0)
             merged += mergeCommonPrefixes(next_level);
+
+        // Try another candidate
+        while(!workq_tmp.empty()) {
+            workq.push(workq_tmp.front());
+            workq_tmp.pop();
+        }
+    }
+
+    return merged;
+}
+
+/**
+ * Merges identical suffixes of automaton. Uses a depth first search on the automata, combining states with identical outputs and properties, but varying inputs. Does not currently merge suffixes with back references (loops).
+ */
+uint32_t Automata::mergeCommonSuffixes() {
+
+    uint32_t merged = 0;
+    
+    unmarkAllElements();
+
+    // start search by considering all start states
+    queue<STE*> workq;
+    for(Element *el : reports){
+        if(!el->isSpecialElement()) {
+            STE *ste = static_cast<STE*>(el);
+            ste->mark();
+            workq.push(ste);
+        }
+    }
+
+    merged += mergeCommonSuffixes(workq);
+
+    return merged;
+}
+
+/**
+ * Recursive function that considers merging all candidate STEs in the current workq. Recursively calls itselfe with a new workq with all child candidates that could possibly be merged.
+ */
+uint32_t Automata::mergeCommonSuffixes(queue<STE *> &workq) {
+
+    queue<STE*> next_level;
+    queue<STE*> workq_tmp;
+    
+    uint32_t merged = 0;
+    
+    // merge identical parents of next level
+    while(!workq.empty()) { 
+        STE * first = workq.front();
+        workq.pop();
+        
+        while(!workq.empty()) {
+            STE * second = workq.front();
+
+            workq.pop();
+            //if the two STEs have identical sufffixes, merge
+            if(first->rightCompare(second)) {
+                merged++;
+                rightMergeSTEs(first, second);
+                //else push back onto workq
+            } else {
+                workq_tmp.push(second);
+            }	 
+        }
+
+        // Add all parents of first to the next level
+        for(auto c : first->getInputs()) {
+            Element *el = getElement(c.first);
+            if(!el->isSpecialElement()) {
+                STE * child = static_cast<STE*>(el);
+                if(!child->isMarked()){
+                    child->mark();
+                    next_level.push(child);
+                }
+            }
+        }
+
+        // Recurse downward
+        if(next_level.size() > 0)
+            merged += mergeCommonSuffixes(next_level);
 
         // Try another candidate
         while(!workq_tmp.empty()) {
@@ -3505,7 +3584,8 @@ void Automata::removeRedundantEdges() {
  *
  */
 void Automata::optimize(bool remove_ors,
-                        bool left
+                        bool left,
+                        bool right
                         ){
 
     // REMOVE OR GATES
@@ -3537,6 +3617,27 @@ void Automata::optimize(bool remove_ors,
             
             // prefix merge call
             merged += mergeCommonPrefixes();
+            
+        }
+        
+        if(!quiet)
+            cout << "     removed " << merged << " elements..." << endl;
+        
+    }
+
+    // SUFFIX MERGING
+    if(right) {
+        if(!quiet) {
+            cout << " * Merging common suffixes..." << endl;
+        }
+        
+        uint32_t automata_size = 0;
+        uint32_t merged = 0;
+        while(automata_size != elements.size()) {
+            automata_size = elements.size();
+            
+            // prefix merge call
+            merged += mergeCommonSuffixes();
             
         }
         
