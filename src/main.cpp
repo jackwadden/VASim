@@ -37,9 +37,9 @@ void usage(char * argv) {
     printf("      --graph               Output automata as .graph file for HyperScan.\n");
 
     printf("\n OPTIMIZATIONS:\n");    
-    printf("  -O, --left-min-before     Enable left minimization before connected component search\n");
-    printf("  -L, --left-min-after      Enable left minimization after within connected components\n");
-    printf("  -x, --remove_ors          Remove all OR gates\n");
+    printf("  -O, --optimize-global     Enable all optimizations on all automata subgraphs.\n");
+    printf("  -L, --optimize-logal      Enable all optimizations on automata subgraphs after partitioned among parallel threads.\n");
+    printf("  -x, --remove_ors          Remove all OR gates. Only applied globally.\n");
 
     printf("\n TRANSFORMATIONS:\n");
     printf("      --enforce-fanin=<int> Enforces a fan-in limit, replicating nodes until no node has a fan-in of larger than <int>.\n");
@@ -86,7 +86,6 @@ int main(int argc, char * argv[]) {
     bool to_dfa = false;
     bool to_hdl = false;
     bool to_blif = false;
-    uint32_t max_level = 10000; // artificial (and arbitrary) max depth of attempted left-minimization
     uint32_t num_threads = 1;
     uint32_t num_threads_packets = 1;
     bool to_graph = false;
@@ -102,7 +101,7 @@ int main(int argc, char * argv[]) {
     const int32_t dump_state_switch = 1003;
 
     int c;
-    const char * short_opt = "thsqrbnfcdBDeamxipOLl:T:P:";
+    const char * short_opt = "thsqrbnfcdBDeamxipOLT:P:";
 
     struct option long_opt[] = {
         {"help",          no_argument, NULL, 'h'},
@@ -120,10 +119,9 @@ int main(int argc, char * argv[]) {
         {"profile",         no_argument, NULL, 'p'},
         {"charset",         no_argument, NULL, 'c'},
         {"time",         no_argument, NULL, 't'},
-        {"left-min-before",         no_argument, NULL, 'O'},
-        {"left-min-after",         no_argument, NULL, 'L'},
+        {"optimize-global",         no_argument, NULL, 'O'},
+        {"optimize-local",         no_argument, NULL, 'L'},
         {"remove-ors",         no_argument, NULL, 'x'},
-        {"level",         required_argument, NULL, 'l'},
         {"thread-width",         required_argument, NULL, 'T'},
         {"thread-height",         required_argument, NULL, 'P'},
         {"graph",         no_argument, NULL, graph_switch},
@@ -194,10 +192,6 @@ int main(int argc, char * argv[]) {
         case 'x':
             remove_ors = true;
             optimize = true;
-            break;
-
-        case 'l':
-            max_level = atoi(optarg);
             break;
 
         case 'T':
