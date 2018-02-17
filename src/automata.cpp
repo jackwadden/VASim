@@ -1839,6 +1839,15 @@ void Automata::automataToBLIFFile(string out_fn) {
 
     string str = "";
 
+    // ------------------------
+    // Hardware constraints
+    // ------------------------
+    // STE enable input limit
+    // 16 is the default limit imposed by the D480AP (d480.xml)
+    uint32_t ste_enable_limit = 16;
+    // ------------------------
+
+
     // emit header for module
     str += ".model blif_by_VASim\n";
     
@@ -1892,6 +1901,7 @@ void Automata::automataToBLIFFile(string out_fn) {
         // INPUTS
         // add global enable ports to start states
         // for each input
+        uint32_t input_counter = 0;
         for(auto in : s->getInputs()){
 
             string parent = in.first;
@@ -1906,10 +1916,17 @@ void Automata::automataToBLIFFile(string out_fn) {
             uint32_t portnumber = enable_counter[s->getId()];
             str += "enable[" + to_string(portnumber) + "]=" + wire + " ";
             enable_counter[s->getId()] = portnumber + 1;
+
+            // do a check to see if this automata is legal given hw constraints
+            input_counter++;
+            if(input_counter > ste_enable_limit) {
+                cout << "ERROR:: Automata fan-in is too large. STE " << s->getId() << " has too many inputs. HW limit is " << ste_enable_limit << ". Exiting..." << endl;
+                exit(1);
+            }
         }
 
         // Fill rest of inputs with unconn dummy nets
-        for(int i = 0; i < 16; i++){
+        for(int i = 0; i < ste_enable_limit; i++){
             uint32_t portnumber = enable_counter[s->getId()];
             if(i < portnumber)
                 continue;
@@ -1939,7 +1956,7 @@ void Automata::automataToBLIFFile(string out_fn) {
     // emit the STE blackbox model
     str += ".model ste\n";
     str += ".inputs ";
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < ste_enable_limit; i++)
         str += "enable[" + to_string(i) + "] " ;
     str += "clock\n";
     str += ".outputs active\n";
