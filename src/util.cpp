@@ -145,9 +145,12 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
     int bracket_sem = 0;
     int brace_sem = 0;
     const unsigned int value = 1;
-    unsigned char last_char = 0;
-    unsigned char range_start = 0;
+    uint32_t last_char = 0;
+    uint32_t range_start = 0;
 
+    // SPECIAL CHAR CODES
+    uint32_t OPEN_BRACKET = 256;
+    
     // handle symbol sets that start and end with curly braces {###}
     if((symbol_set[0] == '{') &&
        (symbol_set[symbol_set.size() - 1] == '}')){
@@ -176,6 +179,7 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
                 last_char = c;
                 escaped = false;
             }else{
+                last_char = OPEN_BRACKET;
                 bracket_sem++;
             }
             break;
@@ -418,7 +422,8 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
             */
             // Range
         case '-' :
-            if(escaped){
+            // only set the range if the previous char wasn't a bracket
+            if(escaped || last_char == OPEN_BRACKET){
                 column.set('-',value);
                 if(range_set){
                     setRange(column,range_start,'-',value);
