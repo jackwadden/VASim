@@ -3882,69 +3882,71 @@ void Automata::optimize(bool remove_ors,
 
 
     // NFA REDUCTION ALGORITHMS
-
-    // PREFIX MERGING
-    if(left) {
-        if(!quiet) {
-            cout << " * Merging common prefixes..." << endl;
-        }
-        
-        uint32_t automata_size = 0;
-        uint32_t merged = 0;
-        while(automata_size != elements.size()) {
-            automata_size = elements.size();
+    uint32_t automata_size_total = 0;
+    while(automata_size_total != elements.size()) {
+        automata_size_total = elements.size();
+        // PREFIX MERGING
+        if(left) {
+            if(!quiet) {
+                cout << " * Merging common prefixes..." << endl;
+            }
             
-            // prefix merge call
-            merged += mergeCommonPrefixes();
+            uint32_t automata_size = 0;
+            uint32_t merged = 0;
+            while(automata_size != elements.size()) {
+                automata_size = elements.size();
+                
+                // prefix merge call
+                merged += mergeCommonPrefixes();
+                
+            }
             
-        }
-        
-        if(!quiet)
-            cout << "     removed " << merged << " elements..." << endl;
-        
-    }
-
-    // SUFFIX MERGING
-    if(right) {
-        if(!quiet) {
-            cout << " * Merging common suffixes..." << endl;
-        }
-        
-        uint32_t automata_size = 0;
-        uint32_t merged = 0;
-        while(automata_size != elements.size()) {
-            automata_size = elements.size();
-            
-            // prefix merge call
-            merged += mergeCommonSuffixes();
+            if(!quiet)
+                cout << "     removed " << merged << " elements..." << endl;
             
         }
         
-        if(!quiet)
-            cout << "     removed " << merged << " elements..." << endl;
-        
-    }
-
-    if(common_path) {
-        
-        if(!quiet) {
-            cout << " * Merging common paths..." << endl;
+        // SUFFIX MERGING
+        if(right) {
+            if(!quiet) {
+                cout << " * Merging common suffixes..." << endl;
+            }
+            
+            uint32_t automata_size = 0;
+            uint32_t merged = 0;
+            while(automata_size != elements.size()) {
+                automata_size = elements.size();
+                
+                // prefix merge call
+                merged += mergeCommonSuffixes();
+                
+            }
+            
+            if(!quiet)
+                cout << "     removed " << merged << " elements..." << endl;
+            
         }
         
-        uint32_t automata_size = 0;
-        uint32_t merged = 0;
-        while(automata_size != elements.size()) {
-            automata_size = elements.size();
+        if(common_path) {
             
-            // common path merge call
-            merged += mergeCommonPaths();
+            if(!quiet) {
+                cout << " * Merging common paths..." << endl;
+            }
+            
+            uint32_t automata_size = 0;
+            uint32_t merged = 0;
+            while(automata_size != elements.size()) {
+                automata_size = elements.size();
+                
+                // common path merge call
+                merged += mergeCommonPaths();
+                
+            }
+            
+            if(!quiet)
+                cout << "     removed " << merged << " elements..." << endl;
             
         }
-        
-        if(!quiet)
-            cout << "     removed " << merged << " elements..." << endl;
-        
-    
     }
 
     //
