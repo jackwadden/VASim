@@ -2527,8 +2527,89 @@ uint64_t Automata::tick() {
 }
 
 /**
- * Merges identical prefixes of automaton. Uses a depth first search on the automata, combining states with identical inputs and properties, but varying outputs. Does not currently merge prefixes with back references (loops).
+ * Merges identical prefixes of automaton. Uses a breadth first search on the automata, combining states with identical inputs and properties, but varying outputs. Does not currently merge prefixes with back references (loops).
  */
+uint32_t Automata::mergeCommonPrefixes() {
+
+    // number of merged elements
+    uint32_t merged = 0;
+    
+    // work queue items are candidate sets of mergeable elements
+    queue<queue<STE*>*> workq;
+
+    //
+    unmarkAllElements();
+
+    // load all start states into first set
+    queue<STE*> *first = new queue<STE*>;
+    for(STE *ste : starts){
+        ste->mark();
+        first->push(ste);
+    }
+    
+    workq.push(first);
+
+    // now for each candidate set, try to merge all elements
+    while(!workq.empty()){
+
+        // grab candidate set
+        queue<STE*> *candidates = workq.front();
+        queue<STE*> candidates_tmp;
+        
+        // try to merge all candidates
+        while(!candidates->empty()) {
+
+            STE * first = candidates->front();
+            candidates->pop();
+            
+            while(!candidates->empty()) {
+                STE * second = candidates->front();
+                candidates->pop();
+                
+                //if the two STEs have identical prefixes, merge
+                if(first->leftCompare(second)) {
+                    merged++;
+                    leftMergeSTEs(first, second);
+                    //else push back onto workq
+                } else {
+                    candidates_tmp.push(second);
+                }	 
+            }
+
+            // Add all children of first to new candidate set
+            queue<STE*> *next_candidate_set = new queue<STE*>;
+            for(auto c : first->getOutputSTEPointers()) {
+                STE * child = static_cast<STE*>(c.first);
+                if(!child->isMarked()){
+                    child->mark();
+                    next_candidate_set->push(child);
+                }
+            }
+
+            // consider candidate set at the back of the queue
+            if(next_candidate_set->size() > 0)
+                workq.push(next_candidate_set);
+            else
+                delete next_candidate_set;
+            
+            // try another candidate in this candidate set
+            while(!candidates_tmp.empty()){
+                candidates->push(candidates_tmp.front());
+                candidates_tmp.pop();
+            }
+        }
+
+        // free the candidate set
+        delete candidates;
+        
+        // pop the workq now that we're done with it
+        workq.pop();
+    }
+    
+    return merged;
+}
+
+/*
 uint32_t Automata::mergeCommonPrefixes() {
 
     uint32_t merged = 0;
@@ -2546,10 +2627,11 @@ uint32_t Automata::mergeCommonPrefixes() {
 
     return merged;
 }
-
+*
 /**
  * Recursive function that considers merging all candidate STEs in the current workq. Recursively calls itselfe with a new workq with all child candidates that could possibly be merged.
  */
+/*
 uint32_t Automata::mergeCommonPrefixes(queue<STE *> &workq) {
 
     queue<STE*> next_level;
@@ -2598,6 +2680,7 @@ uint32_t Automata::mergeCommonPrefixes(queue<STE *> &workq) {
 
     return merged;
 }
+*/
 
 /**
  * Merges identical suffixes of automaton. Uses a depth first search on the automata, combining states with identical outputs and properties, but varying inputs. Does not currently merge suffixes with back references (loops).

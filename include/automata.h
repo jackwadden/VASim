@@ -174,7 +174,6 @@ public:
     // Optimization
     void optimize(bool, bool, bool, bool);
     uint32_t mergeCommonPrefixes();
-    uint32_t mergeCommonPrefixes(std::queue<STE*> &);
     uint32_t mergeCommonSuffixes();
     uint32_t mergeCommonSuffixes(std::queue<STE*> &);
     uint32_t mergeCommonPaths();
