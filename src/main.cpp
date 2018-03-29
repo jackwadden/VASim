@@ -357,7 +357,7 @@ int main(int argc, char * argv[]) {
         ap.optimize(remove_ors,
                     prefix_merge_global,
                     suffix_merge_global,
-                    prefix_merge_global);
+                    common_path_merge_global);
     }
 
     if(!quiet){
