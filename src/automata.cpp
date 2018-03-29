@@ -2687,6 +2687,96 @@ uint32_t Automata::mergeCommonPrefixes(queue<STE *> &workq) {
  */
 uint32_t Automata::mergeCommonSuffixes() {
 
+        // number of merged elements
+    uint32_t merged = 0;
+    
+    // work queue items are candidate sets of mergeable elements
+    queue<queue<STE*>*> workq;
+
+    //
+    unmarkAllElements();
+    
+    // start search by considering all start states
+    queue<STE*> *first = new queue<STE*>;
+    for(Element *el : reports){
+        if(!el->isSpecialElement()) {
+            STE *ste = static_cast<STE*>(el);
+            ste->mark();
+            first->push(ste);
+        }
+    }
+
+    workq.push(first);
+
+    // now for each candidate set, try to merge all elements
+    while(!workq.empty()){
+
+        // grab candidate set
+        queue<STE*> *candidates = workq.front();
+        queue<STE*> candidates_tmp;
+        
+        // try to merge all candidates
+        while(!candidates->empty()) {
+
+            STE * first = candidates->front();
+            candidates->pop();
+            
+            while(!candidates->empty()) {
+                STE * second = candidates->front();
+                candidates->pop();
+                
+                //if the two STEs have identical prefixes, merge
+                if(first->rightCompare(second)) {
+                    merged++;
+                    rightMergeSTEs(first, second);
+                    //else push back onto workq
+                } else {
+                    candidates_tmp.push(second);
+                }	 
+            }
+
+            // Add all children of first to new candidate set
+            queue<STE*> *next_candidate_set = new queue<STE*>;
+            for(auto c : first->getInputs()) {
+                Element *el = getElement(c.first);
+                if(!el->isSpecialElement()) {
+                    STE * child = static_cast<STE*>(el);
+                    if(!child->isMarked()){
+                        child->mark();
+                        next_candidate_set->push(child);
+                    }
+                }
+            }
+
+            // consider candidate set at the back of the queue
+            if(next_candidate_set->size() > 0)
+                workq.push(next_candidate_set);
+            else
+                delete next_candidate_set;
+            
+            // try another candidate in this candidate set
+            while(!candidates_tmp.empty()){
+                candidates->push(candidates_tmp.front());
+                candidates_tmp.pop();
+            }
+        }
+
+        // free the candidate set
+        delete candidates;
+        
+        // pop the workq now that we're done with it
+        workq.pop();
+    }
+    
+    return merged;
+}
+
+/**
+ * Merges identical suffixes of automaton. Uses a depth first search on the automata, combining states with identical outputs and properties, but varying inputs. Does not currently merge suffixes with back references (loops).
+ */
+/*
+uint32_t Automata::mergeCommonSuffixes() {
+
     uint32_t merged = 0;
     
     unmarkAllElements();
@@ -2705,10 +2795,11 @@ uint32_t Automata::mergeCommonSuffixes() {
 
     return merged;
 }
-
+*/
 /**
  * Recursive function that considers merging all candidate STEs in the current workq. Recursively calls itselfe with a new workq with all child candidates that could possibly be merged.
  */
+/*
 uint32_t Automata::mergeCommonSuffixes(queue<STE *> &workq) {
 
     queue<STE*> next_level;
@@ -2760,6 +2851,7 @@ uint32_t Automata::mergeCommonSuffixes(queue<STE *> &workq) {
 
     return merged;
 }
+*/
 
 /**
  * If two STEs share the same parents and the same children, they can be combined into
