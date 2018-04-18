@@ -170,7 +170,8 @@ public:
     Automata *clone();
     void enforceFanIn(uint32_t fanin_max);
     void enforceFanOut(uint32_t fanout_max);
-
+    void widenAutomata();
+    
     // Optimization
     void optimize(bool, bool, bool, bool);
     uint32_t mergeCommonPrefixes();

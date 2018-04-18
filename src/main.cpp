@@ -44,6 +44,7 @@ void usage(char * argv) {
     printf("\n TRANSFORMATIONS:\n");
     printf("      --enforce-fanin=<int> Enforces a fan-in limit, replicating nodes until no node has a fan-in of larger than <int>.\n");
     printf("      --enforce-fanout=<int> Enforces a fan-out limit, replicating nodes until no node has a fan-out of larger than <int>.\n");
+    printf("      --widen               Pads each state with a zero state for patterns where the input is 16 bits (common in YARA rules).\n");
 
     printf("\n MULTITHREADING:\n");
     printf("  -T, --threads             Specify number of threads to compute connected components of automata\n");
@@ -97,13 +98,15 @@ int main(int argc, char * argv[]) {
     int32_t fanout_limit = -1;
     bool dump_state = false;
     uint32_t dump_state_cycle = 0;
-
+    bool widen = false;
+    
     // long option switches
     const int32_t graph_switch = 1000;
     const int32_t fanin_switch = 1001;
     const int32_t fanout_switch = 1002;
     const int32_t dump_state_switch = 1003;
-
+    const int32_t widen_switch = 1004;
+    
     int c;
     const char * short_opt = "thsqrbnfcdBDeamxipOLT:P:";
 
@@ -132,6 +135,7 @@ int main(int argc, char * argv[]) {
         {"enforce-fanin",         required_argument, NULL, fanin_switch},
         {"enforce-fanout",         required_argument, NULL, fanout_switch},
         {"dump-state",         required_argument, NULL, dump_state_switch},
+        {"widen",         no_argument, NULL, widen_switch},
         {NULL,            0,           NULL, 0  }
     };
     
@@ -259,7 +263,11 @@ int main(int argc, char * argv[]) {
             dump_state = true;
             dump_state_cycle = atoi(optarg);
             break;
-                        
+
+        case widen_switch:
+            widen = true;
+            break;
+            
         default:
             fprintf(stderr, "%s: invalid option -- %c\n", argv[0], c);
             usage(argv[0]);
@@ -459,6 +467,15 @@ int main(int argc, char * argv[]) {
             a->enforceFanOut(fanout_limit);
         }
 
+        // Widen
+        if(widen){
+            if(!quiet) {
+                cout<< "Widening automata..." <<endl;
+                cout<<endl;
+            }
+            a->widenAutomata();
+        }
+        
         // Convert automata to DFA
         if(to_dfa) {
             if(!quiet) {

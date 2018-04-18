@@ -3954,3 +3954,67 @@ void Automata::optimize(bool remove_ors,
     if(!quiet)
         cout << endl;
 }
+
+
+/**
+ * "Widens" an automata by padding with STEs that recognize zeroes
+ *   this is often required for YARA malware automata.
+ */
+void Automata::widenAutomata() {
+
+    queue<STE*> toWiden;
+    
+    //
+    for(auto e : elements) {
+
+        //
+        if(e.second->isSpecialElement())
+            continue;
+        STE *ste = static_cast<STE*>(e.second);
+        toWiden.push(ste);
+
+    }
+
+    while(!toWiden.empty()){
+
+        STE *ste = toWiden.front();
+        toWiden.pop();
+        
+        // build new STE
+        string id = ste->getId() + "_widened";
+        STE *pad = new STE(id, "[\\x00]", "none");
+        
+        // add all parents of ste as parents of pad
+        queue<Element *> toRemove;
+        for(auto e : ste->getOutputSTEPointers()) {
+            addEdge(pad, e.first);
+            toRemove.push(e.first);
+        }
+        for(auto e : ste->getOutputSpecelPointers()) {
+            addEdge(pad, e.first);
+            toRemove.push(e.first);
+        }
+
+        // remove all parents of ste
+        while(!toRemove.empty()){
+            removeEdge(ste, toRemove.front());
+            toRemove.pop();
+        }
+
+        // add edge from ste to pad
+        addEdge(ste, pad);
+
+        // if STE was reporting, make pad report instead
+        if(ste->isReporting()){
+            ste->setReporting(false);
+            pad->setReporting(true);
+            pad->setReportCode(ste->getReportCode());
+        }
+
+        // add STE to automata
+        rawAddSTE(pad);
+    }
+
+    // we modified the graph, so finalize data structures
+    finalizeAutomata();
+}

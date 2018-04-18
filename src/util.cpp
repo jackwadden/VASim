@@ -124,7 +124,7 @@ void setRange(std::bitset<256> &column, int start, int end, int value) {
  * Parses a string representation of a symbol/character set and sets each corresponding bit in column.
  */
 void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
-
+    
     if(symbol_set.compare("*") == 0){
         column.set();
         return;
