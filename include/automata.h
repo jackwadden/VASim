@@ -171,6 +171,7 @@ public:
     void enforceFanIn(uint32_t fanin_max);
     void enforceFanOut(uint32_t fanout_max);
     void widenAutomata();
+    Automata *twoStrideAutomata();
     
     // Optimization
     void optimize(bool, bool, bool, bool);

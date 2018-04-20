@@ -3990,6 +3990,7 @@ void Automata::widenAutomata() {
             addEdge(pad, e.first);
             toRemove.push(e.first);
         }
+        
         for(auto e : ste->getOutputSpecelPointers()) {
             addEdge(pad, e.first);
             toRemove.push(e.first);
@@ -4017,4 +4018,197 @@ void Automata::widenAutomata() {
 
     // we modified the graph, so finalize data structures
     finalizeAutomata();
+}
+
+/**
+ * 2-Stride Automata
+ *  Striding converts the original automata to an equivalent automata that
+ *  consumes two symbols per cycle, as a single symbol. This effectively 
+ *  doubles the alphabet size. In VASim, this can only be applied when the
+ *  alphabet is less than 2x 256. 2-striding can be applied sequentially to
+ *  4-stride (in the case of 2-bit symbols) , or even 8-stride (in the case 
+ *  of bit-level automata).
+ */
+Automata *Automata::twoStrideAutomata() {
+
+
+    // Check if special elements exist
+    for( auto e : getElements()) {
+        if(e.second->isSpecialElement()) {
+            cout << "WARNING: Could not stride automata because of special elements. In reality, we totally could, we just dont support it right now." << endl;
+            exit(1);
+        }
+    }
+
+    // What's the largest symbol we need? 
+    uint32_t largest = 0;
+    for( auto e : getElements()) {
+        STE *ste = static_cast<STE*>(e.second);
+        for(uint32_t i = 0; i < 256; i++){
+            if(ste->match(i)){
+                if(i > largest){
+                    largest = i;
+                }
+            }
+        }
+    }
+    
+    if(largest > 127){
+        cout << "WARNING: Could not 2-stride automata because symbols are too big." << endl;
+        exit(1);
+    }else{
+        cout << "  Largest symbol used is: " << largest << endl;
+    }
+    
+    // Identify what power of 2 is required to hold all symbols
+    uint32_t bits_per_symbol;
+    uint32_t num_symbols;
+    for(uint32_t i = 0; i < 8; i++){
+        uint32_t bits = pow(2, i);
+        if(bits >= largest){
+            bits_per_symbol = bits;
+            num_symbols = pow(2, bits);
+            break;
+        }
+    }
+    
+    cout << "  Automata requires " << bits_per_symbol << " bits per symbol. " << endl;
+    cout << "  This means we can two stride to form " << bits_per_symbol * 2 << " bit symbols." << endl;
+
+    // START STRIDING ALGORITHM
+    
+    // Unmark all elements
+    unmarkAllElements();
+    
+    // Start striding
+    Automata *strided_automata = new Automata();
+    unordered_map<STE *,vector<STE*>> head_node_to_pair;
+    unordered_map<STE *,vector<STE*>> pair_to_tail_node;
+    queue<STE *> workq;
+
+    // Push start states to work queue
+    for( auto e : getElements()) {
+
+        STE *s = static_cast<STE*>(e.second);
+
+        if(s->isStart()) {
+            s->mark();
+            workq.push(s);
+        }
+    }
+
+    //
+    uint32_t id_counter = 0;
+    
+    // Iterate over all states in breadth first manner
+    while(!workq.empty()){
+        
+        //
+        STE *s1 = workq.front();
+        workq.pop();
+
+        //
+        //cout << "Considering s1: " << s1->getId() << endl;
+        
+        // for each child node
+        for(auto e : s1->getOutputSTEPointers()) {
+            
+            //
+            STE *s2 = static_cast<STE*>(e.first);
+
+            //cout << "Considering s1 child: " << s2->getId() << endl;
+            
+            // combine these states into a new node
+            string id;
+            string charset ="";
+            string start = "none";
+            STE *new_ste = new STE("__" + to_string(id_counter++) + "__", charset, start);
+            strided_automata->rawAddSTE(new_ste);
+
+            //
+            //cout << "Combining : " << s1->getId() << " : " << s2->getId() << endl;
+            
+            if(s1->isReporting() || s2->isReporting()) {
+                new_ste->setReporting(true);
+                if(!s1->getReportCode().empty()){
+                    new_ste->setReportCode(s1->getReportCode());
+                }
+                if(!s2->getReportCode().empty()){
+                    new_ste->setReportCode(s2->getReportCode());
+                }
+            }
+
+            if(s1->isStart())
+                new_ste->setStart(s1->getStart());
+            
+            // get combined charset
+            for(uint32_t c1 = 0; c1 < num_symbols; c1++) {
+                if(s1->match(c1)){
+                    for(uint32_t c2 = 0; c2 < num_symbols; c2++) {
+                        if(s2->match(c2)){
+                            new_ste->addSymbolToSymbolSet(c2 << bits_per_symbol | c1);
+                        }
+                    }
+                }
+            }
+
+            // now that we have the new node map the original head node to it
+            if(head_node_to_pair.find(s1) == head_node_to_pair.end()){
+                vector<STE*> vec {};
+                head_node_to_pair[s1] = vec;
+            }
+            // if the list doesn't have it
+            vector<STE*> tmp = head_node_to_pair[s1];
+            if(find(tmp.begin(), tmp.end(), new_ste) == tmp.end())
+                head_node_to_pair[s1].push_back(new_ste);
+
+            // map the pair to the second node
+            if(pair_to_tail_node.find(new_ste) == pair_to_tail_node.end()){
+                vector<STE*> vec {};
+                pair_to_tail_node[new_ste] = vec;
+            }
+            // if the list doesn't have our key, push it
+            tmp = pair_to_tail_node[new_ste];
+            if(find(tmp.begin(), tmp.end(), s2) == tmp.end())
+                pair_to_tail_node[new_ste].push_back(s2);
+            
+            // push the children of s2 to the queue
+            for(auto next : s2->getOutputSTEPointers()){
+                // only push if we haven't been seen yet!
+                STE * next_ste = static_cast<STE*>(next.first);
+                if(!next_ste->isMarked()){
+                    next_ste->mark();
+                    workq.push(next_ste);
+                }
+            }
+        }
+    }
+
+    // Once we have all of the proper states
+    // we make a second pass to construct correct edges
+    for(auto e : strided_automata->getElements()) {
+
+        STE *strided_parent = static_cast<STE*>(e.second);
+        
+        // get the 2nd node of each strided pair
+        vector<STE*> tails = pair_to_tail_node[strided_parent];
+
+        //
+        for(STE * tail : tails) {
+            // for each output of the second node, add an edge tail->pair[output]
+            for(auto e2 : tail->getOutputSTEPointers()) {
+                
+                STE *head = static_cast<STE*>(e2.first);
+
+                // get the strided pair from each 1st node
+                vector<STE*> strided_children = head_node_to_pair[head];
+                for(STE* strided_child : strided_children) {
+                    strided_automata->addEdge(strided_parent, strided_child);
+                }
+            }
+        }
+    }
+    
+    return strided_automata;
+    
 }
