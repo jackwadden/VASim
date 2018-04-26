@@ -403,7 +403,7 @@ Automata *Automata::clone() {
 
 
 /**
- * Removes STE from the automata. Removes the element from all data structures and removes references to this element from other elements. TODO:: this works, but probably leaves some traces behind. Also, does not destroy Element object.
+ * Removes Element from the automata. Removes the element from all data structures and removes references to this element from other elements. TODO:: this works, but probably leaves some traces behind. Also, does not destroy Element object.
  */
 void Automata::removeElement(Element *el) {
 
