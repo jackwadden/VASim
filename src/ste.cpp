@@ -308,6 +308,9 @@ shared_ptr<MNRLNode> STE::toMNRLObj() {
                                               report_code,
                                               shared_ptr<map<string,string>>(new map<string,string>())
                                               ));
+    if(eod) {
+      s->setReportEnable(MNRLDefs::ReportEnableType::ENABLE_ON_LAST);
+    }
     
     return s;
 }
