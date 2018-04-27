@@ -319,7 +319,7 @@ shared_ptr<MNRLNode> Counter::toMNRLObj() {
         ));
     
     if(eod) {
-      s->setReportEnable(MNRLDefs::ReportEnableType::ENABLE_ON_LAST);
+      c->setReportEnable(MNRLDefs::ReportEnableType::ENABLE_ON_LAST);
     }
         
     return c;
