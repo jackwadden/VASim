@@ -163,6 +163,7 @@ public:
     void mergeSTEs(STE*,STE*);
     void removeElement(Element *);
     uint32_t removeOrGates();
+    void replaceCounters();
     void removeCounters();
     void convertAllInputStarts();
     std::vector<Automata*> splitConnectedComponents();

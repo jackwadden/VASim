@@ -1286,7 +1286,7 @@ uint32_t Automata::removeOrGates() {
  * UNFINISHED:: Removes Counters from the automata. Counters can sometimes be replaced by an equivalent number of matching elements.
  * TODO
  */
-void Automata::removeCounters() {
+void Automata::replaceCounters() {
 
     // for each special element that is an OR gate
     queue<Element *> toRemove;
@@ -4211,4 +4211,46 @@ Automata *Automata::twoStrideAutomata() {
     
     return strided_automata;
     
+}
+
+/**
+ * Removes counters from a design. Does not replace counters with STEs.
+ */
+void Automata::removeCounters(){
+
+    queue<Element*> to_remove;
+    
+    // Find all counters
+    for(auto e : getElements()){
+        Element *el = e.second;
+        if(dynamic_cast<Counter*>(el) != NULL){
+            // now we've found a counter
+            Counter *c = static_cast<Counter*>(el);
+
+            // connect all inputs to outputs
+            // yes, this includes both CNT and RST ports
+            // unclear what the implications are for your design
+            for(auto i : c->getInputs()){
+                Element *in = getElement(i.first);
+                for(string o : c->getOutputs()){
+                    Element *out = getElement(o);
+                    addEdge(in, out);
+                    
+                    // if it reports, make all parent STEs report
+                    if(c->isReporting()){
+                        in->setReporting(true);
+                        in->setReportCode(c->getReportCode());
+                    }
+                }
+            }
+
+            // remove counter
+            to_remove.push(c);
+        }
+    }
+
+    while(!to_remove.empty()){
+        removeElement(to_remove.front());
+        to_remove.pop();
+    }
 }
