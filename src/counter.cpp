@@ -318,7 +318,7 @@ shared_ptr<MNRLNode> Counter::toMNRLObj() {
             shared_ptr<map<string,string>>(new map<string,string>())
         ));
     
-    if(is_eod) {
+    if(eod) {
       s->setReportEnable(MNRLDefs::ReportEnableType::ENABLE_ON_LAST);
     }
         

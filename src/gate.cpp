@@ -86,7 +86,7 @@ shared_ptr<MNRLBoolean> Gate::toMNRLBool(MNRLDefs::BooleanMode m) {
             report_code,
             shared_ptr<map<string,string>>(new map<string,string>())
         ));
-    if(is_eod) {
+    if(eod) {
       s->setReportEnable(MNRLDefs::ReportEnableType::ENABLE_ON_LAST);
     }
     return b;
