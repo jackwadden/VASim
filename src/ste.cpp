@@ -252,7 +252,7 @@ string STE::toANML() {
     s.append(id);
     s.append("\" ");
     s.append(" symbol-set=\"");
-    s.append(symbol_set);
+    s.append(bitsetToCharset(bit_column));
     s.append("\" ");
     s.append(" start=\"");
     s.append(getStringStart());
