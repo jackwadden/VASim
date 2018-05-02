@@ -4066,8 +4066,10 @@ Automata *Automata::twoStrideAutomata() {
     for(uint32_t i = 0; i < 8; i++){
         uint32_t bits = pow(2, i);
         if(bits >= largest){
-            bits_per_symbol = bits;
-            num_symbols = pow(2, bits);
+            //bits_per_symbol = bits;
+            //num_symbols = pow(2, bits);
+            bits_per_symbol = i;
+            num_symbols = bits;
             break;
         }
     }
@@ -4100,6 +4102,8 @@ Automata *Automata::twoStrideAutomata() {
     //
     uint32_t id_counter = 0;
     
+    bool warn_odd_length = false;
+    
     // Iterate over all states in breadth first manner
     while(!workq.empty()){
         
@@ -4109,6 +4113,44 @@ Automata *Automata::twoStrideAutomata() {
 
         //
         //cout << "Considering s1: " << s1->getId() << endl;
+        
+        // handle if there is an "odd length"
+        // in other words, there is an unvisited STE but no children
+        // We'll print a warning, too
+        if(s1->getOutputSTEPointers().empty()) {
+          warn_odd_length = true;
+          
+          // we just have to shift the charset
+          string id;
+          string charset ="";
+          string start = "none";
+          STE *new_ste = new STE("__" + to_string(id_counter++) + "__", charset, start);
+          strided_automata->rawAddSTE(new_ste);
+          
+          new_ste->setReporting(s1->isReporting());
+          new_ste->setReportCode(s1->getReportCode());
+          new_ste->setStart(s1->getStart());
+          
+          for(uint32_t c1 = 0; c1 < num_symbols; c1++) {
+              if(s1->match(c1)){
+                  new_ste->addSymbolToSymbolSet(c1 << bits_per_symbol );
+              }
+          }
+          
+          // now that we have the new node map the original head node to it
+          if(head_node_to_pair.find(s1) == head_node_to_pair.end()){
+              vector<STE*> vec {};
+              head_node_to_pair[s1] = vec;
+          }
+          
+          // if the list doesn't have it
+          vector<STE*> tmp = head_node_to_pair[s1];
+          if(find(tmp.begin(), tmp.end(), new_ste) == tmp.end())
+              head_node_to_pair[s1].push_back(new_ste);
+
+        
+          
+        }
         
         // for each child node
         for(auto e : s1->getOutputSTEPointers()) {
@@ -4182,6 +4224,10 @@ Automata *Automata::twoStrideAutomata() {
                 }
             }
         }
+    }
+    
+    if (warn_odd_length) {
+      cout << "  WARNING: potential odd length input. Be sure to pad!" << endl;
     }
 
     // Once we have all of the proper states
