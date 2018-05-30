@@ -417,6 +417,9 @@ int main(int argc, char * argv[]) {
             merged[counter % num_threads]->unsafeMerge(a);
             merged[counter % num_threads]->copyFlagsFrom(a);
         }
+
+        // finalize copied automata
+        merged[counter % num_threads]->finalizeAutomata();
         counter++;
     }
     

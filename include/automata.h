@@ -47,8 +47,8 @@ private:
     std::unordered_map<std::string, Element*> elements;
     std::vector<STE*> starts;
     std::vector<Element*> reports;
+    std::vector<Element*> orderedSpecialElements;
     std::unordered_map<std::string, SpecialElement*> specialElements;
-    std::unordered_map<std::string, SpecialElement*> firstLayerSpecialElements;
     
     // Functional element stacks
     Stack<Element *> enabledSTEs;
@@ -130,6 +130,7 @@ public:
     void computeSTEMatches(uint8_t); // formerly stageTwo
     void enableSTEMatchingChildren(); // formerly stageThree
     void specialElementSimulation(); // formerly stageFour/Five
+    void specialElementSimulation2(); // formerly stageFour/Five
     uint64_t tick();
 
 

@@ -62,6 +62,60 @@ void Automata::finalizeAutomata() {
         validateReportElement(parent);
         
     }
+    
+    //
+    // collect special elements in BFS order in orderedSpecialElements vector
+    //
+    unmarkAllElements();
+
+    queue<Element *> workq;
+    // add all special elements to a queue
+    for(auto e : getElements()){
+        // push to vector, store all children specels of these for next level
+        Element *el = e.second;
+        // if we're an STE
+        if(el->isSpecialElement()){
+            workq.push(el);
+        }
+    }
+            
+    //
+    queue<Element *> next_worq;
+    while(!workq.empty()){
+
+        Element *el = workq.front();
+        workq.pop();
+
+        // if all of els parents have been marked, then mark us and move to queue
+        bool ready = true;
+        for(auto ins : el->getInputs()){
+            Element *parent = getElement(ins.first);
+            if(!parent->isSpecialElement())
+                continue;
+
+            if(!parent->isMarked()){
+                ready = false;
+                break;
+            }
+        }
+
+        //
+        if(ready){
+            // add to the "sorted" special element list
+            el->mark();
+            orderedSpecialElements.push_back(el);
+            
+        }else{
+            // consider again
+            workq.push(el);
+        }
+    }
+
+    // print out ordered special elements
+    //uint32_t counter = 0;
+    //for(Element *el : orderedSpecialElements){
+    //    cout << counter++ << " : " << el->getId() << endl;
+    //}
 }
 
 /**
@@ -634,7 +688,7 @@ void Automata::simulate(uint8_t symbol) {
     // -----------------------------
     // Step 4: special element computation
     if(specialElements.size() > 0){        
-        specialElementSimulation();
+        specialElementSimulation2();
     }
     // -----------------------------
 
@@ -2409,6 +2463,45 @@ void Automata::enableSTEMatchingChildren() {
     }
 }
 
+/**
+ * BFS that only considers special Elements once per post STE cycle
+ *  Special Element compute order starts with those that only have STE parents
+ *  and then progresses, adding new elements when all parent special elements
+ *  have been considered.
+ */
+void Automata::specialElementSimulation2() {
+
+    // Calculate all specels in order
+    for(Element *spel : orderedSpecialElements){
+        
+        // calculate
+        bool result = static_cast<SpecialElement*>(spel)->calculate();
+
+        // DO WE ACTIVATE?
+        if(result){
+
+            // activate
+            if(!spel->isActivated()){
+                spel->activate();
+            }
+            
+            // report?
+            if(report && spel->isReporting()) {
+                reportVector.push_back(make_pair(cycle, spel->getId()));
+            }
+        }
+
+        // disable
+        spel->disable();
+        
+        // for all children
+        // enable them if we activated
+        if(result){
+            spel->enableChildSTEs(&enabledSTEs);
+            spel->enableChildSpecialElements(&enabledSpecialElements);
+        }
+    }
+}
 
 /**
  * Simulates SpecialElements. SpecialElements are unbuffered and behave as traditional electrical circuit elements. Therefore, all special elements need to continuously calculate based on their inputs until a steady state is reached. SpecialElement simulation is extremely slow compared to STE-only simulation.
