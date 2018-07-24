@@ -275,7 +275,7 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
             }else{
                 column.set(c, value);
                 if(range_set){
-                    setRange(column,range_start,'\r',value);
+                    setRange(column,range_start,c,value);
                     range_set = false;
                 }
                 last_char = c;
@@ -285,7 +285,7 @@ void parseSymbolSet(std::bitset<256> &column, std::string symbol_set) {
             if(escaped){
                 column.set('\t',value);
                 if(range_set){
-                    setRange(column,range_start,'\r',value);
+                    setRange(column,range_start,'\t',value);
                     range_set = false;
                 }
                 last_char = '\t';
