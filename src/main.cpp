@@ -411,6 +411,8 @@ int main(int argc, char * argv[]) {
     vector<Automata*> merged(num_threads);
     for(Automata *a : ccs) {
 
+        cout << "Merging " << counter << endl;
+
         if(merged[counter % num_threads] == NULL){
             merged[counter % num_threads] = ccs[counter];
         }else{
@@ -418,9 +420,12 @@ int main(int argc, char * argv[]) {
             merged[counter % num_threads]->copyFlagsFrom(a);
         }
 
-        // finalize copied automata
-        merged[counter % num_threads]->finalizeAutomata();
         counter++;
+    }
+
+    // finalize copied automata
+    for(Automata *a : merged) {
+        a->finalizeAutomata();
     }
     
     if(!quiet)
