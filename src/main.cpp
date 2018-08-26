@@ -411,8 +411,6 @@ int main(int argc, char * argv[]) {
     vector<Automata*> merged(num_threads);
     for(Automata *a : ccs) {
 
-        cout << "Merging " << counter << endl;
-
         if(merged[counter % num_threads] == NULL){
             merged[counter % num_threads] = ccs[counter];
         }else{
