@@ -8,7 +8,7 @@ VASim can parse, transform, simulate, and profile homogeneous automata, and is m
 
 VASim is designed to run on 64-bit machines GCC 4.9+. Users have successfully compiled on 32-bit platforms but these builds are not officially supported. Below are the commands used to install on all tested platforms.
 
-### Ubuntu Linux (14.04/16.04 with g++ 4.9+)
+### Ubuntu Linux (14.04/16.04 with gcc 5.0+)
 ```bash
 
 $ git clone https://github.com/jackwadden/VASim.git
