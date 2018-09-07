@@ -1,5 +1,5 @@
 # COMPILER
-CC = g++
+CC = g++-5
 AR = ar
 
 # TARGET NAMES
@@ -14,10 +14,10 @@ PUGI = ./libs/pugixml
 
 # LIBRARY DEPENDENCIES
 LIBMNRL = $(MNRL)/libmnrl.a
-LIBPUGI = $(PUGI)/build/make-$(CXX)-release-standard-c++11/src/pugixml.cpp.o
+LIBPUGI = $(PUGI)/build/make-$(CC)-release-standard-c++11/src/pugixml.cpp.o
 
 # FLAGS
-CXXFLAGS= -I$(IDIR) -I$(MNRL)/include -I$(PUGI)/src -pthread --std=c++11
+CXXFLAGS= -I$(IDIR) -I$(MNRL)/include -I$(PUGI)/src -pthread --std=c++11 -Wno-deprecated
 OPTS = -Ofast
 ARFLAGS = rcs
 
@@ -49,7 +49,7 @@ mnrl:
 pugi:	
 	$(info )
 	$(info Compiling PugiXML Library...)
-	$(MAKE) $(LIBPUGI)
+	$(MAKE) $(LIBPUGI) 
 
 $(TARGET): $(SRCDIR)/$(MAIN_CPP) $(LIBVASIM) $(LIBMNRL)
 	$(info  )
@@ -64,10 +64,10 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(LIBMNRL)
 	$(CC) $(CXXFLAGS) -c -o $@ $< 
 
 $(LIBMNRL):
-	$(MAKE) -C $(MNRL)
+	$(MAKE) CC=$(CC) -C $(MNRL)
 
 $(LIBPUGI):
-	$(MAKE) config=release -C $(PUGI)
+	$(MAKE) CXX=$(CC) -Wno-deprecated config=release -C $(PUGI)
 
 clean: cleanvasim cleanmnrl cleanpugi
 
