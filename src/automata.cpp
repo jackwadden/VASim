@@ -689,6 +689,10 @@ void Automata::simulate(uint8_t symbol) {
     // Step 4: special element computation
     if(specialElements.size() > 0){        
         specialElementSimulation2();
+
+        if(dump_state && (dump_state_cycle == cycle)){
+            dumpSpecelState("specels_" + to_string(cycle) + ".state");
+        }
     }
     // -----------------------------
 
