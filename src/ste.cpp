@@ -213,7 +213,8 @@ string STE::toString() {
     s.append(symbol_set);
     s.append(" start=");
     s.append(getStringStart());
-        
+    if(eod)
+	s.append(" high-only-on-eod");    
     s.append("\n\t");
     s.append("activate-on-match=\n\t  ");
     //  for(string s2 : outputs) {
@@ -256,7 +257,11 @@ string STE::toANML() {
     s.append("\" ");
     s.append(" start=\"");
     s.append(getStringStart());
-    s.append("\">\n");
+    s.append("\" ");
+    if(eod)
+	    s.append("high-only-on-eod=\"true\" ");
+    s.append(">\n");
+
 
     if(reporting){
         if(!report_code.empty()){
