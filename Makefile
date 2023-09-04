@@ -1,5 +1,5 @@
 # COMPILER
-CC = g++-5
+CC = g++
 AR = ar
 
 # TARGET NAMES
