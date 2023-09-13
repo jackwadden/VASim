@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
     // SIMULATION
 
     // enable report gathering for the automata
-    ap.enableReport();
+    ap.setReport(true);//enableReport();
 
     // initialize simulation
     ap.initializeSimulation();
