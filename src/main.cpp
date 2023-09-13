@@ -29,7 +29,7 @@ void usage(char * argv) {
     printf("\n OUTPUT FORMATS:\n");
     printf("  -d, --dot                 Output automata as dot file. Builds a heat map if profiling is turned on\n");
     printf("  -a, --anml                Output automata as anml file. Useful for storing graphs after long running optimizations\n");
-    printf("  -m, --mnrl                Output automata as MNRL file. Useful for storing graphs after long running optimizations");
+    printf("  -m, --mnrl                Output automata as MNRL file. Useful for storing graphs after long running optimizations\n");
     printf("  -n, --nfa                 Output automata as nfa readable by Michela Becchi's tools\n");    
     printf("  -D, --dfa                 Convert automata to DFA\n");
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA (EXPERIMENTAL)\n");    
