@@ -92,7 +92,7 @@ public:
     static std::string getPort(std::string);
     virtual std::string toString() = 0;
     virtual std::string toANML() = 0;
-    virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj() = 0;
+    virtual MNRL::MNRLNode& toMNRLObj() = 0;
     //void enableChildSTEs(std::vector<Element *> *);
     void enableChildSTEs(Stack<Element *> *);
     uint32_t enableChildSpecialElements(std::queue<Element *> *);

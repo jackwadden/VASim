@@ -44,11 +44,11 @@ static string convertThreshold(MNRLDefs::CounterMode m) {
     }
 }
 
-static void addOutputs(shared_ptr<MNRLNode> n, Element *e) {    
-    for(auto p : *(n->getOutputConnections())) {
-        for(auto c : p.second->getConnections()) {
-            string id = c.first->getId();
-            string p_id = c.second->getId();
+static void addOutputs(/*shared_ptr<*/MNRLNode/*>*/ n, Element *e) {    
+    for(auto p : n.getOutputConnections()) {
+        for(auto c : p.second.getConnections()) {
+            string id = c.first;//.getId();
+            string p_id = c.second;//.getId();
             
             if(
                p_id.compare( MNRLDefs::UP_COUNTER_COUNT ) == 0 ||
@@ -67,37 +67,37 @@ static void addOutputs(shared_ptr<MNRLNode> n, Element *e) {
 
 MNRLAdapter::MNRLAdapter(string filename) : filename(filename) {}
 
-STE *MNRLAdapter::parseSTE(shared_ptr<MNRLHState> hState) {
+STE* MNRLAdapter::parseSTE(/*shared_ptr<MNRLHState>*/ MNRLHState hState) {
     
-    string id = hState->getId();
-    string symbol_set = hState->getSymbolSet();
-    string start = convertStart(hState->getEnable());
+    string id = hState.getId();
+    string symbol_set = hState.getSymbolSet();
+    string start = convertStart(hState.getEnable());
     
     // create new STE
     STE *s = new STE(id, symbol_set, start);
     s->setIntId(unique_ids++);
     
-    s->setReporting(hState->getReport());
+    s->setReporting(hState.getReport());
     
     // check to see if report is EOD
-    bool is_eod = reportEOF(hState->getReportEnable());
+    bool is_eod = reportEOF(hState.getReportEnable());
     s->setEod(is_eod);
     
     addOutputs(hState, s);
     
-    s->setReportCode(hState->getReportId()->toString());
+    s->setReportCode(hState.getReportId()->toString());
     
     
     
     return s;
 }
 
-Gate *MNRLAdapter::parseGate(shared_ptr<MNRLBoolean> a) {
-    string id = a->getId();
+Gate *MNRLAdapter::parseGate(/*shared_ptr<*/MNRLBoolean/*>*/ a) {
+    string id = a.getId();
     
     Gate *s;
     
-    switch(a->getMode()) {
+    switch(a.getMode()) {
         case MNRLDefs::BooleanMode::AND:
             s = new AND(id);
             break;
@@ -119,21 +119,21 @@ Gate *MNRLAdapter::parseGate(shared_ptr<MNRLBoolean> a) {
     
     addOutputs(a, s);
     
-    s->setReporting(a->getReport());
+    s->setReporting(a.getReport());
     
     // check to see if report is EOD
-    bool is_eod = reportEOF(a->getReportEnable());
+    bool is_eod = reportEOF(a.getReportEnable());
     s->setEod(is_eod);
     
-    s->setReportCode(a->getReportId()->toString());
+    s->setReportCode(a.getReportId()->toString());
     
     return s;
 }
 
-Counter *MNRLAdapter::parseCounter(shared_ptr<MNRLUpCounter> cnt) {
-    string id = cnt->getId();
-    uint32_t target = cnt->getThreshold();
-    string at_target = convertThreshold(cnt->getMode());
+Counter *MNRLAdapter::parseCounter(/*shared_ptr<*/MNRLUpCounter/*>*/ cnt) {
+    string id = cnt.getId();
+    uint32_t target = cnt.getThreshold();
+    string at_target = convertThreshold(cnt.getMode());
     
     // create new Counter gate
     Counter *c = new Counter(id, target, at_target);
@@ -141,13 +141,13 @@ Counter *MNRLAdapter::parseCounter(shared_ptr<MNRLUpCounter> cnt) {
     
     addOutputs(cnt, c);
     
-    c->setReporting(cnt->getReport());
+    c->setReporting(cnt.getReport());
     
     // check to see if report is EOD
-    bool is_eod = reportEOF(cnt->getReportEnable());
+    bool is_eod = reportEOF(cnt.getReportEnable());
     c->setEod(is_eod);
     
-    c->setReportCode(cnt->getReportId()->toString());
+    c->setReportCode(cnt.getReportId()->toString());
     
     return c;
 }
@@ -162,25 +162,25 @@ void MNRLAdapter::parse(unordered_map<string, Element*> &elements,
     
     try {
         // load the MNRL file
-        shared_ptr<MNRLNetwork> net = loadMNRL(filename);
+        MNRLNetwork net = loadMNRL(filename);
         
-        *id = net->getId();
+        *id = net.getId();
         
-        for(auto node : net->getNodes()) {
+        for(auto node : net.getNodes()) {
             Element *s;
             switch(node.second->getNodeType()) {
                 case MNRLDefs::NodeType::HSTATE:
-                    s = parseSTE(dynamic_pointer_cast<MNRLHState>(node.second));
+                    s = parseSTE(dynamic_cast<MNRLHState&>(*(node.second)));
                     if(dynamic_cast<STE *>(s)->isStart()) {
                         starts.push_back(dynamic_cast<STE *>(s));
                     }
                     break;
                 case MNRLDefs::NodeType::BOOLEAN:
-                    s = parseGate(dynamic_pointer_cast<MNRLBoolean>(node.second));
+                    s = parseGate(dynamic_cast<MNRLBoolean&>(*(node.second)));
                     specialElements[s->getId()] = dynamic_cast<Gate *>(s);
                     
                     // If this is a NOR or Inverter, we need to add it ot another vector
-                    switch(dynamic_pointer_cast<MNRLBoolean>(node.second)->getMode()) {
+                    switch(dynamic_cast<MNRLBoolean&>(*(node.second)).getMode()) {
                         case MNRLDefs::BooleanMode::NOR:
                         case MNRLDefs::BooleanMode::NOT:
                             activateNoInputSpecialElements.push_back(dynamic_cast<SpecialElement*>(s));
@@ -191,7 +191,7 @@ void MNRLAdapter::parse(unordered_map<string, Element*> &elements,
                     
                     break;
                 case MNRLDefs::NodeType::UPCOUNTER:
-                    s = parseCounter(dynamic_pointer_cast<MNRLUpCounter>(node.second));
+                    s = parseCounter(dynamic_cast<MNRLUpCounter&>(*(node.second)));
                     specialElements[s->getId()] = dynamic_cast<Gate *>(s);
                     break;
                 default:
@@ -208,7 +208,7 @@ void MNRLAdapter::parse(unordered_map<string, Element*> &elements,
         }
         
     } catch (...) {
-        cerr << "Unexpected Parsing Error. Exiting." << endl;
+        cerr << "Unexpected Parsing Error. Exiting." << std::endl;
         exit(1);
     }
     

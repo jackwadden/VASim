@@ -292,7 +292,7 @@ string Counter::toANML() {
 /*
  *
  */
-shared_ptr<MNRLNode> Counter::toMNRLObj() {
+MNRLNode& Counter::toMNRLObj() {
     
     MNRLDefs::CounterMode m;
     switch(mode) {
@@ -307,22 +307,22 @@ shared_ptr<MNRLNode> Counter::toMNRLObj() {
             break;
     }
     
-    shared_ptr<MNRLUpCounter> c =
-        shared_ptr<MNRLUpCounter>(new MNRLUpCounter(
+    MNRLUpCounter* c =
+        new MNRLUpCounter(
             target,
             m,
             id,
             MNRLDefs::EnableType::ENABLE_ON_ACTIVATE_IN,
             reporting,
             report_code,
-            shared_ptr<map<string,string>>(new map<string,string>())
-        ));
+            map<string,string>()
+        );
     
     if(eod) {
       c->setReportEnable(MNRLDefs::ReportEnableType::ENABLE_ON_LAST);
     }
         
-    return c;
+    return *c;
 }
 
 /**

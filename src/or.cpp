@@ -62,7 +62,7 @@ string OR::toANML() {
     return str;
 }
 
-shared_ptr<MNRLNode> OR::toMNRLObj() {
+MNRLNode& OR::toMNRLObj() {
     return toMNRLBool(MNRLDefs::BooleanMode::OR);
 }
 

@@ -64,7 +64,7 @@ string AND::toANML() {
     return str;
 }
 
-shared_ptr<MNRLNode> AND::toMNRLObj() {
+MNRLNode& AND::toMNRLObj() {
     return toMNRLBool(MNRLDefs::BooleanMode::AND);
 }
 

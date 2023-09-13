@@ -288,7 +288,7 @@ string STE::toANML() {
  * Returns a MNRL object corresponding to this STE.
  * Note: that this doesn't contain the connections
  */
-shared_ptr<MNRLNode> STE::toMNRLObj() {
+MNRLNode& STE::toMNRLObj() {
     
     MNRLDefs::EnableType en;
     switch(start) {
@@ -303,21 +303,20 @@ shared_ptr<MNRLNode> STE::toMNRLObj() {
         break;
     }
     
-    shared_ptr<MNRLHState> s =
-        shared_ptr<MNRLHState>(new MNRLHState(
+    MNRLHState *s =new MNRLHState(
                                               symbol_set,
                                               en,
                                               id,
                                               reporting,
-                                              false, // latched
-                                              report_code,
-                                              shared_ptr<map<string,string>>(new map<string,string>())
-                                              ));
+                                              report_code, 
+					      false, // latched
+                                              map<string,string>()
+                                              );
     if(eod) {
       s->setReportEnable(MNRLDefs::ReportEnableType::ENABLE_ON_LAST);
     }
     
-    return s;
+    return *s;
 }
 
 /**
