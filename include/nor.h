@@ -21,7 +21,7 @@ public:
     virtual bool calculate();
     virtual std::string toString();
     virtual std::string toANML();
-    virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj();
+    virtual MNRL::MNRLNode& toMNRLObj();
     virtual bool canActivateNoEnable();
 };
 #endif

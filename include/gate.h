@@ -13,7 +13,7 @@
 class Gate: public SpecialElement {
 
 protected:
-    std::shared_ptr<MNRL::MNRLBoolean> toMNRLBool(MNRL::MNRLDefs::BooleanMode);
+    MNRL::MNRLBoolean& toMNRLBool(MNRL::MNRLDefs::BooleanMode);
 
 public:
 
@@ -24,7 +24,7 @@ public:
    
     virtual std::string toString() = 0;
     virtual std::string toANML();
-    virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj() = 0;
+    virtual MNRL::MNRLNode& toMNRLObj() = 0;
     virtual bool isStateful();
 };
 #endif

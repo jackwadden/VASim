@@ -64,7 +64,7 @@ string Inverter::toANML() {
     return str;
 }
 
-shared_ptr<MNRLNode> Inverter::toMNRLObj() {
+MNRLNode& Inverter::toMNRLObj() {
     return toMNRLBool(MNRLDefs::BooleanMode::NOT);
 }
 

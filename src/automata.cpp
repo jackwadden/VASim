@@ -1658,7 +1658,7 @@ void Automata::automataToMNRLFile(string out_fn) {
     
     // add all the elements
     for(auto el : elements) {
-        net.addNode(el.second->toMNRLObj());
+        net.addNode((el.second)->toMNRLObj());
     }
     
     // add all the connections

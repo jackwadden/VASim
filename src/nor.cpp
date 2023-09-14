@@ -62,7 +62,7 @@ string NOR::toANML() {
     return str;
 }
 
-shared_ptr<MNRLNode> NOR::toMNRLObj() {
+MNRLNode& NOR::toMNRLObj() {
     return toMNRLBool(MNRLDefs::BooleanMode::NOR);
 }
 

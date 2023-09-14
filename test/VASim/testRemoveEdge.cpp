@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
         fail(testname);
     
     // enable report gathering for the automata
-    ap.enableReport();
+    ap.setReport(true);//enableReport();
 
     // initialize simulation
     ap.initializeSimulation();

@@ -22,7 +22,7 @@ public:
     virtual bool isSpecialElement();
     virtual std::string toString() = 0;
     virtual std::string toANML() = 0;
-    virtual std::shared_ptr<MNRL::MNRLNode> toMNRLObj() = 0;
+    virtual MNRL::MNRLNode& toMNRLObj() = 0;
     virtual std::string toHDL(std::unordered_map<std::string, std::string> id_reg_map);
 };
 #endif

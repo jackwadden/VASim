@@ -30,9 +30,9 @@ class MNRLAdapter{
                std::string *,
                std::vector<SpecialElement*>&);
         
-        STE *parseSTE(std::shared_ptr<MNRL::MNRLHState>);
-        Gate *parseGate(std::shared_ptr<MNRL::MNRLBoolean>);
-        Counter *parseCounter(std::shared_ptr<MNRL::MNRLUpCounter>);
+        STE *parseSTE(/*std::shared_ptr<*/MNRL::MNRLHState/*>*/);
+        Gate *parseGate(/*std::shared_ptr<*/MNRL::MNRLBoolean/*>*/);
+        Counter *parseCounter(/*std::shared_ptr<*/MNRL::MNRLUpCounter/*>*/);
 };
 
 #endif

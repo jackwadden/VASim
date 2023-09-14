@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
 
     // 
     Automata ap;
-    ap.enableQuiet();
+    ap.setQuiet(true);//enableQuiet();
     
     // global ID counter
     uint32_t id_counter = 0;
@@ -72,7 +72,7 @@ int main(int argc, char * argv[]) {
         fail(testname);
     
     // enable report gathering for the automata
-    ap.enableReport();
+    ap.setReport(true);//enableReport();
 
     // initialize simulation
     ap.initializeSimulation();
