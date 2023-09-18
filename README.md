@@ -1,55 +1,19 @@
 # Virtual Automata Simulator (VASim)
 
-VASim is a homogeneous non-deterministic finite automata simulator. Homogeneous automata do not contain epsilon transitions, and also have the property that all incoming transitions for a particular state have the same rule.
+VASim is a homogeneous non-deterministic finite automata (NFA) simulator. Homogeneous automata do not contain epsilon transitions, and also have the property that all incoming transitions for a particular state have the same symbol set.
 
 VASim can parse, transform, simulate, and profile homogeneous automata, and is meant to be an open tool for automata processing research. VASim can also be extended to support arbitrary automata processing elements other than traditional states.
 
 ## Installation
 
-VASim is designed to run on 64-bit machines GCC 4.9+. Users have successfully compiled on 32-bit platforms but these builds are not officially supported. Below are the commands used to install on all tested platforms.
+VASim is designed to run on 64-bit machines, Intel/AMD x86-64 or Apple's M processors. Below are the commands used to install on all tested platforms.
 
-### Ubuntu Linux (14.04/16.04 with gcc 5.0+)
+### Ubuntu Linux (18.04/20.04/22.04) and MacOS (M1 or Intel)
 ```bash
 
 $ git clone https://github.com/jackwadden/VASim.git
 $ cd VASim
 $ make
-
-```
-
-### MacOS (10.11+)
-```bash
-
-$ brew install nasm
-$ brew install gcc5
-$ git clone https://github.com/jackwadden/VASim.git
-$ cd VASim
-$ make
-
-```
-
-### Windows 7 (Cygwin64)
-
-Dependencies:
-- Cygwin64
-- Git (https://git-scm.com/download/win)
-
-First you must install all required Cygwin64 software tools
-```bash
-
-C:\> chdir cygwin64
-C:\cygwin64> move <path-to-setup-x86_64.exe> .
-C:\cygwin64> setup-x86_64.exe -q -P wget -P gcc-g++ -P make -P diffutils -P libmpfr-devel -P libgmp-devel -P libmpc-devel -P nasm
-
-```
-Once Cygwin64 is configured, VASim should compile correctly in a Cygwin terminal.
-
-```bash
-
-$ git clone https://github.com/jackwadden/VASim.git
-$ cd VASim
-$ make
-
 
 ```
 
@@ -98,7 +62,7 @@ int main(int argc, char * argv[]) {
     cout << ap.getReportVector().size() << endl;
 
     // enable report gathering for the automata
-    ap.enableReport();
+    ap.setReport(true);
 
     // initialize simulation
     ap.initializeSimulation();
@@ -113,6 +77,8 @@ int main(int argc, char * argv[]) {
 
 }
 ```
+
+To compile against the library, use the Makefile in test/VASim.
 
 ## Issues
 
