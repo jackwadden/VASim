@@ -6,6 +6,8 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
+#include <cassert>
+
 #include "errno.h"
 
 #define FROM_INPUT_STRING false
@@ -35,6 +37,7 @@ void usage(char * argv) {
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA (EXPERIMENTAL)\n");    
     printf("  -B, --blif                Output automata as .blif circuit for place-and-route using VPR.\n");
     printf("      --graph               Output automata as .graph file for HyperScan.\n");
+    printf("  -S, --split               Specify number of seperate automata files to split automata into.\n");
 
     printf("\n OPTIMIZATIONS:\n");    
     printf("  -O, --optimize-global     Run all optimizations on all automata subgraphs.\n");
@@ -101,6 +104,8 @@ int main(int argc, char * argv[]) {
     uint32_t dump_state_cycle = 0;
     bool widen = false;
     bool two_stride = false;
+    bool split = false;
+    uint32_t split_count = 0;
     
     // long option switches
     const int32_t graph_switch = 1000;
@@ -111,7 +116,7 @@ int main(int argc, char * argv[]) {
     const int32_t two_stride_switch = 1005;
     
     int c;
-    const char * short_opt = "thsqrbnfcdBDeamxipOLT:P:";
+    const char * short_opt = "thsqrbnfcdBDeamxipOLT:P:S:";
 
     struct option long_opt[] = {
         {"help",          no_argument, NULL, 'h'},
@@ -134,6 +139,7 @@ int main(int argc, char * argv[]) {
         {"remove-ors",         no_argument, NULL, 'x'},
         {"thread-width",         required_argument, NULL, 'T'},
         {"thread-height",         required_argument, NULL, 'P'},
+        {"split",         required_argument, NULL, 'S'},
         {"graph",         no_argument, NULL, graph_switch},
         {"enforce-fanin",         required_argument, NULL, fanin_switch},
         {"enforce-fanout",         required_argument, NULL, fanout_switch},
@@ -216,6 +222,11 @@ int main(int argc, char * argv[]) {
 
         case 'P':
             num_threads_packets = atoi(optarg);
+            break;
+
+        case 'S':
+            split = true;
+            split_count = atoi(optarg);
             break;
 
         case 'D':
@@ -536,6 +547,31 @@ int main(int argc, char * argv[]) {
         // Emit as HDL
         if(to_hdl) {
             a->automataToHDLFile("automata_" + to_string(counter) + ".v");
+        }
+
+        // Emit as multiple files
+        if(split) {
+
+            vector<Automata*> components = ap.splitConnectedComponents();
+
+            int num_components = components.size();
+            int num_automata_per_file = num_components / split_count;
+            int left_overs = num_components % split_count;
+
+            assert(num_components == (num_automata_per_file * split_count + left_overs));
+
+            for(int i = 0; i < split_count; i++){
+                Automata first = Automata(*components[i * num_automata_per_file]);
+                for(int j = 0; j < num_automata_per_file; j++)
+                    first.unsafeMerge(components[i * num_automata_per_file + j]);
+                if(i == (split_count - 1)){
+                    for(int j = split_count * num_automata_per_file; j < num_components; j++){
+                        first.unsafeMerge(components[j]);
+                    }
+                }
+                first.finalizeAutomata();
+                first.automataToANMLFile("automata_split_" + std::to_string(i) + ".anml");
+            }
         }
 
         // Emit as .blif circuit file
