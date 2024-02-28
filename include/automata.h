@@ -1,5 +1,5 @@
 /**
- * @file
+ * Header file for VASim
  */
 #ifndef AUTOMATA_H
 #define AUTOMATA_H
@@ -59,7 +59,6 @@ private:
     std::vector<SpecialElement*> latchedSpecialElements;
     std::vector<SpecialElement*> activateNoInputSpecialElements;
 
-
     // Simulation Statistics
     std::vector<std::pair<uint64_t, std::string>> reportVector;
     std::unordered_map<uint32_t, std::list<std::string>> activationVector;
@@ -116,6 +115,7 @@ public:
     void automataToNFAFile(std::string fn);
     void automataToANMLFile(std::string fn);
     void automataToMNRLFile(std::string fn);
+    void automataToHLSFiles(int N, int split_factor);
     void automataToHDLFile(std::string fn);
     void automataToBLIFFile(std::string fn);
     void automataToGraphFile(std::string fn);
