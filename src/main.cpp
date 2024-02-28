@@ -6,6 +6,8 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
+#include <cassert>
+
 #include "errno.h"
 
 #define FROM_INPUT_STRING false
@@ -36,8 +38,8 @@ void usage(char * argv) {
     printf("  -F, --hls <num automata>  Output automata as VITIS HLS-compatible C++ (EXPERIMENTAL - only supports STEs) Provide number of automata\n");
     printf("  -B, --blif                Output automata as .blif circuit for place-and-route using VPR.\n");
     printf("      --graph               Output automata as .graph file for HyperScan.\n");
-    printf("  -S, --split               Specify number of connected components in separate files.\n");
-
+    printf("  -S, --split               Specify number of seperate automata files to split automata into.\n");
+    
     printf("\n OPTIMIZATIONS:\n");    
     printf("  -O, --optimize-global     Run all optimizations on all automata subgraphs.\n");
     printf("  -L, --optimize-logal      Run all optimizations on automata subgraphs after partitioned among parallel threads.\n");
