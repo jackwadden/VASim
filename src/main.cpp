@@ -6,6 +6,8 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
+#include <cassert>
+
 #include "errno.h"
 
 #define FROM_INPUT_STRING false
@@ -33,9 +35,11 @@ void usage(char * argv) {
     printf("  -n, --nfa                 Output automata as nfa readable by Michela Becchi's tools\n");    
     printf("  -D, --dfa                 Convert automata to DFA\n");
     printf("  -f, --hdl                 Output automata as one-hot encoded verilog HDL for execution on an FPGA (EXPERIMENTAL)\n");    
+    printf("  -F, --hls <num automata>  Output automata as VITIS HLS-compatible C++ (EXPERIMENTAL - only supports STEs) Provide number of automata\n");
     printf("  -B, --blif                Output automata as .blif circuit for place-and-route using VPR.\n");
     printf("      --graph               Output automata as .graph file for HyperScan.\n");
-
+    printf("  -S, --split               Specify number of seperate automata files to split automata into.\n");
+    
     printf("\n OPTIMIZATIONS:\n");    
     printf("  -O, --optimize-global     Run all optimizations on all automata subgraphs.\n");
     printf("  -L, --optimize-logal      Run all optimizations on automata subgraphs after partitioned among parallel threads.\n");
@@ -45,7 +49,7 @@ void usage(char * argv) {
     printf("      --enforce-fanin=<int> Enforces a fan-in limit, replicating nodes until no node has a fan-in of larger than <int>.\n");
     printf("      --enforce-fanout=<int> Enforces a fan-out limit, replicating nodes until no node has a fan-out of larger than <int>.\n");
     printf("      --widen               Pads each state with a zero state for patterns where the input is 16 bits (common in YARA rules).\n");
-    printf("      --2-stride             Two strides automata if possible.\n");
+    printf("      --2-stride            Two strides automata if possible.\n");
     
     printf("\n MULTITHREADING:\n");
     printf("  -T, --threads             Specify number of threads to compute connected components of automata\n");
@@ -91,7 +95,9 @@ int main(int argc, char * argv[]) {
     bool to_nfa = false;
     bool to_dfa = false;
     bool to_hdl = false;
+    bool to_hls = false;
     bool to_blif = false;
+    bool cc = false;
     uint32_t num_threads = 1;
     uint32_t num_threads_packets = 1;
     bool to_graph = false;
@@ -101,6 +107,9 @@ int main(int argc, char * argv[]) {
     uint32_t dump_state_cycle = 0;
     bool widen = false;
     bool two_stride = false;
+    bool split = false;
+    uint32_t num_automata = 0;
+    uint32_t split_count = 0;
     
     // long option switches
     const int32_t graph_switch = 1000;
@@ -111,7 +120,7 @@ int main(int argc, char * argv[]) {
     const int32_t two_stride_switch = 1005;
     
     int c;
-    const char * short_opt = "thsqrbnfcdBDeamxipOLT:P:";
+    const char * short_opt = "thsqrbnfcdBDeamxipF:OLT:P:S:";
 
     struct option long_opt[] = {
         {"help",          no_argument, NULL, 'h'},
@@ -125,6 +134,7 @@ int main(int argc, char * argv[]) {
         {"nfa",         no_argument, NULL, 'n'},
         {"dfa",			no_argument, NULL, 'D'},
         {"hdl",         no_argument, NULL, 'f'},
+        {"hls",         no_argument, NULL, 'F'},
         {"blif",         no_argument, NULL, 'B'},
         {"profile",         no_argument, NULL, 'p'},
         {"charset",         no_argument, NULL, 'c'},
@@ -134,6 +144,7 @@ int main(int argc, char * argv[]) {
         {"remove-ors",         no_argument, NULL, 'x'},
         {"thread-width",         required_argument, NULL, 'T'},
         {"thread-height",         required_argument, NULL, 'P'},
+        {"split",         required_argument, NULL, 'S'},
         {"graph",         no_argument, NULL, graph_switch},
         {"enforce-fanin",         required_argument, NULL, fanin_switch},
         {"enforce-fanout",         required_argument, NULL, fanout_switch},
@@ -218,6 +229,11 @@ int main(int argc, char * argv[]) {
             num_threads_packets = atoi(optarg);
             break;
 
+        case 'S':
+            split = true;
+            split_count = atoi(optarg);
+            break;
+
         case 'D':
             to_dfa = true;
             break;
@@ -229,9 +245,18 @@ int main(int argc, char * argv[]) {
         case 'f':
             to_hdl = true;
             break;
+        
+        case 'F':
+            to_hls = true;
+            num_automata = atoi(optarg);
+            break;
 
         case 'B':
             to_blif = true;
+            break;
+        
+        case 'C':
+            cc = true;
             break;
 
         case 'h':
@@ -386,9 +411,15 @@ int main(int argc, char * argv[]) {
     // Partition automata into connected components
     if(!quiet)
         cout << "Finding connected components..." << endl;
+
     vector<Automata*> ccs;
-    ccs = ap.splitConnectedComponents();
-    
+    ccs = ap.splitConnectedComponents();    
+
+     std::cout << "Full Automata " << std::to_string(ap.getElements().size()) << std::endl;
+
+    int index = 0;
+    for(auto cc: ccs)
+        std::cout << "Automata " << index++ << " size: " << std::to_string(cc->getElements().size()) << std::endl;
 
     if(!quiet)
         cout << endl;
@@ -421,10 +452,21 @@ int main(int argc, char * argv[]) {
         counter++;
     }
 
+    // std::cout << "Post merging" << std::endl;
+    // index = 0;
+    // for(auto cc: ccs)
+    //     std::cout << "Automata " << index++ << " size: " << std::to_string(cc->getElements().size()) << std::endl;
+
+
     // finalize copied automata
     for(Automata *a : merged) {
         a->finalizeAutomata();
     }
+
+    // std::cout << "Post finalizing" << std::endl;
+    // index = 0;
+    // for(auto cc: ccs)
+    //     std::cout << "Automata " << index++ << " size: " << std::to_string(cc->getElements().size()) << std::endl;
     
     if(!quiet)
         cout << endl;
@@ -432,7 +474,6 @@ int main(int argc, char * argv[]) {
     // Preprocess all automata partitions
     // Set up multi-dimensional structure for parallelization
     Automata *automata[num_threads][num_threads_packets];
-    
     
 
     if(optimize_local) {
@@ -444,7 +485,7 @@ int main(int argc, char * argv[]) {
     }
 
     counter = 0;
-    for(Automata *a : merged) {        
+    for(Automata *a : merged) {
         /*********************
          * LOCAL OPTIMIZATIONS
          *********************/     
@@ -536,6 +577,38 @@ int main(int argc, char * argv[]) {
         // Emit as HDL
         if(to_hdl) {
             a->automataToHDLFile("automata_" + to_string(counter) + ".v");
+        }
+
+        // Emit as HLS
+        if(to_hls) {
+            int split_factor = 5;
+            a->automataToHLSFiles(num_automata, split_factor);
+        }
+
+        // Emit as split components
+        if(split) {
+
+            vector<Automata*> components = ap.splitConnectedComponents();    
+
+            int num_components = components.size();
+            int num_automata_per_file = num_components / split_count;
+
+            for(int i = 0; i < split_count; i++){
+                Automata first = Automata(*components[i * num_automata_per_file]);
+                for(int j = 0; j < num_automata_per_file; j++)
+                    first.unsafeMerge(components[i * num_automata_per_file + j]);
+                if(i == (split_count - 1)){
+                    // Put the remaining automata in the last split file
+                    for(int j = split_count * num_automata_per_file; j < num_components; j++){
+                        first.unsafeMerge(components[j]);
+                    }
+                }
+                first.finalizeAutomata();
+                if(to_mnrl)
+                    first.automataToMNRLFile("automata_split_" + to_string(i) + ".mnrl");
+                else
+                    first.automataToANMLFile("automata_split_" + to_string(i) + ".anml");
+            }
         }
 
         // Emit as .blif circuit file

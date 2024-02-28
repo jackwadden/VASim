@@ -2,6 +2,8 @@
  * @file
  */
 #include "automata.h"
+#include <cassert>
+//#include <bits/stdc++.h>
 
 using namespace std;
 using namespace MNRL;
@@ -301,10 +303,6 @@ void Automata::rawAddSpecialElement(SpecialElement *specel) {
     }
 }
 
-
-
-
-
 /**
  * Adds all outputs of ste2 to ste1 then removes ste2 from the automata. Used in common prefix merging algorithm.
  */
@@ -344,6 +342,7 @@ vector<Automata*> Automata::splitConnectedComponents() {
             continue;
         // Create new automata in vector
         Automata *m = new Automata();
+
         connectedComponents.push_back(m);
         index++;
 
@@ -1237,7 +1236,7 @@ void Automata::automataToDotFile(string out_fn) {
         }
 
 
-        // heatmap color
+        // heatmap color:0
         str.append("\" style=filled fillcolor="); 
         if(profile) {
             //fillcolor = getElementColorLog(e.first);
@@ -1695,6 +1694,444 @@ void Automata::automataToMNRLFile(string out_fn) {
     // write the net to a file
     net.exportToFile(out_fn);
     
+}
+
+/**
+ * Outputs automata to Vitis-HLS
+ * 
+**/
+
+void writeHeaderFile(int num_components, string return_type, string tree_header) {
+    // Generate header file
+    string str = "";
+    str += "#ifndef _AUTOMATA_HPP_\n";
+    str += "#define _AUTOMATA_HPP_\n";
+    str += "\n";
+    str += "#include \"../krnl_automata.hpp\"\n";
+    str += "\n";
+
+    // Fill in the tree header if there is one
+    str += tree_header;
+    str += "\n\n";
+
+    // Fill in the functions for each automaton
+    for(int i = 0; i < num_components; i++) {
+        str += "ap_uint<1> automata_" + std::to_string(i) + "(uint8_t input);\n";
+    }
+    str += "\n";
+    str += "#endif";
+
+    // Write header to file 'automata.hpp'
+    writeStringToFile(str, "automata.hpp");
+}
+
+string generateHTree(int num_automata, int split_factor) {
+    // Do we want to balance partitioning by # states?
+    // For now we're gonna go the lazy route
+    string str = "";
+    string header_str = "// ROOT (LEVEL 0)\n";
+    
+    str += "////////////////////////////////////////\n";
+    str += "//  Copyright goes here\n";
+    str += "//  This HLS was emitted by VASim\n";
+    str += "////////////////////////////////////////\n";
+    str += "\n";
+
+    // Print headers
+    str += "#include \"automata.hpp\"\n";
+    str += "\n";
+
+    // Some details for debugging
+    str += "// This file was generated for " + std::to_string(num_automata) + " automata.\n";
+    str += "// with split factor " + std::to_string(split_factor) + "\n\n";
+
+    // Root function automata(input)
+    str += "automata_output automata(uint8_t input){\n";
+    header_str += "automata_output automata(uint8_t input);\n\n";
+    str += "\t#pragma HLS INLINE OFF\n\n";
+
+    // We assume that we have more than split_factor automata
+    assert(num_automata > split_factor);
+
+    // This is how we'll pass ranges
+    struct range {
+        int range[2];
+        std::string name;
+    };
+
+    // Start breaking the automata up recursively
+    std::queue<range> q;
+    int split_size = num_automata / split_factor;
+    int left_overs = num_automata % split_factor;
+
+    std::cout << "Num automata: " << num_automata << std::endl;
+    std::cout << "Split Size: " << split_size << std::endl;
+    std::cout << "Left Overs: " << left_overs << std::endl;
+
+    // The root function has a report = OR(all automata)
+    str += "\tstatic uint8_t report = ";
+    for(int i = 0; i < split_factor; i++) {
+        string automata_branch = "automata_tree_" + std::to_string(i);
+        str += automata_branch + "(input)";
+
+        // If not the last branch for this level, then |
+        if(i != (split_factor - 1)) {
+            str += " | ";
+        }
+
+        range tmp;
+        tmp.range[0] = split_size * i;
+        tmp.range[1] = split_size * i + split_size - 1;
+        tmp.name = automata_branch;
+        q.push(tmp);
+    }
+    str += ";\n\n";
+    str += "\treturn report;\n";
+    str += "}\n\n";
+
+    // Now lets start processing the branches / leaves
+
+    std::cout << "Contents of the Queue" << std::endl;
+    while (!q.empty()) {
+        range front = q.front();
+        int automata_left = (front.range[1] - front.range[0] + 1);
+        split_size = automata_left / split_factor;
+        left_overs = automata_left % split_factor;
+        std::cout << "\t Range:[" << front.range[0] << ", " << front.range[1] << "], Left: " << automata_left << " Name:" << front.name << std::endl;
+        
+        // Check if leaf
+        if(automata_left <= split_factor){
+            str += "uint8_t " + front.name + "(uint8_t input){\n";
+            header_str += "uint8_t " + front.name + "(uint8_t input);\n";
+            str += "\t#pragma HLS INLINE OFF\n\n";
+            str += "\tstatic uint8_t report = ";
+            std::cout <<"Found a LEAF!!: " << front.range[0] << "-" << front.range[1] << std::endl;
+            for(int i = front.range[0]; i <= front.range[1]; i++){
+                str += "automata_" + std::to_string(i) + "(input)";
+                if(i != front.range[1]) { 
+                    str += " | ";
+                }
+            }
+            str += ";\n\n";
+            str += "\treturn report;\n";
+            str += "}\n\n";
+        }
+        // Generate name of function based on depth
+        else {
+            str += "uint8_t " + front.name + "(uint8_t input){\n";
+            header_str += "uint8_t " + front.name + "(uint8_t input);\n";
+            str += "\t#pragma HLS INLINE OFF\n\n";
+            str += "\tstatic uint8_t report = ";
+
+            for(int i = 0; i < split_factor; i++){
+                string new_name = front.name + "_" + std::to_string(i);
+                str += new_name + "(input)";
+                if(i != (split_factor - 1)){
+                    str += " | ";
+                }
+                range tmp;
+                tmp.range[0] = front.range[0] + (split_size * i);
+                tmp.range[1] = front.range[0] + (split_size * i + split_size - 1);
+                tmp.name = new_name;
+                q.push(tmp);
+            }
+            str += ";\n\n";
+            str += "\treturn report;\n";
+            str += "}\n\n";
+        }
+
+        q.pop();
+    }
+
+    writeStringToFile(str, "automata_tree.cpp");
+
+    return header_str;
+}
+
+bool sort_automata_by_states (Automata* i,Automata* j) { 
+    return (i->getElements().size() < j->getElements().size());
+}
+
+// Function for automataToHLSFiles to generate ranges of values for symbol sets
+vector<pair<int, int> > getRanges(vector<uint32_t> symbolSet){
+
+    // Sort the symbols
+    std::sort (symbolSet.begin(), symbolSet.end());
+
+    // We're going to return pairs representing continuous numerical ranges
+    vector<pair<int, int> > ranges;
+
+    int first, second;
+
+    for(int i = 0; i < symbolSet.size(); i++){
+        int current = symbolSet[i];
+
+        if(i == 0){ // Start
+            first = current;
+            second = first;
+        }
+        // If contiguous
+        else if(current == (second + 1)){
+            second = current;
+        }
+        // Not contiguous
+        else {
+            pair<int, int> temp(first, second);
+            ranges.push_back(temp);
+
+            first = current;
+            second = current;
+        }
+    }
+
+    pair<int, int> temp(first, second);
+    ranges.push_back(temp);
+    return ranges;
+}
+
+void Automata::automataToHLSFiles(int N, int split_factor) {
+
+    bool or_all = false;
+    bool one_function_per_file = false;
+    bool inlined = false;
+    bool single_file = true;
+    bool sort_automata = false;
+
+    // This is representing character sets in the AP way
+    // They are stored in memories and evaluated at runtime; this is SLOW
+    bool bitwise = false;
+
+    vector<Automata*> connected_components = splitConnectedComponents();
+
+    if(sort_automata){
+        std::sort (connected_components.begin(), connected_components.end(), sort_automata_by_states);
+    }
+
+    int index = 0;
+    for(auto cc: connected_components)
+        std::cout << "Automata " << index++ << " size: " << std::to_string(cc->getElements().size()) << std::endl;
+
+    assert(N <= connected_components.size());
+
+    Automata first = Automata(*connected_components[0]);
+
+    // Chooses the first N components
+    vector<Automata*> subset;
+    for (int i = 0; i < N; i++) {
+        subset.push_back(connected_components[i]);
+        first.unsafeMerge(connected_components[i]);
+    }
+    first.finalizeAutomata();
+
+    // Drop the N components into an Automata file
+    first.automataToANMLFile("Automata.anml");
+
+    // Update num_components
+    int num_components = subset.size();
+
+    std::cout << "Splitting automata into " << num_components << " components" << std::endl;
+    std::cout << "Where each component is represented by a separate HLS function" << std::endl;
+
+    // Set the return type; one bit per automaton
+    // TODO: we may have multiple report states in the future
+    string return_type = "ap_uint<" + std::to_string(N) + ">";
+    
+    // Generate kernel call string
+    string str = "";
+    str += "";
+    
+    int i = 0;
+    // For each automata component in the graph
+    for(auto aut : subset){
+        string automata_name = "automata_" + std::to_string(i);
+
+        if(!single_file)
+            str = "";
+
+        if(!single_file || i == 0){
+            // Print copyright
+            str += "////////////////////////////////////////\n";
+            str += "//  Copyright goes here\n";
+            str += "//  This HLS was emitted by VASim\n";
+            str += "////////////////////////////////////////\n";
+            str += "\n";
+        }
+        string report_string = "return (";
+
+        // Print headers
+        if(!single_file || i == 0){
+            str += "#include \"automata.hpp\"\n";
+        }
+
+        str += "\n";
+
+        // Print function 
+        // TO DO: Future automata may have multiple return states
+        str += "ap_uint<1> " + automata_name + "(uint8_t input) {\n";
+
+        if(!inlined)
+            str += "\t#pragma HLS INLINE OFF\n";
+
+        // Add pipeline pragma to make sure automaton finishes in one cycle!
+        str += "\t#pragma HLS pipeline II=1\n";
+
+        str += "\n";
+
+        // Stamp out states
+        str += "\t//States\n";
+        str += "\tstatic uint8_t input_r = 0;\n";
+        str += "\tstatic const ap_uint<1> start_state = 1;\n";
+
+        // For each state...
+        for(auto e : aut->getElements()){
+            Element *el = e.second;
+
+            // TODO: In the future support counters and gates
+            if(el->isSpecialElement()){
+                std::cout << "Element " << el->getId() + " is not an STE; FAIL\n";
+                exit(-1);
+            }
+            STE *s = static_cast<STE*>(el);
+            string s_id = s->getId();
+            char start = (s->isStart()) ? '1' : '0'; 
+            vector<uint32_t> integerSymbolSet = s->getIntegerSymbolSet();
+
+            // Create state register for STE
+            str += "\tstatic ap_uint<1> state_" + s_id + "_enable = " + start + ";\n";
+            
+            // Create symbol set array for STE
+            if(bitwise) {
+                str += "\tconst uint8_t state_" + s_id + "_char[" + std::to_string(integerSymbolSet.size()) + "] = {";
+                // Populate symbol set array with symbol set of STE
+                for(int i = 0; i < integerSymbolSet.size(); i++) {
+                    str += std::to_string(integerSymbolSet[i]);
+                    if(i != (integerSymbolSet.size() - 1)){
+                        str += ",";
+                    }
+                }
+                str += "};\n";
+                str += "\n";
+            }
+        }
+        
+        // Add State Logic
+        str += "\t // State Logic\n";
+
+        for(auto e : aut->getElements()){
+            Element *el = e.second;
+
+            // TODO: For now only support NFA states; future add counters and OR/AND gates
+            if(el->isSpecialElement()){
+                std::cout << "Element " << el->getId() + " is not an STE; FAIL\n";
+                exit(-1);
+            }
+
+            STE *s = static_cast<STE*>(el);
+            string s_id = s->getId();
+            vector<uint32_t> integerSymbolSet = s->getIntegerSymbolSet();
+
+            str += "\tap_uint<1> ste_" + s_id + " = (state_" + s_id + "_enable) &&\n";
+            str += "\t\t(";
+
+            // This is a * state
+            if(bitwise){
+                if(integerSymbolSet.size() == 256) {
+                    str += "1";
+                }
+                else {
+                    // There is room to make this more concise
+                    for(int i = 0; i < integerSymbolSet.size(); i++){
+                        str += "(input_r == state_" + s_id + "_char[" + std::to_string(i) + "])";
+                        if(i != integerSymbolSet.size() - 1){
+                            str += " || \n";
+                        }
+                    }
+                }
+            }
+            else{
+                vector<pair<int, int>> ranges = getRanges(integerSymbolSet);
+                for(int i = 0; i < ranges.size(); i++){
+                    pair<int,int> pair = ranges[i];
+                    if(pair.first == pair.second){
+                        str += "(input_r == " + std::to_string(pair.first) + ")";
+                    }
+                    else{
+                        str += "(input_r >= " + std::to_string(pair.first) + "  && input_r <= " + std::to_string(pair.second) + ")";
+                    }
+                    if(i != (ranges.size() - 1)){
+                        str += "|| ";
+                    }
+                }
+
+            }
+            str += ");\n";
+            str += "\n";
+        }
+
+        // Register updates (edges)
+        str += "\t// Edges\n";
+        str += "\tinput_r = input;\n";
+
+        bool first = true;
+        for(auto e: aut->getElements()){
+            Element *el = e.second;
+            if(el->isSpecialElement()){
+                std::cout << "Element " << el->getId() + " is not an STE; FAIL\n";
+                exit(-1);
+            }
+            STE *s = static_cast<STE*>(el);
+            string s_id = s->getId();
+
+            if(s->isReporting()){
+                if(!first){
+                    report_string += " || ";
+                }
+                else{
+                    first = false;
+                }
+                report_string += "ste_" + s_id;
+            }
+
+            str += "\tstate_" + s_id + "_enable = ";
+            if(s->isStart()) { // For now we only support all-data
+                str += "start_state;\n"; // Every cycle this state is enabled
+            }
+            else {
+                str += "(";
+                auto in_edges = s->getInputs();
+                bool first = true;
+                for(auto in : in_edges){
+                    if(!first){
+                        str += " || ";
+                    }
+                    else {
+                        first = false;
+                    }
+                    str += "ste_" + in.first;
+                }
+                str += ");\n";
+            }
+        }
+
+        report_string += ");";
+        str += "\t" + report_string + "\n";
+        str += "}\n\n";
+
+        if(!single_file)
+            writeStringToFile(str, "automata_" + std::to_string(i) + ".cpp");
+        i++;
+    }
+    if(single_file)
+        writeStringToFile(str, "automata_single_file.cpp");
+    
+    string tree_header = "";
+    
+    // What should this threashold me?
+    if(N > 512){
+        tree_header += generateHTree(N, split_factor);
+    }
+
+    writeHeaderFile(num_components, return_type, tree_header);
 }
 
 /**
@@ -2503,7 +2940,7 @@ void Automata::specialElementSimulation2() {
         if(result){
             spel->enableChildSTEs(&enabledSTEs);
             spel->enableChildSpecialElements(&enabledSpecialElements);
-        }
+        } 
     }
 }
 
@@ -2532,7 +2969,7 @@ void Automata::specialElementSimulation() {
         queued[e.second->getIntId()] = false;
     }
 
-    // fill work_q with specel children of STEs
+    // fill work_q with special children of STEs
     for(auto e : elements) {
         if(!e.second->isSpecialElement()){
 
