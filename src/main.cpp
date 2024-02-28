@@ -108,8 +108,8 @@ int main(int argc, char * argv[]) {
     bool widen = false;
     bool two_stride = false;
     bool split = false;
-    uint32_t split_size = 0;
     uint32_t num_automata = 0;
+    uint32_t split_count = 0;
     
     // long option switches
     const int32_t graph_switch = 1000;
@@ -231,7 +231,7 @@ int main(int argc, char * argv[]) {
 
         case 'S':
             split = true;
-            split_size = atoi(optarg);
+            split_count = atoi(optarg);
             break;
 
         case 'D':
@@ -588,24 +588,26 @@ int main(int argc, char * argv[]) {
         // Emit as split components
         if(split) {
 
-            int num_components = ccs.size();
-            int number_files = num_components / split_size;
-            int left_overs = num_components % split_size;
+            vector<Automata*> components = ap.splitConnectedComponents();    
 
-            for(int i = 0; i < number_files; i++){
-                Automata first = Automata(*ccs[i * split_size]);
-                for(int j = 0; j < split_size; j++)
-                    first.unsafeMerge(ccs[i * split_size + j]);
-                first.finalizeAutomata();
-                first.automataToANMLFile("automata_split_" + std::to_string(i) + ".anml");
-            }
+            int num_components = components.size();
+            int num_automata_per_file = num_components / split_count;
 
-            if(left_overs){
-                Automata first = Automata(*ccs[number_files * split_size]);
-                for(int i = number_files * split_size; i < num_components; i++)
-                    first.unsafeMerge(ccs[i]);
+            for(int i = 0; i < split_count; i++){
+                Automata first = Automata(*components[i * num_automata_per_file]);
+                for(int j = 0; j < num_automata_per_file; j++)
+                    first.unsafeMerge(components[i * num_automata_per_file + j]);
+                if(i == (split_count - 1)){
+                    // Put the remaining automata in the last split file
+                    for(int j = split_count * num_automata_per_file; j < num_components; j++){
+                        first.unsafeMerge(components[j]);
+                    }
+                }
                 first.finalizeAutomata();
-                first.automataToANMLFile("automata_split_" + std::to_string(number_files) + ".anml");
+                if(to_mnrl)
+                    first.automataToMNRLFile("automata_split_" + to_string(i) + ".mnrl");
+                else
+                    first.automataToANMLFile("automata_split_" + to_string(i) + ".anml");
             }
         }
 
