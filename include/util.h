@@ -6,6 +6,7 @@
 #define UTIL_H
 
 #include <bitset>
+#include <cstdint>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
