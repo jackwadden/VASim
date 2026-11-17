@@ -21,6 +21,8 @@ CXXFLAGS= -I$(IDIR) -I$(MNRL)/include -I$(PUGI)/src -pthread --std=c++11 -Wno-de
 OPTS = -Ofast
 ARFLAGS = rcs
 
+PUGI_CXXFLAGS= -Wno-self-move
+
 CXXFLAGS += $(OPTS)
 
 _DEPS = *.h
@@ -49,7 +51,7 @@ mnrl:
 pugi:	
 	$(info )
 	$(info Compiling PugiXML Library...)
-	$(MAKE) $(LIBPUGI) 
+	$(MAKE) $(LIBPUGI) ${PUGI_CXXFLAGS}
 
 $(TARGET): $(SRCDIR)/$(MAIN_CPP) $(LIBVASIM) $(LIBMNRL)
 	$(info  )
