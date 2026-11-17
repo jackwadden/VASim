@@ -1,1 +1,5 @@
 *.swp
+src/obj
+*.o
+*.a
+vasim
